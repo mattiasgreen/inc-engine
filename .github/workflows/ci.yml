@@ -36,8 +36,12 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Playwright Browsers
-        run: npx --yes playwright install --with-deps chromium
+      - name: Install Playwright (Global Environment)
+        run: |
+          npm install -g @playwright/test
+          npx playwright install --with-deps chromium
 
       - name: Run Playwright E2E Tests
-        run: npx --yes @playwright/test test
+        run: |
+          export NODE_PATH="$(npm root -g)"
+          npx playwright test
