@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/antigravity-community/schema/main/skills.json",
+  "entries": [
+    {
+      "path": ".agents/skills"
+    },
+    {
+      "path": "skills/engineering"
+    },
+    {
+      "path": "skills/productivity"
+    },
+    {
+      "path": "skills/in-progress"
+    },
+    {
+      "path": "skills/misc"
+    }
+  ]
+}
