@@ -254,11 +254,11 @@ function render() {
 
     ui.buy1Btn.textContent = `Buy 1 (${cost1.format()} E)`;
     ui.buy1Btn.disabled = !canAfford1;
-    ui.buy1Btn.className = `btn ${canAfford1 ? 'primary' : 'disabled'}`;
+    ui.buy1Btn.className = `btn btn-buy-1 ${canAfford1 ? 'primary' : 'disabled'}`;
 
     ui.buyMaxBtn.textContent = `Buy Max (${maxInfo.count})`;
     ui.buyMaxBtn.disabled = maxInfo.count <= 0;
-    ui.buyMaxBtn.className = `btn ${maxInfo.count > 0 ? 'secondary' : 'disabled'}`;
+    ui.buyMaxBtn.className = `btn btn-buy-max ${maxInfo.count > 0 ? 'secondary' : 'disabled'}`;
   }
 
   // Update Layer 0 Upgrades
@@ -288,11 +288,11 @@ function render() {
     if (isMax) {
       ui.btn.textContent = 'Maxed';
       ui.btn.disabled = true;
-      ui.btn.className = 'btn disabled';
+      ui.btn.className = 'btn btn-upgrade disabled';
     } else {
       ui.btn.textContent = `Upgrade (${cost.format()} E)`;
       ui.btn.disabled = !canAfford;
-      ui.btn.className = `btn ${canAfford ? 'primary' : 'disabled'}`;
+      ui.btn.className = `btn btn-upgrade ${canAfford ? 'primary' : 'disabled'}`;
     }
   }
 
@@ -304,7 +304,10 @@ function render() {
 
   document.getElementById('layer1-currency').textContent = layer1.currency.format();
   document.getElementById('layer1-passive-mult').textContent = `${passiveMult.toNumber().toFixed(2)}x`;
-  document.getElementById('layer1-pending').textContent = prestigeReward.format();
+  const pendingEl = document.getElementById('layer1-pending');
+  if (pendingEl) {
+    pendingEl.textContent = prestigeReward.format();
+  }
 
   const prestigeBtn = document.getElementById('btn-prestige');
   prestigeBtn.disabled = !canPrestige;
@@ -327,11 +330,11 @@ function render() {
     if (isMax) {
       ui.btn.textContent = 'Maxed';
       ui.btn.disabled = true;
-      ui.btn.className = 'btn disabled';
+      ui.btn.className = 'btn btn-upgrade disabled';
     } else {
       ui.btn.textContent = `Upgrade (${cost.format()} Cores)`;
       ui.btn.disabled = !canAfford;
-      ui.btn.className = `btn ${canAfford ? 'primary' : 'disabled'}`;
+      ui.btn.className = `btn btn-upgrade ${canAfford ? 'primary' : 'disabled'}`;
     }
   }
 }
