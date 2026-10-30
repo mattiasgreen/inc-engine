@@ -4,20 +4,28 @@
 import { BigNum } from './bignum.js';
 import {
   advanceTime,
-  advanceTicks,
   buyGenerator,
   buyUpgrade,
   resetLayer,
   getDerivedStats
 } from './core.js';
 
+function executeAction(state, config, action) {
+  if (action.type === 'buyGenerator') {
+    return buyGenerator(state, config, action.layerId, action.id, 1);
+  }
+  if (action.type === 'buyUpgrade') {
+    return buyUpgrade(state, config, action.layerId, action.id);
+  }
+  if (action.type === 'resetLayer') {
+    return resetLayer(state, config, action.layerId);
+  }
+  return state;
+}
+
 export class Simulator {
   constructor(config) {
     this.config = config;
-  }
-
-  buyGenerator(state, layerId, genId, countOrMax = 1) {
-    return buyGenerator(state, this.config, layerId, genId, countOrMax);
   }
 
   buyUpgrade(state, layerId, upgId) {
@@ -47,7 +55,7 @@ export class Simulator {
 
       const action = policy ? policy.decideAction(state, this.config) : null;
       if (!action) {
-        // No further actions to take; jump remaining time in one analytical step
+        // No further actions; jump remaining time analytically in one step
         const remainingMs = maxSimulatedMs - simulatedMs;
         if (remainingMs > 0) {
           const { nextState } = advanceTime(state, this.config, remainingMs);
@@ -58,33 +66,28 @@ export class Simulator {
       }
 
       const layerState = state.layers[action.layerId];
+
+      if (action.type === 'resetLayer') {
+        state = executeAction(state, this.config, action);
+        history.push({ simulatedMs, action });
+        continue;
+      }
+
       if (layerState && layerState.currency.gte(action.cost)) {
-        // Affordable immediately
-        if (action.type === 'buyGenerator') {
-          state = buyGenerator(state, this.config, action.layerId, action.id, 1);
-        } else if (action.type === 'buyUpgrade') {
-          state = buyUpgrade(state, this.config, action.layerId, action.id);
-        }
+        state = executeAction(state, this.config, action);
         history.push({ simulatedMs, action });
         continue;
       }
 
       // Action is not yet affordable: calculate time to next event
       const stats = getDerivedStats(state, this.config);
-      let prodPerTick = new BigNum(0);
-      for (const gen of this.config.layers.find(l => l.id === action.layerId)?.generators || []) {
-        const owned = layerState.generators[gen.id].owned;
-        if (owned.gt(0)) {
-          prodPerTick = prodPerTick.add(owned.mul(stats.generatorOutputs[action.layerId][gen.id]));
-        }
-      }
-
+      const prodPerTick = stats.layerProductionPerTick[action.layerId] || new BigNum(0);
       const cycleDuration = stats.effectiveCycleDurationMs;
       const ticksPerCycle = stats.tickYieldPerCycle;
-      const prodPerCycle = prodPerTick.mul(ticksPerCycle).toNumber();
+      const prodPerCycle = prodPerTick.mul(ticksPerCycle);
 
-      if (prodPerCycle <= 0) {
-        // No production: advance remaining time and stop
+      if (prodPerCycle.lte(0)) {
+        // No production in this layer: advance remaining time and stop
         const remainingMs = maxSimulatedMs - simulatedMs;
         const { nextState } = advanceTime(state, this.config, remainingMs);
         state = nextState;
@@ -92,9 +95,12 @@ export class Simulator {
         break;
       }
 
-      const deficit = action.cost.sub(layerState.currency).toNumber();
-      const cyclesNeeded = Math.max(1, Math.ceil(deficit / prodPerCycle));
-      let jumpMs = cyclesNeeded * cycleDuration;
+      // Compute cycles needed using BigNum division and ceiling
+      const deficit = action.cost.sub(layerState.currency);
+      const cyclesNeededBig = deficit.div(prodPerCycle).ceil();
+      const cyclesNeededNum = cyclesNeededBig.toNumber();
+      const safeCycles = Math.max(1, Math.min(cyclesNeededNum, 1e9));
+      let jumpMs = safeCycles * cycleDuration;
 
       const remainingMs = maxSimulatedMs - simulatedMs;
       if (jumpMs > remainingMs) {
@@ -109,14 +115,10 @@ export class Simulator {
         break;
       }
 
-      // If affordable after jump, buy it
+      // If affordable after jump, execute action
       const currentLayer = state.layers[action.layerId];
-      if (currentLayer.currency.gte(action.cost)) {
-        if (action.type === 'buyGenerator') {
-          state = buyGenerator(state, this.config, action.layerId, action.id, 1);
-        } else if (action.type === 'buyUpgrade') {
-          state = buyUpgrade(state, this.config, action.layerId, action.id);
-        }
+      if (currentLayer && currentLayer.currency.gte(action.cost)) {
+        state = executeAction(state, this.config, action);
         history.push({ simulatedMs, action });
       }
     }

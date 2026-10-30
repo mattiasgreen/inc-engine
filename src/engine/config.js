@@ -74,7 +74,7 @@ export const defaultGameConfig = {
           }
         },
         {
-          id: 'upg_gen1_boost',
+          id: 'upg_gen1_overdrive',
           name: 'Gen I Overdrive',
           description: 'Increases Generator I output by 1.75x per level',
           baseCost: 400,

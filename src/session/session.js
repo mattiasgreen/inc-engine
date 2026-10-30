@@ -22,6 +22,14 @@ export class GameSession {
     this.state = createInitialState(this.config);
     this.lastSavedAtMs = this.clock.nowMs();
     this.lastTickAtMs = this.clock.nowMs();
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          this.save();
+        }
+      });
+    }
   }
 
   getState() {
@@ -43,25 +51,27 @@ export class GameSession {
     return report;
   }
 
-  jumpTime(elapsedMs) {
-    const { nextState, report } = advanceTime(this.state, this.config, elapsedMs);
+  jumpTime(elapsedMs, options = {}) {
+    const { nextState, report } = advanceTime(this.state, this.config, elapsedMs, options);
     this.state = nextState;
     this.lastTickAtMs = this.clock.nowMs();
     return report;
   }
 
+  syncFromSimulation(newState) {
+    this.state = newState;
+    this.lastTickAtMs = this.clock.nowMs();
+  }
+
   buyGenerator(layerId, genId, countOrMax = 1) {
-    this.tickToNow();
     this.state = buyGenerator(this.state, this.config, layerId, genId, countOrMax);
   }
 
   buyUpgrade(layerId, upgId) {
-    this.tickToNow();
     this.state = buyUpgrade(this.state, this.config, layerId, upgId);
   }
 
   resetLayer(layerId) {
-    this.tickToNow();
     this.state = resetLayer(this.state, this.config, layerId);
     this.save();
   }
@@ -81,6 +91,7 @@ export class GameSession {
         currency: layerState.currency.toJSON(),
         runTotalCurrency: layerState.runTotalCurrency.toJSON(),
         totalLifetimeCurrency: layerState.totalLifetimeCurrency.toJSON(),
+        ticksInLayer: (layerState.ticksInLayer || new BigNum(0)).toJSON(),
         generators: {},
         upgrades: {}
       };
@@ -117,6 +128,7 @@ export class GameSession {
         currency: savedLayer ? BigNum.fromJSON(savedLayer.currency) : new BigNum(layer.currency.initialAmount || 0),
         runTotalCurrency: savedLayer ? BigNum.fromJSON(savedLayer.runTotalCurrency) : new BigNum(layer.currency.initialAmount || 0),
         totalLifetimeCurrency: savedLayer ? BigNum.fromJSON(savedLayer.totalLifetimeCurrency) : new BigNum(layer.currency.initialAmount || 0),
+        ticksInLayer: savedLayer?.ticksInLayer ? BigNum.fromJSON(savedLayer.ticksInLayer) : new BigNum(0),
         generators: {},
         upgrades: {}
       };
@@ -177,7 +189,6 @@ export class GameSession {
     if (typeof btoa === 'function') {
       return btoa(json);
     }
-    // Node environment fallback
     return Buffer.from(json).toString('base64');
   }
 
@@ -190,7 +201,7 @@ export class GameSession {
         json = Buffer.from(encoded, 'base64').toString('utf8');
       }
     } catch {
-      // Raw JSON fallback
+      // Fallback if raw JSON pasted
     }
 
     const data = JSON.parse(json);

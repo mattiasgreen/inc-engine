@@ -16,6 +16,7 @@ export function createInitialState(config) {
       currency: new BigNum(layer.currency.initialAmount || 0),
       runTotalCurrency: new BigNum(layer.currency.initialAmount || 0),
       totalLifetimeCurrency: new BigNum(layer.currency.initialAmount || 0),
+      ticksInLayer: new BigNum(0),
       generators: {},
       upgrades: {}
     };
@@ -45,8 +46,11 @@ export function getDerivedStats(state, config) {
   let tickYieldMult = new BigNum(1);
 
   const layerMultipliers = {};
+  const costScalingReductions = {};
+
   for (const layer of config.layers) {
     layerMultipliers[layer.id] = new BigNum(1.0);
+    costScalingReductions[layer.id] = 0;
   }
 
   // Calculate passive prestige multipliers
@@ -82,6 +86,11 @@ export function getDerivedStats(state, config) {
           const targetLayer = eff.targetId;
           layerMultipliers[targetLayer] = layerMultipliers[targetLayer].mul(Math.pow(eff.value, level));
         }
+      } else if (eff.target === 'costScaling') {
+        const targetLayer = eff.targetId || layer.id;
+        if (eff.operation === 'subtract' || eff.operation === 'add') {
+          costScalingReductions[targetLayer] += eff.value * level;
+        }
       }
     }
   }
@@ -93,13 +102,17 @@ export function getDerivedStats(state, config) {
   const generatorOutputs = {};
   const generatorCosts = {};
   const maxAffordable = {};
+  const layerProductionPerTick = {};
 
   for (const layer of config.layers) {
     generatorOutputs[layer.id] = {};
     generatorCosts[layer.id] = {};
     maxAffordable[layer.id] = {};
+    layerProductionPerTick[layer.id] = new BigNum(0);
+
     const layerState = state.layers[layer.id];
     const layerMult = layerMultipliers[layer.id];
+    const costReduction = costScalingReductions[layer.id] || 0;
 
     for (const gen of layer.generators || []) {
       const owned = layerState.generators[gen.id].owned;
@@ -115,14 +128,21 @@ export function getDerivedStats(state, config) {
         }
       }
 
-      generatorOutputs[layer.id][gen.id] = BigNum.from(gen.baseOutputPerTick).mul(genMult);
+      const unitOutput = BigNum.from(gen.baseOutputPerTick).mul(genMult);
+      generatorOutputs[layer.id][gen.id] = unitOutput;
 
-      // Current 1-item cost: baseCost * (costGrowth ^ owned)
-      const cost1 = BigNum.from(gen.baseCost).mul(Math.pow(gen.costGrowth, owned.toNumber()));
+      if (owned.gt(0)) {
+        layerProductionPerTick[layer.id] = layerProductionPerTick[layer.id].add(owned.mul(unitOutput));
+      }
+
+      // Effective cost growth
+      const r = Math.max(1.01, gen.costGrowth - costReduction);
+      // Cost: baseCost * (r ^ owned)
+      const rBig = new BigNum(r);
+      const cost1 = BigNum.from(gen.baseCost).mul(rBig.pow(owned));
       generatorCosts[layer.id][gen.id] = cost1;
 
       // Max affordable calculation
-      const r = gen.costGrowth;
       const budget = layerState.currency;
       if (budget.lt(cost1)) {
         maxAffordable[layer.id][gen.id] = { count: 0, totalCost: new BigNum(0) };
@@ -130,13 +150,11 @@ export function getDerivedStats(state, config) {
         const count = budget.div(cost1).floor().toNumber();
         maxAffordable[layer.id][gen.id] = { count, totalCost: cost1.mul(count) };
       } else {
-        // k = floor(log_r(1 + budget * (r - 1) / cost1))
         const num = budget.mul(r - 1).div(cost1).toNumber();
         const k = Math.floor(Math.log(1 + num) / Math.log(r));
         if (k <= 0) {
           maxAffordable[layer.id][gen.id] = { count: 0, totalCost: new BigNum(0) };
         } else {
-          // totalCost = cost1 * (r^k - 1) / (r - 1)
           const totalCost = cost1.mul(Math.pow(r, k) - 1).div(r - 1);
           maxAffordable[layer.id][gen.id] = { count: k, totalCost };
         }
@@ -149,8 +167,11 @@ export function getDerivedStats(state, config) {
     upgradeCosts[layer.id] = {};
     const layerState = state.layers[layer.id];
     for (const upg of layer.upgrades || []) {
+      const isLocked = upg.unlockThreshold && layerState.runTotalCurrency.lt(upg.unlockThreshold);
       const level = layerState.upgrades[upg.id]?.level || 0;
-      if (level >= (upg.maxLevel || Infinity)) {
+      if (isLocked) {
+        upgradeCosts[layer.id][upg.id] = null; // Locked
+      } else if (level >= (upg.maxLevel || Infinity)) {
         upgradeCosts[layer.id][upg.id] = null; // Maxed
       } else {
         const growth = upg.costGrowth || 1;
@@ -178,7 +199,8 @@ export function getDerivedStats(state, config) {
     generatorCosts,
     maxAffordable,
     upgradeCosts,
-    prestigeRewards
+    prestigeRewards,
+    layerProductionPerTick
   };
 }
 
@@ -191,22 +213,15 @@ export function advanceTicks(state, config, ticks) {
 
   for (const layer of config.layers) {
     const prevLayer = state.layers[layer.id];
-    let netProduced = new BigNum(0);
-
-    for (const gen of layer.generators || []) {
-      const owned = prevLayer.generators[gen.id].owned;
-      if (owned.gt(0)) {
-        const rate = stats.generatorOutputs[layer.id][gen.id];
-        const produced = owned.mul(rate).mul(tickCount);
-        netProduced = netProduced.add(produced);
-      }
-    }
+    const ratePerTick = stats.layerProductionPerTick[layer.id] || new BigNum(0);
+    const netProduced = ratePerTick.mul(tickCount);
 
     nextLayers[layer.id] = {
       ...prevLayer,
       currency: prevLayer.currency.add(netProduced),
       runTotalCurrency: prevLayer.runTotalCurrency.add(netProduced),
-      totalLifetimeCurrency: prevLayer.totalLifetimeCurrency.add(netProduced)
+      totalLifetimeCurrency: prevLayer.totalLifetimeCurrency.add(netProduced),
+      ticksInLayer: prevLayer.ticksInLayer.add(tickCount)
     };
   }
 
@@ -217,7 +232,7 @@ export function advanceTicks(state, config, ticks) {
   };
 }
 
-export function advanceTime(state, config, elapsedMs) {
+export function advanceTime(state, config, elapsedMs, options = {}) {
   if (elapsedMs <= 0) {
     return {
       nextState: state,
@@ -248,9 +263,26 @@ export function advanceTime(state, config, elapsedMs) {
   const currencyDeltas = {};
 
   if (cyclesFiredCount > 0) {
-    ticksEmitted = stats.tickYieldPerCycle.mul(cyclesFired);
+    const isChunked = options.mode === 'chunked' || Boolean(config.irreducible);
     const beforeState = nextState;
-    nextState = advanceTicks(nextState, config, ticksEmitted);
+
+    if (isChunked && cyclesFiredCount > 1) {
+      const maxSlices = options.maxSlices || 1000;
+      const sliceCount = Math.min(cyclesFiredCount, maxSlices);
+      const cyclesPerSlice = Math.floor(cyclesFiredCount / sliceCount);
+      let remaining = cyclesFiredCount;
+
+      for (let s = 0; s < sliceCount; s++) {
+        const sliceCycles = (s === sliceCount - 1) ? remaining : cyclesPerSlice;
+        remaining -= sliceCycles;
+        const sliceTicks = stats.tickYieldPerCycle.mul(sliceCycles);
+        nextState = advanceTicks(nextState, config, sliceTicks);
+        ticksEmitted = ticksEmitted.add(sliceTicks);
+      }
+    } else {
+      ticksEmitted = stats.tickYieldPerCycle.mul(cyclesFired);
+      nextState = advanceTicks(nextState, config, ticksEmitted);
+    }
 
     for (const layer of config.layers) {
       const delta = nextState.layers[layer.id].currency.sub(beforeState.layers[layer.id].currency);
@@ -289,7 +321,6 @@ export function buyGenerator(state, config, layerId, genId, countOrMax = 1) {
   } else {
     countToBuy = Number(countOrMax);
     const r = genConfig.costGrowth;
-    const owned = layerState.generators[genId].owned.toNumber();
     const cost1 = stats.generatorCosts[layerId][genId];
     if (countToBuy === 1) {
       totalCost = cost1;
@@ -299,7 +330,7 @@ export function buyGenerator(state, config, layerId, genId, countOrMax = 1) {
   }
 
   if (countToBuy <= 0 || layerState.currency.lt(totalCost)) {
-    return state; // Unaffordable or nothing to buy
+    return state;
   }
 
   const nextGenerators = {
@@ -330,14 +361,18 @@ export function buyUpgrade(state, config, layerId, upgId) {
   const upgConfig = config.layers.find(l => l.id === layerId)?.upgrades.find(u => u.id === upgId);
   if (!upgConfig) throw new Error(`Upgrade ${upgId} not found in ${layerId}`);
 
+  if (upgConfig.unlockThreshold && layerState.runTotalCurrency.lt(upgConfig.unlockThreshold)) {
+    return state;
+  }
+
   const currentLevel = layerState.upgrades[upgId]?.level || 0;
   if (currentLevel >= (upgConfig.maxLevel || Infinity)) {
-    return state; // Already maxed
+    return state;
   }
 
   const cost = stats.upgradeCosts[layerId][upgId];
-  if (layerState.currency.lt(cost)) {
-    return state; // Unaffordable
+  if (!cost || layerState.currency.lt(cost)) {
+    return state;
   }
 
   const nextUpgrades = {
@@ -397,6 +432,7 @@ export function resetLayer(state, config, layerId) {
     ...targetState,
     currency: new BigNum(targetConfig.currency.initialAmount || 0),
     runTotalCurrency: new BigNum(targetConfig.currency.initialAmount || 0),
+    ticksInLayer: new BigNum(0),
     generators: resetGenerators,
     upgrades: resetUpgrades
   };

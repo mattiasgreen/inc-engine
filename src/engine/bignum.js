@@ -184,6 +184,15 @@ export class BigNum {
     return new BigNum(val);
   }
 
+  ceil() {
+    if (this.isZero() || this.e < 0) {
+      return this.m > 0 ? new BigNum(1, 0) : new BigNum(0, 0);
+    }
+    if (this.e >= 16) return this;
+    const val = Math.ceil(this.toNumber());
+    return new BigNum(val);
+  }
+
   cmp(other) {
     const b = BigNum.from(other);
     if (this.isZero() && b.isZero()) return 0;
@@ -243,7 +252,18 @@ export class BigNum {
   format(options = {}) {
     if (this.isZero()) return '0';
 
-    const absE = Math.abs(this.e);
+    if (options.notation === 'engineering') {
+      const engExp = Math.floor(this.e / 3) * 3;
+      const engM = this.m * Math.pow(10, this.e - engExp);
+      const prec = options.precision ?? 2;
+      return `${engM.toFixed(prec)}e${engExp}`;
+    }
+
+    if (options.notation === 'scientific') {
+      const prec = options.precision ?? 2;
+      return `${this.m.toFixed(prec)}e${this.e}`;
+    }
+
     if (this.e < 3 && this.e >= 0) {
       const val = this.toNumber();
       return Number.isInteger(val) ? val.toString() : val.toFixed(options.precision ?? 2);

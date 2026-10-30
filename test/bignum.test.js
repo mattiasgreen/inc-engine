@@ -60,6 +60,10 @@ describe('BigNum Seam', () => {
     const mill = new BigNum(1000000);
     expect(mill.log10()).toBeCloseTo(6);
 
+    const fl = new BigNum(12.75);
+    expect(fl.floor().toNumber()).toBe(12);
+    expect(fl.ceil().toNumber()).toBe(13);
+
     const a = new BigNum(100);
     const b = new BigNum(200);
     expect(a.lt(b)).toBe(true);
@@ -70,13 +74,17 @@ describe('BigNum Seam', () => {
     expect(a.cmp(100)).toBe(0);
   });
 
-  it('formats numbers into standard suffixes and scientific notation', () => {
+  it('formats numbers into standard suffixes, scientific, and engineering notation', () => {
     expect(new BigNum(0).format()).toBe('0');
     expect(new BigNum(999).format()).toBe('999');
     expect(new BigNum(1234).format()).toBe('1.23K');
     expect(new BigNum(1234567).format()).toBe('1.23M');
     expect(new BigNum('1.5e15').format()).toBe('1.50Qa');
     expect(new BigNum('1.234e45').format()).toBe('1.23e45');
+
+    // Engineering notation (exponent multiple of 3)
+    expect(new BigNum(12345).format({ notation: 'engineering' })).toBe('12.34e3');
+    expect(new BigNum(123456).format({ notation: 'engineering' })).toBe('123.46e3');
   });
 
   it('serializes to and from JSON', () => {

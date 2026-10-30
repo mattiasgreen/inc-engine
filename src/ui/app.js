@@ -71,14 +71,8 @@ function render() {
   document.getElementById('layer0-currency').textContent = layer0.currency.format();
   document.getElementById('layer0-run-total').textContent = layer0.runTotalCurrency.format();
 
-  // Calculate net output per sec in Layer 0
-  let netOutputPerTick = new BigNum(0);
-  for (const gen of defaultGameConfig.layers[0].generators) {
-    const owned = layer0.generators[gen.id].owned;
-    if (owned.gt(0)) {
-      netOutputPerTick = netOutputPerTick.add(owned.mul(stats.generatorOutputs.layer0[gen.id]));
-    }
-  }
+  // Layer 0 production per second from derived stats
+  const netOutputPerTick = stats.layerProductionPerTick.layer0 || new BigNum(0);
   const netOutputPerSec = netOutputPerTick.mul(stats.effectiveTicksPerSec);
   document.getElementById('layer0-output-sec').textContent = `${netOutputPerSec.format()} E/s`;
 
@@ -123,6 +117,16 @@ function render() {
   // Render Layer 0 Upgrades
   const upgContainer = document.getElementById('layer0-upgrades');
   upgContainer.innerHTML = defaultGameConfig.layers[0].upgrades.map(upg => {
+    const isLocked = upg.unlockThreshold && layer0.runTotalCurrency.lt(upg.unlockThreshold);
+    if (isLocked) {
+      return `
+        <div class="card locked">
+          <h4>${upg.name} (Locked)</h4>
+          <p class="desc">Unlocks at ${BigNum.from(upg.unlockThreshold).format()} run Energy</p>
+        </div>
+      `;
+    }
+
     const level = layer0.upgrades[upg.id]?.level || 0;
     const isMax = level >= (upg.maxLevel || Infinity);
     const cost = stats.upgradeCosts.layer0[upg.id];
@@ -224,13 +228,11 @@ function setupEventListeners() {
   document.getElementById('btn-sim-optimal').addEventListener('click', () => {
     const current = session.getState();
     const policy = new OptimalRoiPolicy();
-    // Simulate until next prestige or max 15 minutes
     const result = simulator.run(current, policy, {
       stopCondition: st => st.layers.layer0.runTotalCurrency.gte(1e6),
       maxSimulatedMs: 15 * 60 * 1000
     });
-    session.state = result.state;
-    session.lastTickAtMs = Date.now();
+    session.syncFromSimulation(result.state);
     alert(`Simulation finished! Ran ${(result.simulatedMs / 1000).toFixed(1)}s of active play across ${result.steps} decisions.`);
     render();
   });

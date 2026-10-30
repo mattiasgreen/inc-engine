@@ -17,12 +17,14 @@ describe('Engine Core Seam', () => {
     const state = createInitialState(defaultGameConfig);
     expect(state.layers.layer0.currency.toNumber()).toBe(10);
     expect(state.layers.layer0.generators.gen1.owned.toNumber()).toBe(0);
+    expect(state.layers.layer0.ticksInLayer.toNumber()).toBe(0);
     expect(state.totalTicks.toNumber()).toBe(0);
     expect(state.totalCycles.toNumber()).toBe(0);
 
-    // With 0 generators, advancing ticks yields 0 additional currency
+    // With 0 generators, advancing ticks yields 0 additional currency but increments ticks
     const nextState = advanceTicks(state, defaultGameConfig, new BigNum(100));
     expect(nextState.layers.layer0.currency.toNumber()).toBe(10);
+    expect(nextState.layers.layer0.ticksInLayer.toNumber()).toBe(100);
   });
 
   it('buys generator 1 with initial currency and produces currency per tick', () => {
@@ -112,12 +114,24 @@ describe('Engine Core Seam', () => {
     // Perform Prestige
     state = resetLayer(state, defaultGameConfig, 'layer1');
     expect(state.layers.layer1.currency.toNumber()).toBe(1);
-    // Layer 0 is reset back to initial 10 currency
+    // Layer 0 is reset back to initial 10 currency and 0 ticksInLayer
     expect(state.layers.layer0.currency.toNumber()).toBe(10);
     expect(state.layers.layer0.generators.gen1.owned.toNumber()).toBe(0);
+    expect(state.layers.layer0.ticksInLayer.toNumber()).toBe(0);
 
     // Layer 1 currency now grants passive multiplier to Layer 0
     const statsAfter = getDerivedStats(state, defaultGameConfig);
     expect(statsAfter.layerMultipliers.layer0.gt(1.0)).toBe(true);
+  });
+
+  it('supports chunked time advancement for bounded discrete simulation', () => {
+    let state = createInitialState(defaultGameConfig);
+    state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
+
+    // Advance 10 seconds with mode: 'chunked' and maxSlices: 5
+    const { nextState, report } = advanceTime(state, defaultGameConfig, 10000, { mode: 'chunked', maxSlices: 5 });
+    expect(report.cyclesFired.toNumber()).toBe(10);
+    expect(nextState.layers.layer0.currency.toNumber()).toBe(10);
+    expect(nextState.layers.layer0.ticksInLayer.toNumber()).toBe(10);
   });
 });

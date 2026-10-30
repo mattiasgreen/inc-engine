@@ -3,10 +3,34 @@ import { describe, it, expect } from './runner.js';
 import { defaultGameConfig } from '../src/engine/config.js';
 import { createInitialState } from '../src/engine/core.js';
 import { Simulator } from '../src/engine/simulator.js';
-import { GreedyPolicy, OptimalRoiPolicy } from '../src/engine/policies.js';
+import { GreedyPolicy, OptimalRoiPolicy, PassivePolicy, AutoPrestigePolicy } from '../src/engine/policies.js';
 import { BigNum } from '../src/engine/bignum.js';
 
 describe('Simulator and Progression Pacing Seam', () => {
+  it('supports PassivePolicy for pure idle time advancement', () => {
+    let state = createInitialState(defaultGameConfig);
+    const simulator = new Simulator(defaultGameConfig);
+    const policy = new PassivePolicy();
+
+    const result = simulator.run(state, policy, { maxSimulatedMs: 5000 });
+    expect(result.simulatedMs).toBe(5000);
+    expect(result.history.length).toBe(0);
+  });
+
+  it('supports AutoPrestigePolicy to automatically reset upon reaching prestige threshold', () => {
+    let state = createInitialState(defaultGameConfig);
+    const simulator = new Simulator(defaultGameConfig);
+    const policy = new AutoPrestigePolicy({ prestigeLayerId: 'layer1', minReward: 1 });
+
+    const result = simulator.run(state, policy, {
+      stopCondition: st => st.layers.layer1.currency.gte(1),
+      maxSimulatedMs: 15 * 60 * 1000
+    });
+
+    expect(result.state.layers.layer1.currency.gte(1)).toBe(true);
+    const resetEvents = result.history.filter(h => h.action.type === 'resetLayer');
+    expect(resetEvents.length).toBeGreaterThan(0);
+  });
   it('guarantees monotonicity: currency and ticks strictly increase with no deadlocks', () => {
     let state = createInitialState(defaultGameConfig);
     const simulator = new Simulator(defaultGameConfig);
