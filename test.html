@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>inc-engine Test Runner</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --pass: #10b981;
+      --fail: #ef4444;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    .header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .header.all-passed { border-left: 6px solid var(--pass); }
+    .header.has-failures { border-left: 6px solid var(--fail); }
+    h1 { font-size: 1.5rem; color: var(--accent); }
+    .summary-badge { display: flex; gap: 1rem; font-size: 0.95rem; }
+    .summary-badge .passed { color: var(--pass); font-weight: bold; }
+    .summary-badge .failed { color: var(--fail); font-weight: bold; }
+    .suites { display: flex; flex-direction: column; gap: 1.5rem; }
+    .suite {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+    .suite h2 {
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      color: var(--text-muted);
+    }
+    ul { list-style: none; }
+    li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    li:last-child { border-bottom: none; }
+    li.pass .symbol { color: var(--pass); margin-right: 0.5rem; font-weight: bold; }
+    li.fail .symbol { color: var(--fail); margin-right: 0.5rem; font-weight: bold; }
+    li.fail .name { color: var(--fail); }
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--fail);
+      color: #fca5a5;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      overflow-x: auto;
+    }
+    .links { margin-top: 2rem; text-align: center; font-size: 0.9rem; }
+    .links a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div id="test-output">
+    <div style="padding: 2rem; text-align: center;">Executing tests...</div>
+  </div>
+  <div class="links">
+    <a href="index.html">← Return to inc-engine Game & Simulation Sandbox</a>
+  </div>
+
+  <script type="module" src="./test/all.js"></script>
+</body>
+</html>
