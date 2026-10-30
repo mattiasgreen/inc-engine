@@ -8,7 +8,8 @@ import {
   advanceTime,
   buyGenerator,
   buyUpgrade,
-  resetLayer
+  resetLayer,
+  enforceProgressionInvariant
 } from '../engine/core.js';
 import { SystemClock, BrowserStorage } from './ports.js';
 
@@ -150,7 +151,7 @@ export class GameSession {
       state.layers[layer.id] = layerState;
     }
 
-    return state;
+    return enforceProgressionInvariant(state, this.config);
   }
 
   save() {

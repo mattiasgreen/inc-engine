@@ -36,6 +36,32 @@ export function createInitialState(config) {
     state.layers[layer.id] = layerState;
   }
 
+  return enforceProgressionInvariant(state, config);
+}
+
+export function enforceProgressionInvariant(state, config) {
+  const layer0Config = config.layers[0];
+  const layer0State = state.layers[layer0Config.id];
+  if (!layer0State) return state;
+
+  let totalOwned = 0;
+  for (const gen of layer0Config.generators || []) {
+    totalOwned += layer0State.generators[gen.id]?.owned.toNumber() || 0;
+  }
+
+  const minCost = layer0Config.generators[0]?.baseCost || 10;
+  if (totalOwned === 0 && layer0State.currency.lt(minCost)) {
+    return {
+      ...state,
+      layers: {
+        ...state.layers,
+        [layer0Config.id]: {
+          ...layer0State,
+          currency: new BigNum(minCost)
+        }
+      }
+    };
+  }
   return state;
 }
 

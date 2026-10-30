@@ -9,8 +9,8 @@ on:
       - main
 
 jobs:
-  test:
-    name: Run ES6 Test Suite
+  unit-and-pacing:
+    name: Pure ES6 Unit & Pacing Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,3 +23,21 @@ jobs:
 
       - name: Run Tests (Zero NPM)
         run: node test/all.js
+
+  playwright-e2e:
+    name: Playwright End-to-End Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Playwright Browsers
+        run: npx --yes playwright install --with-deps chromium
+
+      - name: Run Playwright E2E Tests
+        run: npx --yes @playwright/test test
