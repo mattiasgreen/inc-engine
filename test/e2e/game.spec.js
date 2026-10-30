@@ -10,8 +10,8 @@ test.describe('inc-engine End-to-End User Journey', () => {
       await dialog.accept();
     });
     await page.goto('/');
-    // Wait for the app to initialize
-    await expect(page.locator('#telemetry-total-ticks')).toBeVisible();
+    // Wait for the app to initialize and mount cards
+    await expect(page.locator('#layer0-generators .card').first()).toBeVisible();
   });
 
   test('Stage 1 & 2: Hard reset to initial state, verify 10 Energy, and buy first generator', async ({ page }) => {
