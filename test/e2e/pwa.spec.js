@@ -28,6 +28,12 @@ test.describe('PWA & Themed Assets Verification', () => {
       '/assets/panel-dyson-swarm.jpg',
       '/assets/panel-aetherforge.jpg',
       '/assets/panel-sunken-observatory.jpg',
+      '/assets/portrait-dyson.jpg',
+      '/assets/portrait-aetherforge.jpg',
+      '/assets/portrait-sunken.jpg',
+      '/assets/prestige-dyson.jpg',
+      '/assets/prestige-aetherforge.jpg',
+      '/assets/prestige-sunken.jpg',
       '/sw.js'
     ];
 

@@ -2,7 +2,7 @@
 // Progressive Web App Service Worker for inc-engine
 // Provides offline capability, asset caching, and standalone PWA installation
 
-const CACHE_NAME = 'inc-engine-v2';
+const CACHE_NAME = 'inc-engine-v3';
 
 const PRECACHE_URLS = [
   './',
@@ -26,7 +26,13 @@ const PRECACHE_URLS = [
   './assets/bg-sunken-observatory.jpg',
   './assets/panel-dyson-swarm.jpg',
   './assets/panel-aetherforge.jpg',
-  './assets/panel-sunken-observatory.jpg'
+  './assets/panel-sunken-observatory.jpg',
+  './assets/portrait-dyson.jpg',
+  './assets/portrait-aetherforge.jpg',
+  './assets/portrait-sunken.jpg',
+  './assets/prestige-dyson.jpg',
+  './assets/prestige-aetherforge.jpg',
+  './assets/prestige-sunken.jpg'
 ];
 
 self.addEventListener('install', (event) => {

@@ -5,6 +5,8 @@ export const aetherforgeGame = {
   id: 'aetherforge',
   name: 'Aetherforge: The Grand Ascension',
   subtitle: 'Weave raw celestial mana and bind arcane constructs',
+  prestigeImage: './assets/prestige-aetherforge.jpg',
+  prestigeTitle: 'Astral Transmutation Gateway',
   palette: {
     '--bg': '#090510',
     '--card-bg': '#130c24',
@@ -76,6 +78,7 @@ export const aetherforgeGame = {
   character: {
     name: 'Archmage Vaelen',
     title: 'Keeper of the Prismatic Loom',
+    image: './assets/portrait-aetherforge.jpg',
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-aether">
       <defs>
         <radialGradient id="vaelen-halo" cx="50%" cy="50%" r="50%">

@@ -5,6 +5,8 @@ export const sunkenObservatoryGame = {
   id: 'sunken-observatory',
   name: 'The Sunken Observatory',
   subtitle: 'Unearth eldritch secrets submerged beneath the abyssal depths',
+  prestigeImage: './assets/prestige-sunken.jpg',
+  prestigeTitle: 'Cosmic Void Transcendence',
   palette: {
     '--bg': '#020608',
     '--card-bg': '#051217',
@@ -74,6 +76,7 @@ export const sunkenObservatoryGame = {
   character: {
     name: 'Curator Ambrose',
     title: 'Sole Keeper of the Abyssal Vault',
+    image: './assets/portrait-sunken.jpg',
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-horror">
       <circle class="eldritch-eye-ring" cx="32" cy="32" r="28" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="8 4" />
       <path class="eye-outer" d="M14 32 C14 18, 50 18, 50 32 C50 46, 14 46, 14 32 Z" stroke="#a78bfa" stroke-width="2" fill="rgba(167,139,250,0.18)" />

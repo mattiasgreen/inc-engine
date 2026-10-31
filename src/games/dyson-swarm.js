@@ -5,6 +5,8 @@ export const dysonSwarmGame = {
   id: 'dyson-swarm',
   name: 'Dyson Swarm: Protocol Sol',
   subtitle: 'Orbital megastructure automation & solar extraction grid',
+  prestigeImage: './assets/prestige-dyson.jpg',
+  prestigeTitle: 'Quantum Singularity Compression Core',
   palette: {
     '--bg': '#060a12',
     '--card-bg': '#0c1322',
@@ -77,6 +79,7 @@ export const dysonSwarmGame = {
   character: {
     name: 'AURORA-7',
     title: 'Superorbital Grid Coordinator',
+    image: './assets/portrait-dyson.jpg',
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-dyson">
       <defs>
         <filter id="aurora-glow" x="-20%" y="-20%" width="140%" height="140%">

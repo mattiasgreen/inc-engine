@@ -61,13 +61,87 @@ function init() {
 
   setupStaticEventListeners();
   setupPWA();
+  setupMobileTabs();
+}
+
+function setupMobileTabs() {
+  const tabs = document.querySelectorAll('.mobile-tab-btn');
+  if (!tabs.length) return;
+
+  function applyTab(targetId) {
+    const l0 = document.getElementById('layer0-panel');
+    const l1 = document.getElementById('layer1-panel');
+    const sb = document.getElementById('sandbox-panel');
+    const rightCol = document.getElementById('spa-col-right');
+
+    if (window.innerWidth <= 900) {
+      if (targetId === 'layer0-panel') {
+        l0?.classList.remove('mobile-tab-hidden');
+        rightCol?.classList.add('mobile-tab-hidden');
+      } else if (targetId === 'layer1-panel') {
+        l0?.classList.add('mobile-tab-hidden');
+        rightCol?.classList.remove('mobile-tab-hidden');
+        l1?.classList.remove('mobile-tab-hidden');
+        sb?.classList.add('mobile-tab-hidden');
+      } else if (targetId === 'sandbox-panel') {
+        l0?.classList.add('mobile-tab-hidden');
+        rightCol?.classList.remove('mobile-tab-hidden');
+        l1?.classList.add('mobile-tab-hidden');
+        sb?.classList.remove('mobile-tab-hidden');
+      }
+    } else {
+      l0?.classList.remove('mobile-tab-hidden');
+      rightCol?.classList.remove('mobile-tab-hidden');
+      l1?.classList.remove('mobile-tab-hidden');
+      sb?.classList.remove('mobile-tab-hidden');
+    }
+  }
+
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      applyTab(btn.getAttribute('data-tab'));
+    });
+  });
+
+  // Apply initially and on resize
+  applyTab('layer0-panel');
+  window.addEventListener('resize', () => {
+    const activeBtn = document.querySelector('.mobile-tab-btn.active');
+    applyTab(activeBtn?.getAttribute('data-tab') || 'layer0-panel');
+  });
 }
 
 function setupPWA() {
+  const updateToast = document.getElementById('pwa-update-toast');
+  const refreshBtn = document.getElementById('btn-refresh-app');
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      window.location.reload();
+    });
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch((err) => {
+      navigator.serviceWorker.register('./sw.js').then((reg) => {
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                if (updateToast) updateToast.style.display = 'flex';
+              }
+            });
+          }
+        });
+      }).catch((err) => {
         console.warn('PWA service worker registration failed:', err);
+      });
+
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (updateToast) updateToast.style.display = 'flex';
       });
     });
   }
@@ -173,7 +247,18 @@ function mountUI() {
   const charQuote = document.getElementById('character-quote');
 
   if (activeConfig.character) {
-    if (charPortrait) charPortrait.innerHTML = activeConfig.character.svg || '';
+    if (charPortrait) {
+      if (activeConfig.character.image) {
+        charPortrait.innerHTML = `
+          <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+            <img src="${activeConfig.character.image}" alt="${activeConfig.character.name}" class="char-portrait-img" />
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">${activeConfig.character.svg || ''}</div>
+          </div>
+        `;
+      } else {
+        charPortrait.innerHTML = activeConfig.character.svg || '';
+      }
+    }
     if (charName) charName.textContent = activeConfig.character.name || '';
     if (charTitle) charTitle.textContent = activeConfig.character.title || '';
     if (charQuote) charQuote.textContent = `"${activeConfig.character.dialogue?.intro || ''}"`;
@@ -339,6 +424,17 @@ function mountUI() {
   if (l1CurrName) l1CurrName.textContent = l1Config.currency.name;
   if (prestigeThresholdBadge) {
     prestigeThresholdBadge.textContent = `Threshold: ${BigNum.from(l1Config.prestige.thresholdCurrency).format()} ${l0Config.currency.symbol}`;
+  }
+
+  // Prestige Artwork Banner
+  const prestigeImg = document.getElementById('prestige-art-img');
+  const prestigeTitle = document.getElementById('prestige-art-title');
+  if (prestigeImg && activeConfig.prestigeImage) {
+    prestigeImg.src = activeConfig.prestigeImage;
+    prestigeImg.alt = activeConfig.prestigeTitle || 'Prestige Ascension';
+  }
+  if (prestigeTitle && activeConfig.prestigeTitle) {
+    prestigeTitle.textContent = activeConfig.prestigeTitle;
   }
 
   // Mount Layer 1 Upgrades
