@@ -2,7 +2,7 @@
 // Progressive Web App Service Worker for inc-engine
 // Provides offline capability, asset caching, and standalone PWA installation
 
-const CACHE_NAME = 'inc-engine-v3';
+const CACHE_NAME = 'inc-engine-v4';
 
 const PRECACHE_URLS = [
   './',
@@ -32,7 +32,40 @@ const PRECACHE_URLS = [
   './assets/portrait-sunken.jpg',
   './assets/prestige-dyson.jpg',
   './assets/prestige-aetherforge.jpg',
-  './assets/prestige-sunken.jpg'
+  './assets/prestige-sunken.jpg',
+  './assets/gen-dyson-1.jpg',
+  './assets/gen-dyson-2.jpg',
+  './assets/gen-dyson-3.jpg',
+  './assets/gen-aether-1.jpg',
+  './assets/gen-aether-2.jpg',
+  './assets/gen-aether-3.jpg',
+  './assets/gen-horror-1.jpg',
+  './assets/gen-horror-2.jpg',
+  './assets/gen-horror-3.jpg',
+  './assets/icon-dyson-l0.jpg',
+  './assets/icon-dyson-l1.jpg',
+  './assets/icon-aether-l0.jpg',
+  './assets/icon-aether-l1.jpg',
+  './assets/icon-horror-l0.jpg',
+  './assets/icon-horror-l1.jpg',
+  './assets/upg-telemetry.jpg',
+  './assets/upg-transceiver.jpg',
+  './assets/upg-coating.jpg',
+  './assets/upg-quantum-link.jpg',
+  './assets/upg-superconductivity.jpg',
+  './assets/upg-nanites.jpg',
+  './assets/upg-leyline.jpg',
+  './assets/upg-prism.jpg',
+  './assets/upg-bond.jpg',
+  './assets/upg-astral-amp.jpg',
+  './assets/upg-spirits.jpg',
+  './assets/upg-planetary-siphon.jpg',
+  './assets/upg-astrolabe.jpg',
+  './assets/upg-lenses.jpg',
+  './assets/upg-black-ink.jpg',
+  './assets/upg-void-gaze.jpg',
+  './assets/upg-hysteria.jpg',
+  './assets/upg-geometries.jpg'
 ];
 
 self.addEventListener('install', (event) => {

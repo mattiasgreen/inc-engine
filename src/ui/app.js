@@ -271,7 +271,11 @@ function mountUI() {
   const l0CurrSymbol = document.getElementById('layer0-currency-symbol');
 
   if (l0Title) l0Title.textContent = l0Config.name;
-  if (l0Icon) l0Icon.innerHTML = l0Config.svg || '';
+  if (l0Icon) {
+    l0Icon.innerHTML = l0Config.image
+      ? `<img src="${l0Config.image}" alt="${l0Config.name}" class="panel-icon-img" />`
+      : (l0Config.svg || '');
+  }
   if (l0SubLabel) l0SubLabel.textContent = `Run ${l0Config.currency.name}:`;
   if (l0CurrSymbol) l0CurrSymbol.textContent = l0Config.currency.symbol;
 
@@ -284,10 +288,14 @@ function mountUI() {
     const card = document.createElement('div');
     card.className = 'card';
 
+    const genIconHtml = gen.image
+      ? `<img src="${gen.image}" alt="${gen.name}" class="gen-thumb-img" />`
+      : (gen.svg || '');
+
     card.innerHTML = `
       <div class="lock-view" style="display: none;">
         <div style="display: flex; gap: 0.75rem; align-items: center;">
-          <div class="card-icon" style="opacity: 0.5;">${gen.svg || ''}</div>
+          <div class="card-icon" style="opacity: 0.5;">${genIconHtml}</div>
           <div>
             <h3>${gen.name} (Locked)</h3>
             <p class="desc">Unlocks at ${BigNum.from(gen.unlockThreshold || 0).format()} total ${l0Config.currency.name}</p>
@@ -297,7 +305,7 @@ function mountUI() {
       <div class="main-view">
         <div class="card-header">
           <div style="display: flex; gap: 0.65rem; align-items: center; min-width: 0; flex: 1;">
-            <div class="card-icon">${gen.svg || ''}</div>
+            <div class="card-icon">${genIconHtml}</div>
             <div style="min-width: 0; flex: 1;">
               <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${gen.name}</h3>
               <p class="lore-text">${gen.lore || ''}</p>
@@ -359,6 +367,10 @@ function mountUI() {
     const card = document.createElement('div');
     card.className = 'card upg-card';
 
+    const upgIconHtml = upg.image
+      ? `<img src="${upg.image}" alt="${upg.name}" class="upg-thumb-img" />`
+      : (upg.svg || '');
+
     const artHtml = upg.image ? `
       <div class="card-thumb-art">
         <img src="${upg.image}" alt="${upg.name}" class="upg-thumb-img" />
@@ -368,7 +380,7 @@ function mountUI() {
     card.innerHTML = `
       <div class="lock-view" style="display: none;">
         <div style="display: flex; gap: 0.65rem; align-items: center;">
-          <div class="card-icon" style="opacity: 0.5;">${upg.svg || ''}</div>
+          <div class="card-icon" style="opacity: 0.5;">${upgIconHtml}</div>
           <div>
             <h4>${upg.name} (Locked)</h4>
             <p class="desc">Unlocks at ${BigNum.from(upg.unlockThreshold || 0).format()} run ${l0Config.currency.name}</p>
@@ -424,7 +436,11 @@ function mountUI() {
   const prestigeThresholdBadge = document.getElementById('prestige-threshold-badge');
 
   if (l1Title) l1Title.textContent = l1Config.name;
-  if (l1Icon) l1Icon.innerHTML = l1Config.svg || '';
+  if (l1Icon) {
+    l1Icon.innerHTML = l1Config.image
+      ? `<img src="${l1Config.image}" alt="${l1Config.name}" class="panel-icon-img" />`
+      : (l1Config.svg || '');
+  }
   if (l1PassiveTarget) l1PassiveTarget.textContent = l0Config.name;
   if (l1CurrSymbol) l1CurrSymbol.textContent = l1Config.currency.symbol;
   if (l1CurrName) l1CurrName.textContent = l1Config.currency.name;

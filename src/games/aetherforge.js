@@ -113,6 +113,7 @@ export const aetherforgeGame = {
       id: 'layer0',
       name: 'The Aetherial Weave',
       boughtSynergyMultiplier: 1.02, // Arcane synergy multiplier
+      image: './assets/icon-aether-l0.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>`,
@@ -127,6 +128,7 @@ export const aetherforgeGame = {
           id: 'gen1',
           name: 'Runic Familiar',
           lore: 'Minor ethereal spirits bonded to harvest lingering ambient mana crystals.',
+          image: './assets/gen-aether-1.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-familiar">
             <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4 21l3.39-.97C8.93 20.66 10.42 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z" />
             <circle cx="9" cy="11" r="1" fill="#c084fc" />
@@ -141,6 +143,7 @@ export const aetherforgeGame = {
           id: 'gen2',
           name: 'Leyline Conduit',
           lore: 'Carved obsidian pillars drawing subterranean mystic currents to manifest familiars.',
+          image: './assets/gen-aether-2.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-conduit">
             <line x1="12" y1="2" x2="12" y2="22" />
             <circle cx="12" cy="7" r="3" />
@@ -160,6 +163,7 @@ export const aetherforgeGame = {
           id: 'gen3',
           name: 'Astral Citadel',
           lore: 'Floating spire-sanctuaries anchored in the astral plane, projecting conduits onto earth.',
+          image: './assets/gen-aether-3.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-citadel">
             <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
           </svg>`,
@@ -217,6 +221,7 @@ export const aetherforgeGame = {
           name: 'Ethereal Bond',
           description: 'Boosts Runic Familiar mana harvest by 1.75x per level',
           lore: 'Tethers spirits directly to the caster’s spiritual reservoir.',
+          image: './assets/upg-bond.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>`,
@@ -235,6 +240,7 @@ export const aetherforgeGame = {
     {
       id: 'layer1',
       name: 'Sanctum of Ascension',
+      image: './assets/icon-aether-l1.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="10" />
         <polygon points="12 6 15 11 20 12 16 16 17 21 12 18 7 21 8 16 4 12 9 11 12 6" />
@@ -265,6 +271,7 @@ export const aetherforgeGame = {
           name: 'Astral Resonance',
           description: 'Multiplies all Layer 0 output by 2.6x per level',
           lore: 'Harmonizes mortal runes with transcendent celestial frequencies.',
+          image: './assets/upg-astral-amp.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="8" />
             <line x1="12" y1="2" x2="12" y2="6" />
@@ -287,6 +294,7 @@ export const aetherforgeGame = {
           name: 'Temporal Enchantment',
           description: 'Adds +1 base Tick per Cycle',
           lore: 'Weaves ancient haste sigils permanently into the fabric of space.',
+          image: './assets/upg-spirits.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 14 14" />
@@ -307,6 +315,7 @@ export const aetherforgeGame = {
           name: 'Artificer Dedication',
           description: 'Increases purchase synergy from 1.03x to 1.08x',
           lore: 'Master artisans imprint each familiar and conduit with sacred runes.',
+          image: './assets/upg-planetary-siphon.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>`,
@@ -327,6 +336,7 @@ export const aetherforgeGame = {
           name: 'The Living Loom',
           description: 'Dynamic boost scaling with total progression time',
           lore: 'The weave becomes conscious, self-generating mana across infinite timelines.',
+          image: './assets/upg-astral-amp.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>`,

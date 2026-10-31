@@ -116,6 +116,7 @@ export const dysonSwarmGame = {
       id: 'layer0',
       name: 'Photovoltaic Array',
       boughtSynergyMultiplier: 1.02,
+      image: './assets/icon-dyson-l0.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="5" />
         <line x1="12" y1="1" x2="12" y2="3" />
@@ -138,6 +139,7 @@ export const dysonSwarmGame = {
           id: 'gen1',
           name: 'Solar Drone',
           lore: 'Autonomous photovoltaic mirror drones capturing raw stellar radiation.',
+          image: './assets/gen-dyson-1.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-drone">
             <polygon points="12 2 19 21 12 17 5 21 12 2" />
           </svg>`,
@@ -150,6 +152,7 @@ export const dysonSwarmGame = {
           id: 'gen2',
           name: 'Orbital Fabricator',
           lore: 'Automated micro-factories 3D-printing swarms of Solar Drones directly in space.',
+          image: './assets/gen-dyson-2.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-fabricator">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <path d="M9 3v18" />
@@ -171,6 +174,7 @@ export const dysonSwarmGame = {
           id: 'gen3',
           name: 'Stellar Harvester',
           lore: 'Gigantic atmospheric scoops skimming the solar corona to forge Fabricators.',
+          image: './assets/gen-dyson-3.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-harvester">
             <circle cx="12" cy="12" r="10" />
             <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
@@ -229,6 +233,7 @@ export const dysonSwarmGame = {
           name: 'Reflective Coating',
           description: 'Increases Solar Drone output by 1.75x per level',
           lore: 'Applies metamaterial dielectric mirrors to drone capture surfaces.',
+          image: './assets/upg-coating.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <path d="M12 3v18" />
@@ -249,6 +254,7 @@ export const dysonSwarmGame = {
     {
       id: 'layer1',
       name: 'Quantum Compression Hub',
+      image: './assets/icon-dyson-l1.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <polygon points="12 2 2 7 12 12 22 7 12 2" />
         <polyline points="2 17 12 22 22 17" />
@@ -280,6 +286,7 @@ export const dysonSwarmGame = {
           name: 'Sub-Space Quantum Link',
           description: 'Multiplies all Layer 0 output by 2.5x per level',
           lore: 'Tethers orbital swarm telemetry directly through zero-point vacuum nodes.',
+          image: './assets/upg-quantum-link.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -299,6 +306,7 @@ export const dysonSwarmGame = {
           name: 'Temporal Nanosecond Matrix',
           description: 'Adds +1 base Tick per Cycle',
           lore: 'Re-aligns array clock synchronization with relativistic solar orbit frames.',
+          image: './assets/upg-superconductivity.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
@@ -319,6 +327,7 @@ export const dysonSwarmGame = {
           name: 'Modular Architecture Protocol',
           description: 'Increases purchase synergy boost from 1.02x to 1.07x',
           lore: 'Standardizes component sockets across all drone and fabricator chassis.',
+          image: './assets/upg-nanites.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M16 16v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1" />
             <rect x="8" y="2" width="14" height="14" rx="2" />
@@ -340,6 +349,7 @@ export const dysonSwarmGame = {
           name: 'Dyson Sphere Matrix Singularity',
           description: 'Dynamic boost scaling with total progression time',
           lore: 'The megastructure attains self-sustaining orbital equilibrium around Sol.',
+          image: './assets/upg-quantum-link.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="2" />
             <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
