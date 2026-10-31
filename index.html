@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>inc-engine</title>
+  <!-- Curated Web Fonts for Game Themes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #090d16;
@@ -18,20 +22,44 @@
       --danger-hover: #e11d48;
       --success: #10b981;
       --accent: #f59e0b;
+      --font-display: system-ui, -apple-system, sans-serif;
+      --font-body: system-ui, -apple-system, sans-serif;
+      --bg-pattern: none;
+      --card-glow: none;
+      --card-bg-gradient: var(--card-bg);
+      --border-radius-panel: 12px;
+      --border-radius-card: 8px;
+      --border-radius-btn: 6px;
+      --banner-bg: rgba(255, 255, 255, 0.02);
+      --banner-border: var(--card-border);
+      --tag-case: uppercase;
+      --tag-letter-spacing: 0.05em;
+      --badge-bg: rgba(56, 189, 248, 0.15);
+      --badge-color: var(--primary);
+      --btn-sec-bg: var(--secondary);
+      --btn-sec-color: #fff;
+      --btn-sec-border: transparent;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
+      font-family: var(--font-body);
+      background-color: var(--bg);
+      background-image: var(--bg-pattern);
+      background-attachment: fixed;
       color: var(--text);
       padding: 1.5rem;
       line-height: 1.5;
-      transition: background 0.3s ease;
+      transition: background 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+    }
+    h1, h2, h3, h4, .panel-title, .currency-display {
+      font-family: var(--font-display);
     }
     header {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: var(--border-radius-panel);
+      box-shadow: var(--card-glow);
       padding: 1.25rem 1.5rem;
       margin-bottom: 1.5rem;
     }
@@ -43,7 +71,7 @@
       flex-wrap: wrap;
       gap: 1rem;
     }
-    .title-group h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
+    .title-group h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary); letter-spacing: -0.01em; }
     .title-group p { font-size: 0.85rem; color: var(--text-muted); }
     .game-switcher-container {
       display: flex;
@@ -52,7 +80,8 @@
     }
     .game-switcher-label {
       font-size: 0.8rem;
-      text-transform: uppercase;
+      text-transform: var(--tag-case);
+      letter-spacing: var(--tag-letter-spacing);
       font-weight: 600;
       color: var(--text-muted);
     }
@@ -61,8 +90,9 @@
       border: 1px solid var(--card-border);
       color: var(--text);
       padding: 0.4rem 0.75rem;
-      border-radius: 6px;
+      border-radius: var(--border-radius-btn);
       font-size: 0.9rem;
+      font-family: var(--font-body);
       font-weight: 600;
       cursor: pointer;
     }
@@ -81,15 +111,16 @@
       display: flex;
       gap: 1.25rem;
       align-items: center;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
+      background: var(--banner-bg);
+      border: 1px solid var(--banner-border);
+      border-radius: var(--border-radius-card);
+      box-shadow: var(--card-glow);
       padding: 0.85rem 1.25rem;
       margin-bottom: 1.25rem;
     }
     .character-portrait {
-      width: 52px;
-      height: 52px;
+      width: 54px;
+      height: 54px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -98,22 +129,23 @@
     .character-portrait svg {
       width: 100%;
       height: 100%;
+      filter: drop-shadow(0 0 6px var(--primary));
     }
     .character-meta h4 {
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--primary);
       margin-bottom: 0.15rem;
     }
     .character-meta .character-title {
       font-size: 0.75rem;
-      text-transform: uppercase;
+      text-transform: var(--tag-case);
+      letter-spacing: var(--tag-letter-spacing);
       color: var(--text-muted);
-      letter-spacing: 0.04em;
       margin-bottom: 0.25rem;
     }
     .character-quote {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       font-style: italic;
       color: var(--text);
     }
@@ -129,7 +161,13 @@
       display: flex;
       flex-direction: column;
     }
-    .telemetry-item .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+    .telemetry-item .label {
+      font-size: 0.75rem;
+      text-transform: var(--tag-case);
+      letter-spacing: var(--tag-letter-spacing);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
     .telemetry-item .value { font-size: 1.15rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 
     .main-grid {
@@ -143,9 +181,10 @@
     }
 
     .panel {
-      background: var(--card-bg);
+      background: var(--card-bg-gradient);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: var(--border-radius-panel);
+      box-shadow: var(--card-glow);
       padding: 1.5rem;
     }
     .panel-header {
@@ -162,9 +201,10 @@
       gap: 0.65rem;
     }
     .panel-icon svg {
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       vertical-align: middle;
+      filter: drop-shadow(0 0 5px var(--primary));
     }
     .panel-title { font-size: 1.25rem; font-weight: 600; color: var(--primary); }
     .currency-display { font-size: 1.5rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
@@ -177,17 +217,21 @@
       margin-bottom: 1.5rem;
     }
     .card {
-      background: rgba(255, 255, 255, 0.03);
+      background: var(--card-bg-gradient);
       border: 1px solid var(--card-border);
-      border-radius: 8px;
-      padding: 1rem;
-      transition: border-color 0.2s ease, background 0.2s ease;
+      border-radius: var(--border-radius-card);
+      box-shadow: var(--card-glow);
+      padding: 1.1rem;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    }
+    .card:hover {
+      border-color: var(--primary);
     }
     .card.locked { opacity: 0.5; border-style: dashed; }
-    .card.maxed { border-color: rgba(16, 185, 129, 0.3); }
+    .card.maxed { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.02); }
     .card-icon {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -205,41 +249,50 @@
     }
     .card h3, .card h4 { font-size: 1.05rem; font-weight: 600; }
     .lore-text {
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       color: var(--text-muted);
       font-style: italic;
     }
     .badge {
       font-size: 0.75rem;
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--primary);
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
+      background: var(--badge-bg);
+      color: var(--badge-color);
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--border-radius-btn);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       font-weight: 600;
+      letter-spacing: var(--tag-letter-spacing);
+      text-transform: var(--tag-case);
     }
-    .meta, .desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .meta, .desc { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.75rem; }
     .actions { display: flex; gap: 0.5rem; }
 
     .btn {
-      padding: 0.5rem 0.85rem;
-      border-radius: 6px;
-      border: none;
+      padding: 0.55rem 0.95rem;
+      border-radius: var(--border-radius-btn);
+      border: 1px solid transparent;
+      font-family: var(--font-body);
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.15s ease;
+      letter-spacing: var(--tag-letter-spacing);
+      text-transform: var(--tag-case);
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
     }
-    .btn.primary { background: var(--primary); color: #090d16; }
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { background: var(--primary); color: #090d16; border-color: var(--primary); }
     .btn.primary:hover { background: var(--primary-hover); }
-    .btn.secondary { background: var(--secondary); color: #fff; }
+    .btn.secondary { background: var(--btn-sec-bg); color: var(--btn-sec-color); border-color: var(--btn-sec-border); }
+    .btn.secondary:hover { opacity: 0.9; }
     .btn.danger { background: var(--danger); color: #fff; }
     .btn.danger:hover { background: var(--danger-hover); }
-    .btn.disabled { background: #1e293b; color: #64748b; cursor: not-allowed; }
+    .btn.disabled { background: #1e293b; color: #64748b; border-color: transparent; cursor: not-allowed; }
 
     .sandbox-panel {
-      background: var(--card-bg);
+      background: var(--card-bg-gradient);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: var(--border-radius-panel);
+      box-shadow: var(--card-glow);
       padding: 1.5rem;
     }
     .sandbox-grid {
@@ -248,7 +301,13 @@
       gap: 1.5rem;
       margin-top: 1rem;
     }
-    .sandbox-group h4 { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .sandbox-group h4 {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      text-transform: var(--tag-case);
+      letter-spacing: var(--tag-letter-spacing);
+    }
 
     .modal-backdrop {
       position: fixed;
