@@ -357,11 +357,17 @@ function mountUI() {
 
   for (const upg of l0Config.upgrades) {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card upg-card';
+
+    const artHtml = upg.image ? `
+      <div class="card-thumb-art">
+        <img src="${upg.image}" alt="${upg.name}" class="upg-thumb-img" />
+      </div>
+    ` : `<div class="card-icon">${upg.svg || ''}</div>`;
 
     card.innerHTML = `
       <div class="lock-view" style="display: none;">
-        <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <div style="display: flex; gap: 0.65rem; align-items: center;">
           <div class="card-icon" style="opacity: 0.5;">${upg.svg || ''}</div>
           <div>
             <h4>${upg.name} (Locked)</h4>
@@ -371,10 +377,10 @@ function mountUI() {
       </div>
       <div class="main-view">
         <div class="card-header">
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <div class="card-icon">${upg.svg || ''}</div>
-            <div>
-              <h4>${upg.name}</h4>
+          <div style="display: flex; gap: 0.65rem; align-items: center; min-width: 0; flex: 1;">
+            ${artHtml}
+            <div style="min-width: 0; flex: 1;">
+              <h4 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${upg.name}</h4>
               <p class="lore-text">${upg.lore || ''}</p>
             </div>
           </div>
@@ -444,15 +450,21 @@ function mountUI() {
 
   for (const upg of l1Config.upgrades) {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card upg-card';
+
+    const artHtml = upg.image ? `
+      <div class="card-thumb-art">
+        <img src="${upg.image}" alt="${upg.name}" class="upg-thumb-img" />
+      </div>
+    ` : `<div class="card-icon">${upg.svg || ''}</div>`;
 
     card.innerHTML = `
       <div class="main-view">
         <div class="card-header">
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
-            <div class="card-icon">${upg.svg || ''}</div>
-            <div>
-              <h4>${upg.name}</h4>
+          <div style="display: flex; gap: 0.65rem; align-items: center; min-width: 0; flex: 1;">
+            ${artHtml}
+            <div style="min-width: 0; flex: 1;">
+              <h4 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${upg.name}</h4>
               <p class="lore-text">${upg.lore || ''}</p>
             </div>
           </div>
@@ -795,6 +807,44 @@ function setupStaticEventListeners() {
 
   document.getElementById('btn-close-offline-modal')?.addEventListener('click', () => {
     document.getElementById('offline-modal').style.display = 'none';
+  });
+
+  // Character Lore Dossier Modal
+  const charBanner = document.getElementById('character-banner');
+  if (charBanner) {
+    charBanner.style.cursor = 'pointer';
+    charBanner.title = 'View Character Lore Dossier';
+    charBanner.addEventListener('click', () => {
+      if (!activeConfig.character) return;
+      const modal = document.getElementById('character-modal');
+      const portrait = document.getElementById('dossier-portrait');
+      const name = document.getElementById('dossier-name');
+      const title = document.getElementById('dossier-title');
+      const quote = document.getElementById('dossier-quote');
+      const backstory = document.getElementById('dossier-backstory');
+
+      if (portrait) {
+        if (activeConfig.character.image) {
+          portrait.innerHTML = `<img src="${activeConfig.character.image}" alt="${activeConfig.character.name}" />`;
+        } else {
+          portrait.innerHTML = activeConfig.character.svg || '';
+        }
+      }
+      if (name) name.textContent = activeConfig.character.name || 'Guide';
+      if (title) title.textContent = activeConfig.character.title || 'Coordinator';
+      if (quote) {
+        const q = document.getElementById('character-quote')?.textContent || activeConfig.character.dialogue?.intro || '';
+        quote.textContent = q;
+      }
+      if (backstory) {
+        backstory.textContent = activeConfig.character.backstory || 'No transmission data recorded.';
+      }
+      if (modal) modal.style.display = 'flex';
+    });
+  }
+
+  document.getElementById('btn-close-character-modal')?.addEventListener('click', () => {
+    document.getElementById('character-modal').style.display = 'none';
   });
 }
 

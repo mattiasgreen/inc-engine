@@ -80,6 +80,7 @@ export const aetherforgeGame = {
     name: 'Archmage Vaelen',
     title: 'Keeper of the Prismatic Loom',
     image: './assets/portrait-aetherforge.jpg',
+    backstory: 'Keeper of the Celestial Loom and master of ethereal transmutations. Archmage Vaelen has channeled planetary leylines for over three centuries, transmuting raw cosmic starlight into indestructible magical constructs and weaving the astral fabric of reality.',
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-aether">
       <defs>
         <radialGradient id="vaelen-halo" cx="50%" cy="50%" r="50%">
@@ -179,6 +180,7 @@ export const aetherforgeGame = {
           name: 'Chrono-Incantation',
           description: 'Speeds weave frequency by 15%',
           lore: 'Compresses casting syllables through harmonic vocal resonances.',
+          image: './assets/upg-leyline.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 8 14" />
@@ -197,6 +199,7 @@ export const aetherforgeGame = {
           name: 'Prismatic Loom',
           description: 'Doubles Ticks emitted per Cycle',
           lore: 'Splits each strand of mana into dual resonant frequencies.',
+          image: './assets/upg-prism.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 2 22 22 22 12 2" />
           </svg>`,

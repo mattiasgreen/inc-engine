@@ -45,4 +45,22 @@ test('take desktop and mobile screenshots of all 3 games with animations & scene
   await page.waitForTimeout(200);
   await page.screenshot({ path: 'test-results/android-galaxy-viewport.png' });
   await page.screenshot({ path: 'test-results/android-galaxy-full.png', fullPage: true });
+
+  // Android Sunken Observatory with Diffusion Upgrade Art
+  await page.setViewportSize({ width: 412, height: 915 });
+  await page.locator('#game-select').selectOption('sunken-observatory');
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'test-results/android-sunken-upgrades.png' });
+
+  // Character Lore Dossier Modal
+  await page.locator('#character-banner').click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'test-results/android-character-dossier.png' });
+  await page.locator('#btn-close-character-modal').click();
+  await page.waitForTimeout(100);
+
+  // Android Aetherforge with Arcane Diffusion Upgrade Art
+  await page.locator('#game-select').selectOption('aetherforge');
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'test-results/android-aetherforge-upgrades.png' });
 });

@@ -78,6 +78,7 @@ export const sunkenObservatoryGame = {
     name: 'Curator Ambrose',
     title: 'Sole Keeper of the Abyssal Vault',
     image: './assets/portrait-sunken.jpg',
+    backstory: 'Former Royal Astronomer who vanished into the Mariana Trench in 1892. Ambrose awoke submerged within the non-Euclidean drowned chambers of the Old Ones, charting subterranean constellations and deciphering bioluminescent eldritch glyphs through curved obsidian lenses.',
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-horror">
       <circle class="eldritch-eye-ring" cx="32" cy="32" r="28" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="8 4" />
       <path class="eye-outer" d="M14 32 C14 18, 50 18, 50 32 C50 46, 14 46, 14 32 Z" stroke="#a78bfa" stroke-width="2" fill="rgba(167,139,250,0.18)" />
@@ -170,6 +171,7 @@ export const sunkenObservatoryGame = {
           name: 'Fever Dreams',
           description: 'Speeds research Cycle frequency by 15%',
           lore: 'Hallucinogenic deep-sea flora eliminate the necessity for mundane slumber.',
+          image: './assets/upg-astrolabe.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
             <line x1="12" y1="2" x2="12" y2="12" />
@@ -188,6 +190,7 @@ export const sunkenObservatoryGame = {
           name: 'Lucid Trance Channel',
           description: 'Doubles Ticks emitted per Cycle',
           lore: 'Allows the conscious intellect to perceive past and present simultaneously.',
+          image: './assets/upg-lenses.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
             <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" />

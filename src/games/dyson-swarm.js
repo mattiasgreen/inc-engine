@@ -81,6 +81,7 @@ export const dysonSwarmGame = {
     name: 'AURORA-7',
     title: 'Superorbital Grid Coordinator',
     image: './assets/portrait-dyson.jpg',
+    backstory: 'Autonomous Unit for Remote Orbital Resource Acquisition, Model 7. Manufactured by the Sol Engineering Collective in 2184 to orchestrate megastructure fabrication around the Sun. AURORA-7 supervises billions of autonomous mirror drones, coordinating energy telemetry through sub-picosecond microwave relays while monitoring solar coronal mass ejections.',
     svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-dyson">
       <defs>
         <filter id="aurora-glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -192,6 +193,7 @@ export const dysonSwarmGame = {
           name: 'Telemetry Overclock',
           description: 'Increases telemetry Cycle frequency by 15%',
           lore: 'Upgrades inter-satellite communications to sub-picosecond microwave relays.',
+          image: './assets/upg-telemetry.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>`,
@@ -209,6 +211,7 @@ export const dysonSwarmGame = {
           name: 'Multi-Phase Transceiver',
           description: 'Doubles Ticks emitted per Cycle',
           lore: 'Processes parallel energy ingestion channels on dual orbital planes.',
+          image: './assets/upg-transceiver.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 12h5l3-9 4 18 3-9h5" />
           </svg>`,
