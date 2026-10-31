@@ -236,6 +236,13 @@ function render() {
     const ui = generatorUI.layer0?.[gen.id];
     if (!ui) continue;
 
+    const vis = stats.visibility.generators.layer0[gen.id];
+    if (vis === 'hidden') {
+      ui.card.style.display = 'none';
+      continue;
+    }
+    ui.card.style.display = 'block';
+
     const isUnlocked = !gen.unlockThreshold || layer0.runTotalCurrency.gte(gen.unlockThreshold);
     if (!isUnlocked) {
       ui.lockView.style.display = 'block';
@@ -276,9 +283,18 @@ function render() {
   }
 
   // Update Layer 0 Upgrades
+  let visibleL0UpgradesCount = 0;
   for (const upg of defaultGameConfig.layers[0].upgrades) {
     const ui = upgradeUI.layer0?.[upg.id];
     if (!ui) continue;
+
+    const vis = stats.visibility.upgrades.layer0[upg.id];
+    if (vis === 'hidden') {
+      ui.card.style.display = 'none';
+      continue;
+    }
+    ui.card.style.display = 'block';
+    visibleL0UpgradesCount++;
 
     const isLocked = upg.unlockThreshold && layer0.runTotalCurrency.lt(upg.unlockThreshold);
     if (isLocked) {
@@ -310,11 +326,22 @@ function render() {
     }
   }
 
+  const l0UpgHeader = document.getElementById('layer0-upgrades-header');
+  if (l0UpgHeader) {
+    l0UpgHeader.style.display = visibleL0UpgradesCount > 0 ? 'block' : 'none';
+  }
+
   // Layer 1 Prestige
   const layer1 = state.layers.layer1;
   const prestigeReward = stats.prestigeRewards.layer1;
   const canPrestige = prestigeReward.gte(1);
   const passiveMult = stats.layerMultipliers.layer0;
+
+  const l1Visible = stats.visibility.layers.layer1 !== 'hidden';
+  const l1Panel = document.getElementById('layer1-panel');
+  if (l1Panel) {
+    l1Panel.style.display = l1Visible ? 'block' : 'none';
+  }
 
   document.getElementById('layer1-currency').textContent = layer1.currency.format();
   document.getElementById('layer1-passive-mult').textContent = `${passiveMult.toNumber().toFixed(2)}x`;
@@ -329,9 +356,18 @@ function render() {
   prestigeBtn.textContent = canPrestige ? `Prestige for +${prestigeReward.format()} Cores` : `Need 1.00M Run Energy`;
 
   // Update Layer 1 Upgrades
+  let visibleL1UpgradesCount = 0;
   for (const upg of defaultGameConfig.layers[1].upgrades) {
     const ui = upgradeUI.layer1?.[upg.id];
     if (!ui) continue;
+
+    const vis = stats.visibility.upgrades.layer1[upg.id];
+    if (vis === 'hidden') {
+      ui.card.style.display = 'none';
+      continue;
+    }
+    ui.card.style.display = 'block';
+    visibleL1UpgradesCount++;
 
     const level = layer1.upgrades[upg.id]?.level || 0;
     const isMax = level >= (upg.maxLevel || Infinity);
@@ -360,6 +396,11 @@ function render() {
       ui.btn.disabled = !canAfford;
       ui.btn.className = `btn btn-upgrade ${canAfford ? 'primary' : 'disabled'}`;
     }
+  }
+
+  const l1UpgHeader = document.getElementById('layer1-upgrades-header');
+  if (l1UpgHeader) {
+    l1UpgHeader.style.display = visibleL1UpgradesCount > 0 ? 'block' : 'none';
   }
 }
 

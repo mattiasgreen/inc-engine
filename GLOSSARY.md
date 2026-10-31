@@ -40,6 +40,10 @@ _Avoid_: Perk, Talent, Boost, Research
 A directed acyclic graph (DAG) of Upgrades within a Layer where nodes can declare prerequisite Upgrade levels and mutually exclusive branches.
 _Avoid_: Skill tree, Talent tree, Tech tree, Perk grid
 
+**Visibility State**:
+The progressive-disclosure status of a Layer, Generator, or Upgrade (`hidden`, `locked`, or `visible`) derived by the engine from declarative conditions in the GameConfig.
+_Avoid_: UI toggle, Show flag, Spoiler flag
+
 ### Simulation and Persistence
 
 **Reducible Transition**:

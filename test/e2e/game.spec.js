@@ -18,9 +18,13 @@ test.describe('inc-engine End-to-End User Journey', () => {
     // Hard reset to ensure fresh state
     await page.locator('#btn-hard-reset').click();
 
-    // Verify initial state
+    // Verify initial clean state with progressive disclosure
     await expect(page.locator('#layer0-currency')).toHaveText(/10/);
+    await expect(page.locator('#layer1-panel')).toBeHidden();
     const gen1Card = page.locator('#layer0-generators .card').first();
+    const gen2Card = page.locator('#layer0-generators .card').nth(1);
+    await expect(gen1Card).toBeVisible();
+    await expect(gen2Card).toBeHidden();
     await expect(gen1Card.locator('.owned-badge')).toHaveText('Owned: 0');
 
     // Buy 1 Generator I
@@ -28,9 +32,10 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await expect(buy1Btn).toBeEnabled();
     await buy1Btn.click();
 
-    // Verify owned becomes 1
+    // Verify owned becomes 1 and reveals Generator II
     await expect(gen1Card.locator('.owned-badge')).toHaveText('Owned: 1');
     await expect(gen1Card.locator('.output-meta')).toContainText('1 E/tick');
+    await expect(gen2Card).toBeVisible();
   });
 
   test('Stage 3: Time skipping via dev sandbox unlocks secondary generators', async ({ page }) => {
@@ -139,14 +144,10 @@ test.describe('inc-engine End-to-End User Journey', () => {
     // Generator 1 owned count must have increased significantly
     await expect(gen1Card.locator('.owned-badge')).not.toHaveText(gen1OwnedBefore);
 
-    // Verify Upgrade Tree prerequisites in Layer 1: Branch A is locked before Root is bought
-    const l1RootCard = page.locator('#layer1-upgrades .card').nth(0);
+    // Verify Progressive Disclosure in Layer 1: Branch A and Branch B are hidden before Root is unlocked
     const l1BranchACard = page.locator('#layer1-upgrades .card').nth(1);
     const l1BranchBCard = page.locator('#layer1-upgrades .card').nth(2);
-
-    await expect(l1BranchACard.locator('.btn-upgrade')).toContainText('Requires Prerequisites');
-    await expect(l1BranchACard.locator('.btn-upgrade')).toBeDisabled();
-    await expect(l1BranchBCard.locator('.btn-upgrade')).toContainText('Requires Prerequisites');
-    await expect(l1BranchBCard.locator('.btn-upgrade')).toBeDisabled();
+    await expect(l1BranchACard).toBeHidden();
+    await expect(l1BranchBCard).toBeHidden();
   });
 });

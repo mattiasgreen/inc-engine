@@ -260,6 +260,8 @@ export function getDerivedStats(state, config) {
     }
   }
 
+  const visibility = getVisibilityStates(state, config);
+
   return {
     cycleFrequencyMultiplier: cycleFreqMult,
     effectiveCycleDurationMs,
@@ -272,8 +274,158 @@ export function getDerivedStats(state, config) {
     maxAffordable,
     upgradeCosts,
     prestigeRewards,
-    layerProductionPerTick
+    layerProductionPerTick,
+    visibility
   };
+}
+
+export function getVisibilityStates(state, config) {
+  const visibility = {
+    layers: {},
+    generators: {},
+    upgrades: {}
+  };
+
+  // 1. Layers visibility
+  for (let i = 0; i < config.layers.length; i++) {
+    const layer = config.layers[i];
+    const layerState = state.layers[layer.id];
+
+    if (i === 0) {
+      visibility.layers[layer.id] = 'visible';
+      continue;
+    }
+
+    if (layer.revealWhen) {
+      visibility.layers[layer.id] = evaluatePredicate(layer.revealWhen, state) ? 'visible' : 'hidden';
+      continue;
+    }
+
+    // Default convention:
+    const scope = layer.revealScope || 'lifetime';
+    if (scope === 'lifetime' && layerState?.totalLifetimeCurrency.gt(0)) {
+      visibility.layers[layer.id] = 'visible';
+      continue;
+    }
+
+    if (layer.prestige) {
+      const targetState = state.layers[layer.prestige.targetLayerId];
+      const threshold = BigNum.from(layer.prestige.thresholdCurrency);
+      const revealFraction = layer.revealThresholdFraction ?? 0.10;
+      const revealTarget = threshold.mul(revealFraction);
+      const runCur = targetState?.runTotalCurrency || new BigNum(0);
+      const lifeCur = targetState?.totalLifetimeCurrency || new BigNum(0);
+      const bestCur = runCur.gt(lifeCur) ? runCur : lifeCur;
+      visibility.layers[layer.id] = bestCur.gte(revealTarget) ? 'visible' : 'hidden';
+    } else {
+      visibility.layers[layer.id] = 'visible';
+    }
+  }
+
+  // 2. Generators visibility
+  for (const layer of config.layers) {
+    visibility.generators[layer.id] = {};
+    const layerState = state.layers[layer.id];
+
+    for (let i = 0; i < (layer.generators || []).length; i++) {
+      const gen = layer.generators[i];
+      const genState = layerState?.generators[gen.id];
+
+      if (gen.revealWhen) {
+        visibility.generators[layer.id][gen.id] = evaluatePredicate(gen.revealWhen, state) ? 'visible' : 'hidden';
+        continue;
+      }
+
+      // Generator 0 is always visible
+      if (i === 0) {
+        visibility.generators[layer.id][gen.id] = 'visible';
+        continue;
+      }
+
+      if (genState?.owned.gt(0) || genState?.bought.gt(0)) {
+        visibility.generators[layer.id][gen.id] = 'visible';
+        continue;
+      }
+
+      const prevGen = layer.generators[i - 1];
+      const prevOwned = layerState?.generators[prevGen.id]?.owned || new BigNum(0);
+      if (prevOwned.gte(1)) {
+        visibility.generators[layer.id][gen.id] = 'visible';
+      } else {
+        visibility.generators[layer.id][gen.id] = 'hidden';
+      }
+    }
+  }
+
+  // 3. Upgrades visibility
+  for (const layer of config.layers) {
+    visibility.upgrades[layer.id] = {};
+    const layerState = state.layers[layer.id];
+
+    for (const upg of layer.upgrades || []) {
+      const level = layerState?.upgrades[upg.id]?.level || 0;
+
+      if (upg.revealWhen) {
+        visibility.upgrades[layer.id][upg.id] = evaluatePredicate(upg.revealWhen, state) ? 'visible' : 'hidden';
+        continue;
+      }
+
+      if (level > 0) {
+        visibility.upgrades[layer.id][upg.id] = 'visible';
+        continue;
+      }
+
+      let prereqsMet = true;
+      if (upg.prerequisites && upg.prerequisites.length > 0) {
+        if (upg.requireMode === 'any') {
+          prereqsMet = upg.prerequisites.some(p => (layerState?.upgrades[p.id]?.level || 0) >= (p.minLevel || 1));
+        } else {
+          prereqsMet = upg.prerequisites.every(p => (layerState?.upgrades[p.id]?.level || 0) >= (p.minLevel || 1));
+        }
+      }
+
+      let isExclusiveLocked = false;
+      if (upg.exclusiveWith && upg.exclusiveWith.length > 0) {
+        isExclusiveLocked = upg.exclusiveWith.some(siblingId => (layerState?.upgrades[siblingId]?.level || 0) > 0);
+      }
+
+      const costFraction = upg.revealCostFraction ?? 0.50;
+      const revealCostThreshold = BigNum.from(upg.baseCost).mul(costFraction);
+      const currentCurrency = layerState?.runTotalCurrency || new BigNum(0);
+      const currencyMet = currentCurrency.gte(revealCostThreshold);
+
+      if (prereqsMet && !isExclusiveLocked && currencyMet) {
+        visibility.upgrades[layer.id][upg.id] = 'visible';
+      } else {
+        visibility.upgrades[layer.id][upg.id] = 'hidden';
+      }
+    }
+  }
+
+  return visibility;
+}
+
+function evaluatePredicate(pred, state) {
+  if (!pred) return true;
+  if (pred.type === 'currency') {
+    const layer = state.layers[pred.layerId || 'layer0'];
+    const metric = pred.metric || 'runTotal';
+    const val = metric === 'lifetime' ? layer?.totalLifetimeCurrency : (metric === 'current' ? layer?.currency : layer?.runTotalCurrency);
+    return val ? val.gte(pred.gte || 0) : false;
+  }
+  if (pred.type === 'generator') {
+    const layer = state.layers[pred.layerId || 'layer0'];
+    const gen = layer?.generators[pred.generatorId || pred.id];
+    const metric = pred.metric || 'owned';
+    const val = metric === 'bought' ? gen?.bought : gen?.owned;
+    return val ? val.gte(pred.gte || 1) : false;
+  }
+  if (pred.type === 'upgrade') {
+    const layer = state.layers[pred.layerId || 'layer0'];
+    const upg = layer?.upgrades[pred.upgradeId || pred.id];
+    return (upg?.level || 0) >= (pred.gte || 1);
+  }
+  return true;
 }
 
 export function advanceTicks(state, config, ticks) {

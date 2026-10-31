@@ -276,4 +276,47 @@ describe('Engine Core Seam', () => {
     // Combined with Root (2.5x) and base (1.0x)
     expect(stats.layerMultipliers.layer0.gt(5.0)).toBe(true);
   });
+
+  it('derives declarative progressive disclosure visibility states (hidden vs visible)', () => {
+    let state = createInitialState(defaultGameConfig);
+    const stats0 = getDerivedStats(state, defaultGameConfig);
+
+    // Initial state: Layer 0 visible, Layer 1 hidden, Gen 1 visible, Gen 2/3 hidden, Upgrades hidden
+    expect(stats0.visibility.layers.layer0).toBe('visible');
+    expect(stats0.visibility.layers.layer1).toBe('hidden');
+    expect(stats0.visibility.generators.layer0.gen1).toBe('visible');
+    expect(stats0.visibility.generators.layer0.gen2).toBe('hidden');
+    expect(stats0.visibility.generators.layer0.gen3).toBe('hidden');
+    expect(stats0.visibility.upgrades.layer0.upg_cycle_accel).toBe('hidden');
+
+    // Buying Gen 1 reveals Gen 2
+    state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
+    const stats1 = getDerivedStats(state, defaultGameConfig);
+    expect(stats1.visibility.generators.layer0.gen2).toBe('visible');
+    expect(stats1.visibility.generators.layer0.gen3).toBe('hidden');
+
+    // Earning 125 Energy (50% of upg_cycle_accel baseCost 250) reveals Cycle Accelerator
+    state.layers.layer0.currency = new BigNum(125);
+    state.layers.layer0.runTotalCurrency = new BigNum(125);
+    const stats2 = getDerivedStats(state, defaultGameConfig);
+    expect(stats2.visibility.upgrades.layer0.upg_cycle_accel).toBe('visible');
+    // Layer 1 is still hidden (needs 100K = 10% of 1M prestige threshold)
+    expect(stats2.visibility.layers.layer1).toBe('hidden');
+
+    // Reaching 100,000 Energy reveals Layer 1
+    state.layers.layer0.currency = new BigNum(100000);
+    state.layers.layer0.runTotalCurrency = new BigNum(100000);
+    const stats3 = getDerivedStats(state, defaultGameConfig);
+    expect(stats3.visibility.layers.layer1).toBe('visible');
+
+    // Prestige reset: Layer 1 gained lifetime currency -> remains permanently visible
+    state.layers.layer0.currency = new BigNum(1e6);
+    state.layers.layer0.runTotalCurrency = new BigNum(1e6);
+    state = resetLayer(state, defaultGameConfig, 'layer1');
+    const stats4 = getDerivedStats(state, defaultGameConfig);
+    expect(stats4.visibility.layers.layer1).toBe('visible');
+    // Layer 0 generators reset: Gen 1 is visible, Gen 2/3 are re-hidden until Gen 1 is bought again
+    expect(stats4.visibility.generators.layer0.gen1).toBe('visible');
+    expect(stats4.visibility.generators.layer0.gen2).toBe('hidden');
+  });
 });
