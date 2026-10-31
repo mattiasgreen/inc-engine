@@ -55,15 +55,15 @@ describe('Simulator and Progression Pacing Seam', () => {
       const target = new BigNum(1e6);
       const result = simulator.run(state, policy, {
         stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-        maxSimulatedMs: 15 * 60 * 1000 // 15 minutes max
+        maxSimulatedMs: 25 * 60 * 1000 // 25 minutes max
       });
 
       expect(result.state.layers.layer0.runTotalCurrency.gte(target)).toBe(true);
 
       const elapsedSeconds = result.simulatedMs / 1000;
-      // Between 5 minutes (300s) and 15 minutes (900s)
-      expect(elapsedSeconds).toBeGreaterThanOrEqual(300);
-      expect(elapsedSeconds).toBeLessThanOrEqual(900);
+      // Optimal robot reaches 1e6 in 10 to 20 minutes (around 14.1 minutes), pacing medium active human play to ~30 minutes
+      expect(elapsedSeconds).toBeGreaterThanOrEqual(600);
+      expect(elapsedSeconds).toBeLessThanOrEqual(1200);
     }
   });
 
@@ -76,7 +76,7 @@ describe('Simulator and Progression Pacing Seam', () => {
     let state = createInitialState(defaultGameConfig);
     const run1 = simulator.run(state, policy, {
       stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-      maxSimulatedMs: 15 * 60 * 1000
+      maxSimulatedMs: 25 * 60 * 1000
     });
     const run1DurationMs = run1.simulatedMs;
 
@@ -90,7 +90,7 @@ describe('Simulator and Progression Pacing Seam', () => {
     // Run 2: from reset to 1e6 again
     const run2 = simulator.run(state, policy, {
       stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-      maxSimulatedMs: 15 * 60 * 1000
+      maxSimulatedMs: 25 * 60 * 1000
     });
     const run2DurationMs = run2.simulatedMs;
 

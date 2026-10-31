@@ -41,42 +41,7 @@ export const dysonSwarmGame = {
     '--btn-sec-color': '#e2e8f0',
     '--btn-sec-border': '#334155'
   },
-  scenery: `<svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="sol-core" cx="85%" cy="30%" r="50%">
-        <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9" />
-        <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.4" />
-        <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.1" />
-        <stop offset="100%" stop-color="#060a12" stop-opacity="0" />
-      </radialGradient>
-      <linearGradient id="scaffold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.3" />
-        <stop offset="100%" stop-color="#818cf8" stop-opacity="0.05" />
-      </linearGradient>
-    </defs>
-    <!-- Sol Star Corona -->
-    <circle cx="85%" cy="30%" r="220" fill="url(#sol-core)" />
-    <!-- Distant Starfield & Nebula -->
-    <g fill="#38bdf8" opacity="0.4">
-      <circle cx="60" cy="80" r="1.5" />
-      <circle cx="180" cy="40" r="1.2" />
-      <circle cx="340" cy="120" r="1" />
-      <circle cx="490" cy="60" r="1.8" />
-      <circle cx="620" cy="180" r="1" />
-      <circle cx="750" cy="70" r="1.5" />
-      <circle cx="210" cy="240" r="1" />
-      <circle cx="400" cy="310" r="1.4" />
-    </g>
-    <!-- Mega Orbital Rings -->
-    <ellipse cx="85%" cy="30%" rx="380" ry="140" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.25" stroke-dasharray="14 8" transform="rotate(-18 1020 120)" />
-    <ellipse cx="85%" cy="30%" rx="440" ry="160" fill="none" stroke="#818cf8" stroke-width="1.2" stroke-opacity="0.2" stroke-dasharray="6 12" transform="rotate(-18 1020 120)" />
-    <!-- Dyson Truss Scaffold Silhouette -->
-    <path d="M-50 420 L250 260 L420 310 L680 190 L920 280 L1250 140" fill="none" stroke="url(#scaffold-grad)" stroke-width="2" />
-    <polygon points="250,260 270,420 230,420" fill="#38bdf8" fill-opacity="0.04" />
-    <polygon points="680,190 700,420 660,420" fill="#38bdf8" fill-opacity="0.04" />
-    <!-- Atmospheric/Orbital Horizon Glow -->
-    <path d="M0 380 Q 600 340 1200 380 L1200 400 L0 400 Z" fill="#0c1322" fill-opacity="0.6" />
-  </svg>`,
+  scenery: `<img src="./assets/bg-dyson-swarm.jpg" alt="Dyson Swarm Orbital Panorama" class="scenery-img" />`,
   character: {
     name: 'AURORA-7',
     title: 'Superorbital Grid Coordinator',
@@ -145,7 +110,7 @@ export const dysonSwarmGame = {
             <polygon points="12 2 19 21 12 17 5 21 12 2" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.26,
+          costGrowth: 1.28,
           baseOutputPerTick: 1,
           produces: 'currency'
         },
@@ -162,15 +127,15 @@ export const dysonSwarmGame = {
             <path d="M3 9h18" />
             <path d="M3 15h18" />
           </svg>`,
-          baseCost: 350,
-          costGrowth: 1.28,
-          baseOutputPerTick: 0.1,
+          baseCost: 525,
+          costGrowth: 1.33,
+          baseOutputPerTick: 0.05,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 250
+          unlockThreshold: 350
         },
         {
           id: 'gen3',
@@ -183,24 +148,24 @@ export const dysonSwarmGame = {
             <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
             <path d="M2 12h20" />
           </svg>`,
-          baseCost: 6500,
-          costGrowth: 1.35,
-          baseOutputPerTick: 0.02,
+          baseCost: 16250,
+          costGrowth: 1.40,
+          baseOutputPerTick: 0.01,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 5000
+          unlockThreshold: 8000
         }
       ],
       upgrades: [
         {
           id: 'upg_cycle_accel',
           name: 'Telemetry Overclock',
-          description: 'Increases telemetry Cycle frequency by 15%',
+          description: 'Increases telemetry Cycle frequency by 10%',
           lore: 'Upgrades inter-satellite communications to sub-picosecond microwave relays.',
-          backstory: 'By synchronizing orbital microwave transmitters through optical atomic clocks, telemetry latency across 1.4 million kilometers of space is eliminated. Autonomous swarm clusters react to solar coronal mass ejections instantaneously, accelerating processing cycles by 15%.',
+          backstory: 'By synchronizing orbital microwave transmitters through optical atomic clocks, telemetry latency across 1.4 million kilometers of space is eliminated. Autonomous swarm clusters react to solar coronal mass ejections instantaneously, accelerating processing cycles by 10%.',
           image: './assets/upg-telemetry.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -211,7 +176,7 @@ export const dysonSwarmGame = {
           effect: {
             target: 'cycleFrequency',
             operation: 'multiply',
-            value: 1.15
+            value: 1.10
           }
         },
         {
@@ -224,8 +189,8 @@ export const dysonSwarmGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 12h5l3-9 4 18 3-9h5" />
           </svg>`,
-          baseCost: 1500,
-          costGrowth: 4.0,
+          baseCost: 3500,
+          costGrowth: 4.5,
           maxLevel: 5,
           effect: {
             target: 'tickYield',
@@ -236,9 +201,9 @@ export const dysonSwarmGame = {
         {
           id: 'upg_gen1_overdrive',
           name: 'Reflective Coating',
-          description: 'Increases Solar Drone output by 1.75x per level',
+          description: 'Increases Solar Drone output by 1.35x per level',
           lore: 'Applies metamaterial dielectric mirrors to drone capture surfaces.',
-          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 75% per upgrade rank.',
+          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 35% per upgrade rank.',
           image: './assets/upg-coating.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
@@ -246,13 +211,13 @@ export const dysonSwarmGame = {
             <path d="M12 8l4 4-4 4" />
           </svg>`,
           baseCost: 400,
-          costGrowth: 3.0,
+          costGrowth: 3.2,
           maxLevel: 10,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.75
+            value: 1.35
           }
         }
       ]

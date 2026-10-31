@@ -80,8 +80,8 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await cycleUpg.locator('.btn-upgrade').click();
     await expect(cycleUpg.locator('.lvl-badge')).toContainText('Lvl 1');
 
-    // Verify telemetry cycle frequency increased from 1.00 /s to 1.15 /s
-    await expect(page.locator('#telemetry-cycle-freq')).toHaveText('1.15 /s');
+    // Verify telemetry cycle frequency increased from 1.00 /s to 1.10 /s
+    await expect(page.locator('#telemetry-cycle-freq')).toHaveText('1.10 /s');
   });
 
   test('Stage 5: Full Prestige cycle resets Layer 0 and awards Layer 1 Prestige Cores', async ({ page }) => {
@@ -157,7 +157,7 @@ test.describe('inc-engine End-to-End User Journey', () => {
     // Verify initial game is Dyson Swarm
     await expect(page.locator('#game-title')).toContainText('Dyson Swarm');
     await expect(page.locator('#character-name')).toHaveText('AURORA-7');
-    await expect(page.locator('#character-portrait svg')).toBeVisible();
+    await expect(page.locator('#character-portrait img')).toBeVisible();
     await expect(page.locator('#layer0-generators .card').first().locator('.main-view .card-icon')).toBeVisible();
 
     // Switch to Aetherforge (Fantasy)
@@ -232,10 +232,26 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await expect(page.locator('#dossier-name')).toHaveText('Telemetry Overclock');
     await expect(page.locator('#dossier-backstory')).toContainText('1.4 million kilometers');
     await expect(page.locator('#dossier-effect-container')).toBeVisible();
-    await expect(page.locator('#dossier-effect')).toContainText('15%');
+    await expect(page.locator('#dossier-effect')).toContainText('10%');
     await expect(page.locator('#dossier-portrait img')).toBeVisible();
 
-    // Close via escape key
+    // 5. Click the image in the lore card modal to open full-screen lightbox
+    const dossierImg = page.locator('#dossier-portrait img');
+    await dossierImg.click();
+
+    // Full-screen lightbox is visible with full-screen artwork
+    const lightboxModal = page.locator('#image-lightbox-modal');
+    await expect(lightboxModal).toBeVisible();
+    const lightboxImg = page.locator('#lightbox-img');
+    await expect(lightboxImg).toBeVisible();
+    await expect(lightboxImg).toHaveAttribute('src', './assets/upg-telemetry.jpg');
+    await expect(page.locator('#lightbox-caption')).toHaveText('Telemetry Overclock');
+
+    // Close lightbox via close button
+    await page.locator('#btn-close-lightbox').click();
+    await expect(lightboxModal).toBeHidden();
+
+    // Close lore modal via escape key
     await page.keyboard.press('Escape');
     await expect(modal).toBeHidden();
   });

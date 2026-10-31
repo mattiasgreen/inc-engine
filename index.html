@@ -175,19 +175,42 @@
 
     /* Character Guide Banner */
     .character-banner {
+      position: relative;
       display: flex;
-      gap: 0.65rem;
+      gap: 0.75rem;
       align-items: center;
       background: var(--banner-bg);
+      background-size: cover;
+      background-position: center 25%;
+      background-repeat: no-repeat;
       border: 1px solid var(--banner-border);
       border-radius: var(--border-radius-card);
       box-shadow: var(--card-glow);
-      padding: 0.3rem 0.65rem;
+      padding: 0.45rem 0.85rem;
       min-width: 0;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .character-banner:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25), var(--card-glow);
+    }
+    .character-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, rgba(6, 10, 18, 0.94) 0%, rgba(6, 10, 18, 0.82) 48%, rgba(6, 10, 18, 0.48) 82%, rgba(6, 10, 18, 0.2) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .character-banner > * {
+      position: relative;
+      z-index: 1;
     }
     .character-portrait {
-      width: 36px;
-      height: 36px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       overflow: hidden;
       border: 2px solid var(--primary);
@@ -197,6 +220,10 @@
       align-items: center;
       justify-content: center;
       background: var(--card-bg);
+      transition: transform 0.2s ease;
+    }
+    .character-banner:hover .character-portrait {
+      transform: scale(1.05);
     }
     .character-portrait img, .char-portrait-img {
       width: 100%;
@@ -629,6 +656,37 @@
     }
     .card.locked { opacity: 0.5; border-style: dashed; }
     .card.maxed { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.02); }
+
+    /* Upgrade Cards - Art graphic spans the whole card */
+    .card.upg-card {
+      position: relative;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      border: 1px solid var(--card-border);
+      border-radius: var(--border-radius-card);
+      box-shadow: var(--card-glow);
+      padding: 1.1rem;
+      transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    }
+    .card.upg-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(6, 10, 18, 0.92) 0%, rgba(8, 14, 26, 0.86) 52%, rgba(10, 18, 32, 0.72) 100%);
+      pointer-events: none;
+      z-index: 0;
+      transition: background 0.3s ease;
+    }
+    .card.upg-card:hover::before {
+      background: linear-gradient(135deg, rgba(6, 10, 18, 0.84) 0%, rgba(8, 14, 26, 0.74) 52%, rgba(10, 18, 32, 0.52) 100%);
+    }
+    .card.upg-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
     .card-icon {
       width: 44px;
       height: 44px;
@@ -701,8 +759,8 @@
       gap: 0.75rem;
     }
     .character-dossier-portrait {
-      width: 160px;
-      height: 160px;
+      width: 170px;
+      height: 170px;
       border-radius: 14px;
       overflow: hidden;
       border: 2px solid var(--primary);
@@ -711,11 +769,35 @@
       background: var(--card-bg);
       position: relative;
       margin: 0 auto 0.25rem auto;
+      cursor: zoom-in;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .character-dossier-portrait:hover {
-      transform: scale(1.02);
-      box-shadow: 0 0 26px var(--primary);
+      transform: scale(1.03);
+      box-shadow: 0 0 28px var(--primary);
+    }
+    .character-dossier-portrait::after {
+      content: '🔍 Click for Fullscreen';
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      font-size: 0.68rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      pointer-events: none;
+      opacity: 0.85;
+      white-space: nowrap;
+      transition: opacity 0.2s ease;
+    }
+    .character-dossier-portrait:hover::after {
+      opacity: 1;
+      background: var(--primary);
+      color: #060a12;
+      font-weight: 700;
     }
     .character-dossier-portrait img {
       width: 100%;
@@ -794,6 +876,113 @@
     .btn.danger { background: var(--danger); color: #fff; }
     .btn.danger:hover { background: var(--danger-hover); }
     .btn.disabled { background: #1e293b; color: #64748b; border-color: transparent; cursor: not-allowed; }
+
+    /* Upgrade Buttons - Softer blended glassmorphic styling */
+    .btn-upgrade {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--primary);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: none;
+      transition: all 0.2s ease;
+    }
+    .btn-upgrade.primary {
+      background: var(--btn-sec-bg, rgba(56, 189, 248, 0.12));
+      color: var(--primary);
+      border: 1px solid var(--btn-sec-border, rgba(56, 189, 248, 0.35));
+      box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.05);
+    }
+    .btn-upgrade.primary:hover:not(:disabled) {
+      background: rgba(56, 189, 248, 0.22);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+    .btn-upgrade.disabled, .btn-upgrade:disabled {
+      background: rgba(255, 255, 255, 0.02);
+      color: #64748b;
+      border-color: rgba(255, 255, 255, 0.04);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Full-Screen Lightbox Modal */
+    .lightbox-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(2, 4, 8, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      cursor: zoom-out;
+      padding: 1.25rem;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .lightbox-container {
+      position: relative;
+      max-width: 95vw;
+      max-height: 95vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: default;
+    }
+    .lightbox-image {
+      max-width: 92vw;
+      max-height: 82vh;
+      object-fit: contain;
+      border-radius: 12px;
+      border: 1.5px solid var(--primary);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.9), 0 0 24px var(--primary);
+      animation: zoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .lightbox-caption {
+      margin-top: 0.75rem;
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      color: var(--primary);
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+      letter-spacing: var(--tag-letter-spacing);
+      text-transform: var(--tag-case);
+      text-align: center;
+    }
+    .lightbox-close {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1.5px solid var(--primary);
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+      transition: transform 0.15s ease, background 0.15s ease;
+      z-index: 10;
+    }
+    .lightbox-close:hover {
+      transform: scale(1.1);
+      background: var(--primary);
+      color: #060a12;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
     .sandbox-panel {
       position: relative;
@@ -1099,8 +1288,7 @@
         <label for="game-select" class="game-switcher-label">Game:</label>
         <select id="game-select" class="game-select" aria-label="Game World Selector"></select>
         <button id="btn-install-pwa" class="btn primary" style="display: none; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; font-size: 0.76rem;" title="Install as Progressive Web App">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Install
+          <span>⤓</span> Install
         </button>
       </div>
     </div>
@@ -1292,6 +1480,15 @@
         </div>
       </div>
       <button id="btn-close-character-modal" class="btn primary" style="width: 100%; padding: 0.65rem;">Close Lore Card</button>
+    </div>
+  </div>
+
+  <!-- Full-Screen Lightbox Modal -->
+  <div id="image-lightbox-modal" class="lightbox-backdrop" style="display: none;">
+    <div class="lightbox-container">
+      <button id="btn-close-lightbox" class="lightbox-close" aria-label="Close Fullscreen View">✕</button>
+      <img id="lightbox-img" class="lightbox-image" src="" alt="Full Screen Artwork" />
+      <div id="lightbox-caption" class="lightbox-caption"></div>
     </div>
   </div>
 

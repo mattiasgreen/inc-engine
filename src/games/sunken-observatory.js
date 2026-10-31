@@ -41,39 +41,7 @@ export const sunkenObservatoryGame = {
     '--btn-sec-color': '#ddd6fe',
     '--btn-sec-border': 'rgba(167, 139, 250, 0.35)'
   },
-  scenery: `<svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="trench-glow" cx="50%" cy="100%" r="70%">
-        <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.3" />
-        <stop offset="45%" stop-color="#a78bfa" stop-opacity="0.12" />
-        <stop offset="100%" stop-color="#020608" stop-opacity="0" />
-      </radialGradient>
-      <linearGradient id="monolith-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.3" />
-        <stop offset="100%" stop-color="#051217" stop-opacity="0.95" />
-      </linearGradient>
-    </defs>
-    <!-- Abyssal Trench Light -->
-    <rect x="0" y="0" width="1200" height="400" fill="url(#trench-glow)" />
-    <!-- Submerged Ancient Obelisks & Monoliths -->
-    <polygon points="180,400 210,160 250,170 270,400" fill="url(#monolith-grad)" />
-    <polygon points="320,400 350,230 380,240 400,400" fill="#091b22" />
-    <polygon points="760,400 790,130 830,140 850,400" fill="url(#monolith-grad)" />
-    <polygon points="920,400 945,200 975,210 1000,400" fill="#091b22" />
-    <!-- Rising Bioluminescent Plankton Bubbles -->
-    <g fill="#2dd4bf" opacity="0.45">
-      <circle cx="215" cy="110" r="2.5" />
-      <circle cx="230" cy="80" r="1.5" />
-      <circle cx="240" cy="40" r="3" />
-      <circle cx="510" cy="190" r="2" />
-      <circle cx="530" cy="140" r="3.5" />
-      <circle cx="795" cy="90" r="2" />
-      <circle cx="810" cy="60" r="3" />
-    </g>
-    <!-- Abyssal Eye Silhouette in Trench Depths -->
-    <ellipse cx="600" cy="380" rx="160" ry="40" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-opacity="0.35" />
-    <circle cx="600" cy="380" r="14" fill="#a78bfa" fill-opacity="0.4" />
-  </svg>`,
+  scenery: `<img src="./assets/bg-sunken-observatory.jpg" alt="Sunken Observatory Abyssal Trench Panorama" class="scenery-img" />`,
   character: {
     name: 'Curator Ambrose',
     title: 'Sole Keeper of the Abyssal Vault',
@@ -127,7 +95,7 @@ export const sunkenObservatoryGame = {
             <circle cx="12" cy="7" r="4" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.27,
+          costGrowth: 1.28,
           baseOutputPerTick: 1.0,
           produces: 'currency'
         },
@@ -140,15 +108,15 @@ export const sunkenObservatoryGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-monolith">
             <path d="M8 21h8l-2-18h-4z" />
           </svg>`,
-          baseCost: 360,
-          costGrowth: 1.29,
-          baseOutputPerTick: 0.1,
+          baseCost: 540,
+          costGrowth: 1.33,
+          baseOutputPerTick: 0.05,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 250
+          unlockThreshold: 350
         },
         {
           id: 'gen3',
@@ -161,24 +129,24 @@ export const sunkenObservatoryGame = {
             <line x1="12" y1="3" x2="12" y2="21" />
             <line x1="3" y1="12" x2="21" y2="12" />
           </svg>`,
-          baseCost: 6600,
-          costGrowth: 1.35,
-          baseOutputPerTick: 0.02,
+          baseCost: 16500,
+          costGrowth: 1.40,
+          baseOutputPerTick: 0.01,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 5000
+          unlockThreshold: 8000
         }
       ],
       upgrades: [
         {
           id: 'upg_cycle_accel',
           name: 'Fever Dreams',
-          description: 'Speeds research Cycle frequency by 15%',
+          description: 'Speeds research Cycle frequency by 10%',
           lore: 'Hallucinogenic deep-sea flora eliminate the necessity for mundane slumber.',
-          backstory: 'Distilled from phosphorescent kelp harvested along hydrothermal vents. Consuming the bitter brew liberates the scholar intellect from the constraint of physical sleep, allowing relentless analysis of submerged star-matrices and accelerating research frequency by 15%.',
+          backstory: 'Distilled from phosphorescent kelp harvested along hydrothermal vents. Consuming the bitter brew liberates the scholar intellect from the constraint of physical sleep, allowing relentless analysis of submerged star-matrices and accelerating research frequency by 10%.',
           image: './assets/upg-astrolabe.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
@@ -190,7 +158,7 @@ export const sunkenObservatoryGame = {
           effect: {
             target: 'cycleFrequency',
             operation: 'multiply',
-            value: 1.15
+            value: 1.10
           }
         },
         {
@@ -204,8 +172,8 @@ export const sunkenObservatoryGame = {
             <circle cx="12" cy="12" r="10" />
             <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" />
           </svg>`,
-          baseCost: 1500,
-          costGrowth: 4.0,
+          baseCost: 3500,
+          costGrowth: 4.5,
           maxLevel: 5,
           effect: {
             target: 'tickYield',
@@ -216,7 +184,7 @@ export const sunkenObservatoryGame = {
         {
           id: 'upg_gen1_overdrive',
           name: 'Black Ink Inscription',
-          description: 'Increases Cult Acolyte output by 1.75x per level',
+          description: 'Increases Cult Acolyte output by 1.35x per level',
           lore: 'Binding glyphs penned in cephalopod bioluminescent ichor.',
           backstory: 'Drawn from abyssal giant cephalopods that feed upon thermal plumes. This viscous black ink remains warm to the touch and glows faintly in absolute darkness. Texts copied with this ink crawl across the page, compelling acolytes to furious transcriptive output.',
           image: './assets/upg-black-ink.jpg',
@@ -225,13 +193,13 @@ export const sunkenObservatoryGame = {
             <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
           </svg>`,
           baseCost: 400,
-          costGrowth: 3.0,
+          costGrowth: 3.2,
           maxLevel: 10,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.75
+            value: 1.35
           }
         }
       ]

@@ -241,19 +241,20 @@ function mountUI() {
   }
 
   // Character Guide Banner
+  const charBanner = document.getElementById('character-banner');
   const charPortrait = document.getElementById('character-portrait');
   const charName = document.getElementById('character-name');
   const charTitle = document.getElementById('character-title');
   const charQuote = document.getElementById('character-quote');
 
   if (activeConfig.character) {
+    if (charBanner && activeConfig.character.image) {
+      charBanner.style.backgroundImage = `url(${activeConfig.character.image})`;
+    }
     if (charPortrait) {
       if (activeConfig.character.image) {
         charPortrait.innerHTML = `
-          <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-            <img src="${activeConfig.character.image}" alt="${activeConfig.character.name}" class="char-portrait-img" />
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">${activeConfig.character.svg || ''}</div>
-          </div>
+          <img src="${activeConfig.character.image}" alt="${activeConfig.character.name}" class="char-portrait-img" />
         `;
       } else {
         charPortrait.innerHTML = activeConfig.character.svg || '';
@@ -396,6 +397,9 @@ function mountUI() {
   for (const upg of l0Config.upgrades) {
     const card = document.createElement('div');
     card.className = 'card upg-card';
+    if (upg.image) {
+      card.style.backgroundImage = `url(${upg.image})`;
+    }
 
     const upgIconHtml = upg.image
       ? `<img src="${upg.image}" alt="${upg.name}" class="upg-thumb-img" />`
@@ -514,6 +518,9 @@ function mountUI() {
   for (const upg of l1Config.upgrades) {
     const card = document.createElement('div');
     card.className = 'card upg-card';
+    if (upg.image) {
+      card.style.backgroundImage = `url(${upg.image})`;
+    }
 
     const artHtml = upg.image ? `
       <div class="card-thumb-art">
@@ -920,13 +927,48 @@ function setupStaticEventListeners() {
     if (loreModal) loreModal.style.display = 'none';
   });
 
+  // Full-Screen Image Lightbox Modal
+  const lightboxModal = document.getElementById('image-lightbox-modal');
+  if (lightboxModal) {
+    lightboxModal.addEventListener('click', (e) => {
+      if (e.target === lightboxModal) {
+        closeLightbox();
+      }
+    });
+  }
+
+  document.getElementById('btn-close-lightbox')?.addEventListener('click', () => {
+    closeLightbox();
+  });
+
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (lightboxModal && lightboxModal.style.display !== 'none') {
+        closeLightbox();
+        return;
+      }
       if (loreModal) loreModal.style.display = 'none';
       const offlineModal = document.getElementById('offline-modal');
       if (offlineModal) offlineModal.style.display = 'none';
     }
   });
+}
+
+export function openLightbox(imageSrc, caption) {
+  const modal = document.getElementById('image-lightbox-modal');
+  const img = document.getElementById('lightbox-img');
+  const cap = document.getElementById('lightbox-caption');
+  if (!modal || !img) return;
+
+  img.src = imageSrc;
+  img.alt = caption || 'Full Screen Artwork';
+  if (cap) cap.textContent = caption || '';
+  modal.style.display = 'flex';
+}
+
+export function closeLightbox() {
+  const modal = document.getElementById('image-lightbox-modal');
+  if (modal) modal.style.display = 'none';
 }
 
 export function openLoreModal({ title, subtitle, image, svg, quote, backstory, effect }) {
@@ -942,15 +984,24 @@ export function openLoreModal({ title, subtitle, image, svg, quote, backstory, e
   if (portrait) {
     if (image) {
       portrait.innerHTML = `
-        <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img src="${image}" alt="${title || ''}" />
-          ${svg ? `<div class="halo-overlay">${svg}</div>` : ''}
-        </div>
+        <img src="${image}" alt="${title || ''}" />
       `;
+      portrait.style.cursor = 'zoom-in';
+      portrait.title = 'Click to view full-screen';
+      portrait.onclick = (e) => {
+        e.stopPropagation();
+        openLightbox(image, title);
+      };
     } else if (svg) {
       portrait.innerHTML = svg;
+      portrait.style.cursor = 'default';
+      portrait.title = '';
+      portrait.onclick = null;
     } else {
       portrait.innerHTML = '';
+      portrait.style.cursor = 'default';
+      portrait.title = '';
+      portrait.onclick = null;
     }
   }
 

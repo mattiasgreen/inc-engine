@@ -41,41 +41,7 @@ export const aetherforgeGame = {
     '--btn-sec-color': '#fde68a',
     '--btn-sec-border': 'rgba(251, 191, 36, 0.35)'
   },
-  scenery: `<svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="astral-moon" cx="50%" cy="40%" r="55%">
-        <stop offset="0%" stop-color="#fef08a" stop-opacity="0.85" />
-        <stop offset="30%" stop-color="#c084fc" stop-opacity="0.5" />
-        <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.15" />
-        <stop offset="100%" stop-color="#090510" stop-opacity="0" />
-      </radialGradient>
-      <linearGradient id="spire-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stop-color="#c084fc" stop-opacity="0.4" />
-        <stop offset="100%" stop-color="#130c24" stop-opacity="0.9" />
-      </linearGradient>
-    </defs>
-    <!-- Celestial Astral Moon -->
-    <circle cx="20%" cy="30%" r="130" fill="url(#astral-moon)" />
-    <!-- Floating Astral Constellations -->
-    <g stroke="#fbbf24" stroke-width="1" stroke-opacity="0.3" fill="#fbbf24">
-      <circle cx="150" cy="90" r="2" />
-      <circle cx="280" cy="140" r="1.5" />
-      <circle cx="340" cy="70" r="2.5" />
-      <circle cx="460" cy="110" r="1.5" />
-      <line x1="150" y1="90" x2="280" y2="140" />
-      <line x1="280" y1="140" x2="340" y2="70" />
-      <line x1="340" y1="70" x2="460" y2="110" />
-    </g>
-    <!-- Arcane Citadels and Spires Silhouette -->
-    <polygon points="120,400 170,180 220,400" fill="url(#spire-grad)" />
-    <polygon points="190,400 230,220 270,400" fill="#2d1b4e" fill-opacity="0.7" />
-    <polygon points="780,400 840,140 900,400" fill="url(#spire-grad)" />
-    <polygon points="870,400 910,240 950,400" fill="#2d1b4e" fill-opacity="0.7" />
-    <polygon points="980,400 1040,190 1100,400" fill="url(#spire-grad)" />
-    <!-- Arcane Leyline Beams -->
-    <path d="M0 370 Q 300 290 600 340 T 1200 310" fill="none" stroke="#c084fc" stroke-width="2" stroke-opacity="0.25" stroke-dasharray="10 5" />
-    <path d="M0 385 Q 400 330 800 370 T 1200 350" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-opacity="0.2" />
-  </svg>`,
+  scenery: `<img src="./assets/bg-aetherforge.jpg" alt="Aetherforge Astral Sanctum Panorama" class="scenery-img" />`,
   character: {
     name: 'Archmage Vaelen',
     title: 'Keeper of the Prismatic Loom',
@@ -151,15 +117,15 @@ export const aetherforgeGame = {
             <circle cx="12" cy="7" r="3" />
             <circle cx="12" cy="17" r="3" />
           </svg>`,
-          baseCost: 380,
-          costGrowth: 1.30,
-          baseOutputPerTick: 0.1,
+          baseCost: 570,
+          costGrowth: 1.33,
+          baseOutputPerTick: 0.05,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 260
+          unlockThreshold: 360
         },
         {
           id: 'gen3',
@@ -170,24 +136,24 @@ export const aetherforgeGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-citadel">
             <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
           </svg>`,
-          baseCost: 7000,
-          costGrowth: 1.36,
-          baseOutputPerTick: 0.02,
+          baseCost: 17500,
+          costGrowth: 1.40,
+          baseOutputPerTick: 0.01,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 5200
+          unlockThreshold: 8000
         }
       ],
       upgrades: [
         {
           id: 'upg_cycle_accel',
           name: 'Chrono-Incantation',
-          description: 'Speeds weave frequency by 15%',
+          description: 'Speeds weave frequency by 10%',
           lore: 'Compresses casting syllables through harmonic vocal resonances.',
-          backstory: 'An ancient polyphonic casting technique perfected by the First Chantry. By overlapping vocal cadences across three tonal registers simultaneously, complex spell formulas collapse into pure musical chords, quickening weave cycles by 15%.',
+          backstory: 'An ancient polyphonic casting technique perfected by the First Chantry. By overlapping vocal cadences across three tonal registers simultaneously, complex spell formulas collapse into pure musical chords, quickening weave cycles by 10%.',
           image: './assets/upg-leyline.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
@@ -199,7 +165,7 @@ export const aetherforgeGame = {
           effect: {
             target: 'cycleFrequency',
             operation: 'multiply',
-            value: 1.15
+            value: 1.10
           }
         },
         {
@@ -212,8 +178,8 @@ export const aetherforgeGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 2 22 22 22 12 2" />
           </svg>`,
-          baseCost: 1400,
-          costGrowth: 3.8,
+          baseCost: 3500,
+          costGrowth: 4.5,
           maxLevel: 5,
           effect: {
             target: 'tickYield',
@@ -224,21 +190,21 @@ export const aetherforgeGame = {
         {
           id: 'upg_gen1_overdrive',
           name: 'Ethereal Bond',
-          description: 'Boosts Runic Familiar mana harvest by 1.75x per level',
+          description: 'Boosts Runic Familiar mana harvest by 1.35x per level',
           lore: 'Tethers spirits directly to the caster’s spiritual reservoir.',
-          backstory: 'A sacred blood-and-mana pact inscribed onto the familiar spirits astral essence. By opening an unbroken psychic channel to the archmage, the spirits draw upon bottomless reservoirs of will, boosting each familiar mana yield by 75% per rank.',
+          backstory: 'A sacred blood-and-mana pact inscribed onto the familiar spirits astral essence. By opening an unbroken psychic channel to the archmage, the spirits draw upon bottomless reservoirs of will, boosting each familiar mana yield by 35% per rank.',
           image: './assets/upg-bond.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>`,
           baseCost: 400,
-          costGrowth: 3.0,
+          costGrowth: 3.2,
           maxLevel: 10,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.75
+            value: 1.35
           }
         }
       ]
