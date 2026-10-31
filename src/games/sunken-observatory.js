@@ -18,7 +18,7 @@ export const sunkenObservatoryGame = {
     '--accent': '#f472b6',
     '--font-display': "'Courier Prime', 'Special Elite', 'IM Fell English', monospace",
     '--font-body': "'Courier New', 'Courier', monospace",
-    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(2, 6, 8, 0.6) 0%, rgba(2, 6, 8, 0.95) 100%), url("./assets/bg-sunken-observatory.jpg")',
+    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(2, 6, 8, 0.25) 0%, rgba(2, 6, 8, 0.75) 100%), url("./assets/bg-sunken-observatory.jpg")',
     '--card-glow': '0 0 24px rgba(45, 212, 191, 0.08), inset 0 0 16px rgba(167, 139, 250, 0.05)',
     '--card-bg-gradient': 'linear-gradient(180deg, rgba(6, 20, 26, 0.96) 0%, rgba(4, 12, 16, 0.99) 100%)',
     '--border-radius-panel': '2px',

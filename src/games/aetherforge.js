@@ -18,7 +18,7 @@ export const aetherforgeGame = {
     '--accent': '#fbbf24',
     '--font-display': "'Cinzel', 'Trajan Pro', 'Georgia', serif",
     '--font-body': "'Cormorant Garamond', 'Garamond', 'Palatino Linotype', serif",
-    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(9, 5, 16, 0.6) 0%, rgba(9, 5, 16, 0.95) 100%), url("./assets/bg-aetherforge.jpg")',
+    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(9, 5, 16, 0.25) 0%, rgba(9, 5, 16, 0.75) 100%), url("./assets/bg-aetherforge.jpg")',
     '--card-glow': '0 0 24px rgba(192, 132, 252, 0.12), inset 0 0 14px rgba(251, 191, 36, 0.04)',
     '--card-bg-gradient': 'linear-gradient(180deg, rgba(24, 15, 45, 0.9) 0%, rgba(16, 10, 30, 0.96) 100%)',
     '--border-radius-panel': '16px',

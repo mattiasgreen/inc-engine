@@ -18,7 +18,7 @@ export const dysonSwarmGame = {
     '--accent': '#f59e0b',
     '--font-display': "'Orbitron', 'Space Grotesk', system-ui, sans-serif",
     '--font-body': "'Share Tech Mono', 'Courier New', monospace",
-    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(6, 10, 18, 0.6) 0%, rgba(6, 10, 18, 0.95) 100%), url("./assets/bg-dyson-swarm.jpg")',
+    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(6, 10, 18, 0.25) 0%, rgba(6, 10, 18, 0.75) 100%), url("./assets/bg-dyson-swarm.jpg")',
     '--card-glow': '0 0 16px rgba(56, 189, 248, 0.08), inset 0 1px 0 rgba(56, 189, 248, 0.15)',
     '--card-bg-gradient': 'linear-gradient(180deg, rgba(14, 23, 42, 0.95) 0%, rgba(10, 16, 30, 0.98) 100%)',
     '--border-radius-panel': '6px',
