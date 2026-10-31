@@ -18,7 +18,7 @@ export const dysonSwarmGame = {
     '--accent': '#f59e0b',
     '--font-display': "'Orbitron', 'Space Grotesk', system-ui, sans-serif",
     '--font-body': "'Share Tech Mono', 'Courier New', monospace",
-    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12) 0%, transparent 60%), linear-gradient(rgba(56, 189, 248, 0.035) 1px, transparent 1px) 0 0 / 28px 28px, linear-gradient(90deg, rgba(56, 189, 248, 0.035) 1px, transparent 1px) 0 0 / 28px 28px',
+    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(6, 10, 18, 0.6) 0%, rgba(6, 10, 18, 0.95) 100%), url("./assets/bg-dyson-swarm.jpg")',
     '--card-glow': '0 0 16px rgba(56, 189, 248, 0.08), inset 0 1px 0 rgba(56, 189, 248, 0.15)',
     '--card-bg-gradient': 'linear-gradient(180deg, rgba(14, 23, 42, 0.95) 0%, rgba(10, 16, 30, 0.98) 100%)',
     '--border-radius-panel': '6px',
@@ -129,7 +129,7 @@ export const dysonSwarmGame = {
           id: 'gen1',
           name: 'Solar Drone',
           lore: 'Autonomous photovoltaic mirror drones capturing raw stellar radiation.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-drone">
             <polygon points="12 2 19 21 12 17 5 21 12 2" />
           </svg>`,
           baseCost: 10,
@@ -141,7 +141,7 @@ export const dysonSwarmGame = {
           id: 'gen2',
           name: 'Orbital Fabricator',
           lore: 'Automated micro-factories 3D-printing swarms of Solar Drones directly in space.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-fabricator">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <path d="M9 3v18" />
             <path d="M15 3v18" />
@@ -162,7 +162,7 @@ export const dysonSwarmGame = {
           id: 'gen3',
           name: 'Stellar Harvester',
           lore: 'Gigantic atmospheric scoops skimming the solar corona to forge Fabricators.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-harvester">
             <circle cx="12" cy="12" r="10" />
             <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
             <path d="M2 12h20" />

@@ -18,7 +18,7 @@ export const sunkenObservatoryGame = {
     '--accent': '#f472b6',
     '--font-display': "'Courier Prime', 'Special Elite', 'IM Fell English', monospace",
     '--font-body': "'Courier New', 'Courier', monospace",
-    '--bg-pattern': 'radial-gradient(ellipse at 50% 100%, rgba(45, 212, 191, 0.12) 0%, rgba(2, 6, 8, 0.98) 75%), repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0px, rgba(0, 0, 0, 0.35) 2px, transparent 2px, transparent 4px)',
+    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(2, 6, 8, 0.6) 0%, rgba(2, 6, 8, 0.95) 100%), url("./assets/bg-sunken-observatory.jpg")',
     '--card-glow': '0 0 24px rgba(45, 212, 191, 0.08), inset 0 0 16px rgba(167, 139, 250, 0.05)',
     '--card-bg-gradient': 'linear-gradient(180deg, rgba(6, 20, 26, 0.96) 0%, rgba(4, 12, 16, 0.99) 100%)',
     '--border-radius-panel': '2px',
@@ -110,7 +110,7 @@ export const sunkenObservatoryGame = {
           id: 'gen1',
           name: 'Cult Acolyte',
           lore: 'Sleepless scribes feverishly translating drowned star-charts by tallow candlelight.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-acolyte">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>`,
@@ -123,7 +123,7 @@ export const sunkenObservatoryGame = {
           id: 'gen2',
           name: 'Whispering Monolith',
           lore: 'Barnacle-encrusted obelisks transmitting low-frequency psychic instructions that recruit acolytes.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-monolith">
             <path d="M8 21h8l-2-18h-4z" />
           </svg>`,
           baseCost: 360,
@@ -140,7 +140,7 @@ export const sunkenObservatoryGame = {
           id: 'gen3',
           name: 'Rift Harvester',
           lore: 'Diving bells equipped with gravimetric dredges, opening fissures that manifest monoliths.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-rift">
             <circle cx="12" cy="12" r="9" />
             <line x1="12" y1="3" x2="12" y2="21" />
             <line x1="3" y1="12" x2="21" y2="12" />

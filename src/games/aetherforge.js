@@ -18,7 +18,7 @@ export const aetherforgeGame = {
     '--accent': '#fbbf24',
     '--font-display': "'Cinzel', 'Trajan Pro', 'Georgia', serif",
     '--font-body': "'Cormorant Garamond', 'Garamond', 'Palatino Linotype', serif",
-    '--bg-pattern': 'radial-gradient(ellipse at 50% 15%, rgba(192, 132, 252, 0.16) 0%, rgba(9, 5, 16, 0.98) 70%), repeating-linear-gradient(45deg, rgba(251, 191, 36, 0.02) 0px, rgba(251, 191, 36, 0.02) 1px, transparent 1px, transparent 24px)',
+    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(9, 5, 16, 0.6) 0%, rgba(9, 5, 16, 0.95) 100%), url("./assets/bg-aetherforge.jpg")',
     '--card-glow': '0 0 24px rgba(192, 132, 252, 0.12), inset 0 0 14px rgba(251, 191, 36, 0.04)',
     '--card-bg-gradient': 'linear-gradient(180deg, rgba(24, 15, 45, 0.9) 0%, rgba(16, 10, 30, 0.96) 100%)',
     '--border-radius-panel': '16px',
@@ -118,7 +118,7 @@ export const aetherforgeGame = {
           id: 'gen1',
           name: 'Runic Familiar',
           lore: 'Minor ethereal spirits bonded to harvest lingering ambient mana crystals.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-familiar">
             <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4 21l3.39-.97C8.93 20.66 10.42 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z" />
             <circle cx="9" cy="11" r="1" fill="#c084fc" />
             <circle cx="15" cy="11" r="1" fill="#c084fc" />
@@ -132,7 +132,7 @@ export const aetherforgeGame = {
           id: 'gen2',
           name: 'Leyline Conduit',
           lore: 'Carved obsidian pillars drawing subterranean mystic currents to manifest familiars.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-conduit">
             <line x1="12" y1="2" x2="12" y2="22" />
             <circle cx="12" cy="7" r="3" />
             <circle cx="12" cy="17" r="3" />
@@ -151,7 +151,7 @@ export const aetherforgeGame = {
           id: 'gen3',
           name: 'Astral Citadel',
           lore: 'Floating spire-sanctuaries anchored in the astral plane, projecting conduits onto earth.',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-citadel">
             <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
           </svg>`,
           baseCost: 7000,

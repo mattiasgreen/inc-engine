@@ -15,11 +15,24 @@ let simulator;
 const generatorUI = {};
 const upgradeUI = {};
 
-function triggerUpgradeAnimation(btn, card) {
+function triggerUpgradeAnimation(btn, card, label = '+UPGRADE!') {
   if (btn) {
     btn.classList.remove('anim-upgrade-btn');
     void btn.offsetWidth; // Trigger reflow
     btn.classList.add('anim-upgrade-btn');
+
+    // Spawn floating particle burst relative to viewport
+    const rect = btn.getBoundingClientRect();
+    const burst = document.createElement('div');
+    burst.className = 'floating-upgrade-burst';
+    burst.textContent = label;
+    burst.style.position = 'fixed';
+    burst.style.left = `${rect.left + rect.width / 2}px`;
+    burst.style.top = `${rect.top - 10}px`;
+    document.body.appendChild(burst);
+    setTimeout(() => {
+      burst.remove();
+    }, 750);
   }
   if (card) {
     card.classList.remove('anim-card-pulse');
@@ -188,13 +201,13 @@ function mountUI() {
 
     buy1Btn.addEventListener('click', () => {
       session.buyGenerator('layer0', gen.id, 1);
-      triggerUpgradeAnimation(buy1Btn, card);
+      triggerUpgradeAnimation(buy1Btn, card, '+1 BOUGHT');
       render();
     });
 
     buyMaxBtn.addEventListener('click', () => {
       session.buyGenerator('layer0', gen.id, 'max');
-      triggerUpgradeAnimation(buyMaxBtn, card);
+      triggerUpgradeAnimation(buyMaxBtn, card, '+MAX BOUGHT');
       render();
     });
 
