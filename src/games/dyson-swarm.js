@@ -34,17 +34,61 @@ export const dysonSwarmGame = {
     '--btn-sec-color': '#e2e8f0',
     '--btn-sec-border': '#334155'
   },
+  scenery: `<svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="sol-core" cx="85%" cy="30%" r="50%">
+        <stop offset="0%" stop-color="#fef08a" stop-opacity="0.9" />
+        <stop offset="35%" stop-color="#f59e0b" stop-opacity="0.4" />
+        <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.1" />
+        <stop offset="100%" stop-color="#060a12" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="scaffold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.3" />
+        <stop offset="100%" stop-color="#818cf8" stop-opacity="0.05" />
+      </linearGradient>
+    </defs>
+    <!-- Sol Star Corona -->
+    <circle cx="85%" cy="30%" r="220" fill="url(#sol-core)" />
+    <!-- Distant Starfield & Nebula -->
+    <g fill="#38bdf8" opacity="0.4">
+      <circle cx="60" cy="80" r="1.5" />
+      <circle cx="180" cy="40" r="1.2" />
+      <circle cx="340" cy="120" r="1" />
+      <circle cx="490" cy="60" r="1.8" />
+      <circle cx="620" cy="180" r="1" />
+      <circle cx="750" cy="70" r="1.5" />
+      <circle cx="210" cy="240" r="1" />
+      <circle cx="400" cy="310" r="1.4" />
+    </g>
+    <!-- Mega Orbital Rings -->
+    <ellipse cx="85%" cy="30%" rx="380" ry="140" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.25" stroke-dasharray="14 8" transform="rotate(-18 1020 120)" />
+    <ellipse cx="85%" cy="30%" rx="440" ry="160" fill="none" stroke="#818cf8" stroke-width="1.2" stroke-opacity="0.2" stroke-dasharray="6 12" transform="rotate(-18 1020 120)" />
+    <!-- Dyson Truss Scaffold Silhouette -->
+    <path d="M-50 420 L250 260 L420 310 L680 190 L920 280 L1250 140" fill="none" stroke="url(#scaffold-grad)" stroke-width="2" />
+    <polygon points="250,260 270,420 230,420" fill="#38bdf8" fill-opacity="0.04" />
+    <polygon points="680,190 700,420 660,420" fill="#38bdf8" fill-opacity="0.04" />
+    <!-- Atmospheric/Orbital Horizon Glow -->
+    <path d="M0 380 Q 600 340 1200 380 L1200 400 L0 400 Z" fill="#0c1322" fill-opacity="0.6" />
+  </svg>`,
   character: {
     name: 'AURORA-7',
     title: 'Superorbital Grid Coordinator',
-    svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="32" r="28" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 2" />
-      <polygon points="32,14 48,46 16,46" stroke="#818cf8" stroke-width="2" fill="rgba(129,140,248,0.15)" />
-      <circle cx="32" cy="35" r="6" fill="#38bdf8" />
-      <line x1="32" y1="6" x2="32" y2="12" stroke="#38bdf8" stroke-width="2" />
-      <line x1="32" y1="52" x2="32" y2="58" stroke="#38bdf8" stroke-width="2" />
-      <line x1="6" y1="32" x2="12" y2="32" stroke="#38bdf8" stroke-width="2" />
-      <line x1="52" y1="32" x2="58" y2="32" stroke="#38bdf8" stroke-width="2" />
+    svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-dyson">
+      <defs>
+        <filter id="aurora-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+      </defs>
+      <circle class="ring-outer" cx="32" cy="32" r="28" stroke="#38bdf8" stroke-width="2" stroke-dasharray="5 3" />
+      <circle class="ring-inner" cx="32" cy="32" r="22" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="3 4" stroke-opacity="0.7" />
+      <polygon class="core-poly" points="32,13 49,46 15,46" stroke="#38bdf8" stroke-width="2" fill="rgba(56,189,248,0.15)" filter="url(#aurora-glow)" />
+      <circle class="core-pulse" cx="32" cy="35" r="5" fill="#38bdf8" filter="url(#aurora-glow)" />
+      <!-- Telemetry crosshairs -->
+      <line x1="32" y1="4" x2="32" y2="10" stroke="#38bdf8" stroke-width="2" />
+      <line x1="32" y1="54" x2="32" y2="60" stroke="#38bdf8" stroke-width="2" />
+      <line x1="4" y1="32" x2="10" y2="32" stroke="#38bdf8" stroke-width="2" />
+      <line x1="54" y1="32" x2="60" y2="32" stroke="#38bdf8" stroke-width="2" />
     </svg>`,
     dialogue: {
       intro: 'Grid initialization complete. Solar collection array is online. We need energy to deploy automated collectors.',

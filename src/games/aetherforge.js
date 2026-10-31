@@ -34,15 +34,58 @@ export const aetherforgeGame = {
     '--btn-sec-color': '#fde68a',
     '--btn-sec-border': 'rgba(251, 191, 36, 0.35)'
   },
+  scenery: `<svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="astral-moon" cx="50%" cy="40%" r="55%">
+        <stop offset="0%" stop-color="#fef08a" stop-opacity="0.85" />
+        <stop offset="30%" stop-color="#c084fc" stop-opacity="0.5" />
+        <stop offset="70%" stop-color="#38bdf8" stop-opacity="0.15" />
+        <stop offset="100%" stop-color="#090510" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="spire-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#c084fc" stop-opacity="0.4" />
+        <stop offset="100%" stop-color="#130c24" stop-opacity="0.9" />
+      </linearGradient>
+    </defs>
+    <!-- Celestial Astral Moon -->
+    <circle cx="20%" cy="30%" r="130" fill="url(#astral-moon)" />
+    <!-- Floating Astral Constellations -->
+    <g stroke="#fbbf24" stroke-width="1" stroke-opacity="0.3" fill="#fbbf24">
+      <circle cx="150" cy="90" r="2" />
+      <circle cx="280" cy="140" r="1.5" />
+      <circle cx="340" cy="70" r="2.5" />
+      <circle cx="460" cy="110" r="1.5" />
+      <line x1="150" y1="90" x2="280" y2="140" />
+      <line x1="280" y1="140" x2="340" y2="70" />
+      <line x1="340" y1="70" x2="460" y2="110" />
+    </g>
+    <!-- Arcane Citadels and Spires Silhouette -->
+    <polygon points="120,400 170,180 220,400" fill="url(#spire-grad)" />
+    <polygon points="190,400 230,220 270,400" fill="#2d1b4e" fill-opacity="0.7" />
+    <polygon points="780,400 840,140 900,400" fill="url(#spire-grad)" />
+    <polygon points="870,400 910,240 950,400" fill="#2d1b4e" fill-opacity="0.7" />
+    <polygon points="980,400 1040,190 1100,400" fill="url(#spire-grad)" />
+    <!-- Arcane Leyline Beams -->
+    <path d="M0 370 Q 300 290 600 340 T 1200 310" fill="none" stroke="#c084fc" stroke-width="2" stroke-opacity="0.25" stroke-dasharray="10 5" />
+    <path d="M0 385 Q 400 330 800 370 T 1200 350" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-opacity="0.2" />
+  </svg>`,
   character: {
     name: 'Archmage Vaelen',
     title: 'Keeper of the Prismatic Loom',
-    svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="32" r="28" stroke="#c084fc" stroke-width="2" />
-      <path d="M22 48 C22 36, 42 36, 42 48" stroke="#38bdf8" stroke-width="2" fill="rgba(56,189,248,0.2)" />
-      <circle cx="32" cy="24" r="8" stroke="#fbbf24" stroke-width="2" fill="rgba(251,191,36,0.2)" />
-      <path d="M16 20 L24 28 M48 20 L40 28" stroke="#c084fc" stroke-width="2" />
-      <polygon points="32,4 36,14 46,14 38,20 41,30 32,24 23,30 26,20 18,14 28,14" fill="#fbbf24" />
+    svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-aether">
+      <defs>
+        <radialGradient id="vaelen-halo" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.4" />
+          <stop offset="100%" stop-color="#c084fc" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <circle class="halo-pulse" cx="32" cy="24" r="22" fill="url(#vaelen-halo)" />
+      <circle class="rune-orbit" cx="32" cy="32" r="28" stroke="#c084fc" stroke-width="2" stroke-dasharray="6 3" />
+      <path class="robe-drape" d="M20 50 C20 34, 44 34, 44 50" stroke="#38bdf8" stroke-width="2.5" fill="rgba(56,189,248,0.2)" />
+      <circle cx="32" cy="24" r="8" stroke="#fbbf24" stroke-width="2" fill="rgba(251,191,36,0.3)" />
+      <!-- Archmage Crest / Floating Crown -->
+      <polygon class="crown-float" points="32,2 37,13 48,13 39,20 42,31 32,25 22,31 25,20 16,13 27,13" fill="#fbbf24" />
+      <circle cx="32" cy="24" r="2" fill="#fff" />
     </svg>`,
     dialogue: {
       intro: 'The Aetherial Loom awakens. Whisper the incantations to summon Runic Familiars to harvest raw Mana.',

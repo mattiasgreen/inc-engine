@@ -15,6 +15,19 @@ let simulator;
 const generatorUI = {};
 const upgradeUI = {};
 
+function triggerUpgradeAnimation(btn, card) {
+  if (btn) {
+    btn.classList.remove('anim-upgrade-btn');
+    void btn.offsetWidth; // Trigger reflow
+    btn.classList.add('anim-upgrade-btn');
+  }
+  if (card) {
+    card.classList.remove('anim-card-pulse');
+    void card.offsetWidth; // Trigger reflow
+    card.classList.add('anim-card-pulse');
+  }
+}
+
 function init() {
   initGame(activeGameId);
 
@@ -94,6 +107,12 @@ function mountUI() {
   const l0Config = activeConfig.layers[0];
   const l1Config = activeConfig.layers[1];
 
+  // Scenery Panorama
+  const sceneryContainer = document.getElementById('scenery-bg');
+  if (sceneryContainer) {
+    sceneryContainer.innerHTML = activeConfig.scenery || '';
+  }
+
   // Character Guide Banner
   const charPortrait = document.getElementById('character-portrait');
   const charName = document.getElementById('character-name');
@@ -169,11 +188,13 @@ function mountUI() {
 
     buy1Btn.addEventListener('click', () => {
       session.buyGenerator('layer0', gen.id, 1);
+      triggerUpgradeAnimation(buy1Btn, card);
       render();
     });
 
     buyMaxBtn.addEventListener('click', () => {
       session.buyGenerator('layer0', gen.id, 'max');
+      triggerUpgradeAnimation(buyMaxBtn, card);
       render();
     });
 
@@ -235,6 +256,7 @@ function mountUI() {
 
     btn.addEventListener('click', () => {
       session.buyUpgrade('layer0', upg.id);
+      triggerUpgradeAnimation(btn, card);
       render();
     });
 
@@ -299,6 +321,7 @@ function mountUI() {
 
     btn.addEventListener('click', () => {
       session.buyUpgrade('layer1', upg.id);
+      triggerUpgradeAnimation(btn, card);
       render();
     });
 

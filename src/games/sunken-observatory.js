@@ -34,16 +34,49 @@ export const sunkenObservatoryGame = {
     '--btn-sec-color': '#ddd6fe',
     '--btn-sec-border': 'rgba(167, 139, 250, 0.35)'
   },
+  scenery: `<svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="trench-glow" cx="50%" cy="100%" r="70%">
+        <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.3" />
+        <stop offset="45%" stop-color="#a78bfa" stop-opacity="0.12" />
+        <stop offset="100%" stop-color="#020608" stop-opacity="0" />
+      </radialGradient>
+      <linearGradient id="monolith-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.3" />
+        <stop offset="100%" stop-color="#051217" stop-opacity="0.95" />
+      </linearGradient>
+    </defs>
+    <!-- Abyssal Trench Light -->
+    <rect x="0" y="0" width="1200" height="400" fill="url(#trench-glow)" />
+    <!-- Submerged Ancient Obelisks & Monoliths -->
+    <polygon points="180,400 210,160 250,170 270,400" fill="url(#monolith-grad)" />
+    <polygon points="320,400 350,230 380,240 400,400" fill="#091b22" />
+    <polygon points="760,400 790,130 830,140 850,400" fill="url(#monolith-grad)" />
+    <polygon points="920,400 945,200 975,210 1000,400" fill="#091b22" />
+    <!-- Rising Bioluminescent Plankton Bubbles -->
+    <g fill="#2dd4bf" opacity="0.45">
+      <circle cx="215" cy="110" r="2.5" />
+      <circle cx="230" cy="80" r="1.5" />
+      <circle cx="240" cy="40" r="3" />
+      <circle cx="510" cy="190" r="2" />
+      <circle cx="530" cy="140" r="3.5" />
+      <circle cx="795" cy="90" r="2" />
+      <circle cx="810" cy="60" r="3" />
+    </g>
+    <!-- Abyssal Eye Silhouette in Trench Depths -->
+    <ellipse cx="600" cy="380" rx="160" ry="40" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-opacity="0.35" />
+    <circle cx="600" cy="380" r="14" fill="#a78bfa" fill-opacity="0.4" />
+  </svg>`,
   character: {
     name: 'Curator Ambrose',
     title: 'Sole Keeper of the Abyssal Vault',
-    svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="32" r="28" stroke="#2dd4bf" stroke-width="2" />
-      <path d="M16 32 C16 20, 48 20, 48 32 C48 44, 16 44, 16 32 Z" stroke="#a78bfa" stroke-width="2" fill="rgba(167,139,250,0.2)" />
-      <circle cx="32" cy="32" r="6" fill="#f472b6" />
-      <circle cx="32" cy="32" r="2" fill="#040b0e" />
-      <path d="M20 48 Q32 58 44 48" stroke="#2dd4bf" stroke-width="2" fill="none" />
-      <path d="M28 12 L32 6 L36 12" stroke="#2dd4bf" stroke-width="2" />
+    svg: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" class="char-svg-horror">
+      <circle class="eldritch-eye-ring" cx="32" cy="32" r="28" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="8 4" />
+      <path class="eye-outer" d="M14 32 C14 18, 50 18, 50 32 C50 46, 14 46, 14 32 Z" stroke="#a78bfa" stroke-width="2" fill="rgba(167,139,250,0.18)" />
+      <circle class="iris-pulse" cx="32" cy="32" r="7" fill="#f472b6" />
+      <circle cx="32" cy="32" r="2.5" fill="#020608" />
+      <path class="tentacle-twitch" d="M18 48 Q 32 60 46 48" stroke="#2dd4bf" stroke-width="2" fill="none" />
+      <path d="M28 12 L32 5 L36 12" stroke="#2dd4bf" stroke-width="2" />
     </svg>`,
     dialogue: {
       intro: 'The salt water rises. The texts call out from the seabed. Command Cult Acolytes to transcribe the Whispers.',
