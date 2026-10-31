@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>inc-engine</title>
+  <!-- PWA Web App Manifest & Mobile Meta Tags -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#060a12">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IncEngine">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <!-- Curated Web Fonts for Game Themes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -67,6 +75,19 @@
       padding: 1.25rem 1.5rem;
       margin-bottom: 1.5rem;
       overflow: hidden;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: var(--panel-overlay-l0, none), var(--panel-l0-bg, none);
+      background-size: cover;
+      background-position: center top;
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
     }
     .scenery-container {
       position: absolute;
@@ -417,11 +438,39 @@
     }
 
     .panel {
+      position: relative;
+      overflow: hidden;
       background: var(--card-bg-gradient);
       border: 1px solid var(--card-border);
       border-radius: var(--border-radius-panel);
       box-shadow: var(--card-glow);
       padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: var(--panel-overlay, none), var(--panel-bg, none);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      z-index: 0;
+      transition: background-image 0.4s ease;
+    }
+    .panel > * {
+      position: relative;
+      z-index: 1;
+    }
+    #layer0-panel {
+      --panel-bg: var(--panel-l0-bg);
+      --panel-overlay: var(--panel-overlay-l0);
+    }
+    #layer1-panel {
+      --panel-bg: var(--panel-l1-bg);
+      --panel-overlay: var(--panel-overlay-l1);
     }
     .panel-header {
       display: flex;
@@ -453,15 +502,21 @@
       margin-bottom: 1.5rem;
     }
     .card {
+      position: relative;
+      overflow: hidden;
       background: var(--card-bg-gradient);
       border: 1px solid var(--card-border);
       border-radius: var(--border-radius-card);
       box-shadow: var(--card-glow);
       padding: 1.1rem;
-      transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
     .card:hover {
       border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4), var(--card-glow);
     }
     .card.locked { opacity: 0.5; border-style: dashed; }
     .card.maxed { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.02); }
@@ -525,11 +580,30 @@
     .btn.disabled { background: #1e293b; color: #64748b; border-color: transparent; cursor: not-allowed; }
 
     .sandbox-panel {
+      position: relative;
+      overflow: hidden;
       background: var(--card-bg-gradient);
       border: 1px solid var(--card-border);
       border-radius: var(--border-radius-panel);
       box-shadow: var(--card-glow);
       padding: 1.5rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .sandbox-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: var(--panel-overlay-l0, none), var(--panel-l0-bg, none);
+      background-size: cover;
+      background-position: center bottom;
+      opacity: 0.22;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .sandbox-panel > * {
+      position: relative;
+      z-index: 1;
     }
     .sandbox-grid {
       display: grid;
@@ -579,6 +653,10 @@
       <div class="game-switcher-container">
         <label for="game-select" class="game-switcher-label">Game:</label>
         <select id="game-select" class="game-select"></select>
+        <button id="btn-install-pwa" class="btn primary" style="display: none; align-items: center; gap: 0.4rem; padding: 0.35rem 0.75rem; font-size: 0.8rem;" title="Install as Progressive Web App">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Install App
+        </button>
         <div class="nav-links">
           <a href="test.html">Test Suite →</a>
         </div>
