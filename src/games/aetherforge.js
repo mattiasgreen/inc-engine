@@ -4,6 +4,7 @@
 export const aetherforgeGame = {
   id: 'aetherforge',
   name: 'Aetherforge: The Grand Ascension',
+  shortName: 'Aetherforge',
   subtitle: 'Weave raw celestial mana and bind arcane constructs',
   prestigeImage: './assets/prestige-aetherforge.jpg',
   prestigeTitle: 'Astral Transmutation Gateway',

@@ -4,6 +4,7 @@
 export const sunkenObservatoryGame = {
   id: 'sunken-observatory',
   name: 'The Sunken Observatory',
+  shortName: 'Sunken Observatory',
   subtitle: 'Unearth eldritch secrets submerged beneath the abyssal depths',
   prestigeImage: './assets/prestige-sunken.jpg',
   prestigeTitle: 'Cosmic Void Transcendence',

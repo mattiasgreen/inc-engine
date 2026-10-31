@@ -9,18 +9,24 @@ export const gamesList = [
   {
     id: dysonSwarmGame.id,
     name: dysonSwarmGame.name,
+    shortName: 'Dyson Swarm',
+    selectLabel: 'Sol Swarm',
     genre: 'Engineering / Hard Sci-Fi',
     config: dysonSwarmGame
   },
   {
     id: aetherforgeGame.id,
     name: aetherforgeGame.name,
+    shortName: 'Aetherforge',
+    selectLabel: 'Aetherforge',
     genre: 'Fantasy / Arcane',
     config: aetherforgeGame
   },
   {
     id: sunkenObservatoryGame.id,
     name: sunkenObservatoryGame.name,
+    shortName: 'Sunken Observatory',
+    selectLabel: 'Observatory',
     genre: 'Cosmic Horror / Eldritch',
     config: sunkenObservatoryGame
   }

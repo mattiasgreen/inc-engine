@@ -33,8 +33,16 @@ test('take desktop and mobile screenshots of all 3 games with animations & scene
   await page.waitForTimeout(200);
   await page.screenshot({ path: 'test-results/mobile-sunken-observatory.png', fullPage: true });
 
-  // Switch to Dyson Swarm on Mobile
+  // Android Pixel 7 (412x915) vertical
+  await page.setViewportSize({ width: 412, height: 915 });
   await page.locator('#game-select').selectOption('dyson-swarm');
   await page.waitForTimeout(200);
-  await page.screenshot({ path: 'test-results/mobile-dyson-swarm.png', fullPage: true });
+  await page.screenshot({ path: 'test-results/android-pixel7-viewport.png' });
+  await page.screenshot({ path: 'test-results/android-pixel7-full.png', fullPage: true });
+
+  // Android Galaxy S20/S22 (360x800) vertical
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'test-results/android-galaxy-viewport.png' });
+  await page.screenshot({ path: 'test-results/android-galaxy-full.png', fullPage: true });
 });

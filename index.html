@@ -127,31 +127,31 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.45rem;
+      margin-bottom: 0.35rem;
       flex-wrap: wrap;
       gap: 0.5rem;
     }
-    .title-group h1 { font-size: 1.35rem; font-weight: 700; color: var(--primary); letter-spacing: -0.01em; }
-    .title-group p { font-size: 0.8rem; color: var(--text-muted); }
+    .title-group h1 { font-size: 1.25rem; font-weight: 700; color: var(--primary); letter-spacing: -0.01em; }
+    .title-group p { font-size: 0.78rem; color: var(--text-muted); }
     .game-switcher-container {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
     .update-toast {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.4rem;
       background: rgba(16, 185, 129, 0.25);
       border: 1px solid var(--success);
       color: #fff;
-      padding: 0.2rem 0.55rem;
+      padding: 0.2rem 0.5rem;
       border-radius: var(--border-radius-btn);
       font-size: 0.75rem;
       animation: pulseGlow 2.5s infinite;
     }
     .game-switcher-label {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       text-transform: var(--tag-case);
       letter-spacing: var(--tag-letter-spacing);
       font-weight: 600;
@@ -161,9 +161,9 @@
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--card-border);
       color: var(--text);
-      padding: 0.35rem 0.65rem;
+      padding: 0.3rem 0.6rem;
       border-radius: var(--border-radius-btn);
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-family: var(--font-body);
       font-weight: 600;
       cursor: pointer;
@@ -172,35 +172,22 @@
       background: var(--card-bg);
       color: var(--text);
     }
-    .nav-links a {
-      color: var(--primary);
-      text-decoration: none;
-      font-size: 0.85rem;
-    }
 
-    /* Character Guide & Telemetry Row */
-    .guide-telemetry-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.85rem;
-      flex-wrap: wrap;
-    }
+    /* Character Guide Banner */
     .character-banner {
       display: flex;
-      gap: 0.75rem;
+      gap: 0.65rem;
       align-items: center;
       background: var(--banner-bg);
       border: 1px solid var(--banner-border);
       border-radius: var(--border-radius-card);
       box-shadow: var(--card-glow);
-      padding: 0.35rem 0.75rem;
-      flex: 1 1 340px;
+      padding: 0.3rem 0.65rem;
       min-width: 0;
     }
     .character-portrait {
-      width: 44px;
-      height: 44px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       overflow: hidden;
       border: 2px solid var(--primary);
@@ -224,41 +211,47 @@
     .character-meta {
       min-width: 0;
       flex: 1;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      overflow: hidden;
     }
-    .character-meta h4 {
-      font-size: 0.95rem;
+    .character-name {
+      font-size: 0.88rem;
       font-weight: 700;
       color: var(--primary);
-      line-height: 1.2;
+      white-space: nowrap;
     }
-    .character-meta .character-title {
+    .character-title {
       font-size: 0.7rem;
       text-transform: var(--tag-case);
       letter-spacing: var(--tag-letter-spacing);
       color: var(--text-muted);
+      white-space: nowrap;
     }
     .character-quote {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-style: italic;
       color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 0.1rem;
+      flex: 1;
+      min-width: 0;
     }
 
+    /* Engine Telemetry Grid (Inside Sandbox Panel) */
     .telemetry-grid {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 0.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: flex-end;
+      margin-top: 0.35rem;
     }
     .telemetry-item {
       display: flex;
       flex-direction: column;
       background: rgba(255, 255, 255, 0.03);
-      padding: 0.2rem 0.5rem;
+      padding: 0.35rem 0.6rem;
       border-radius: var(--border-radius-btn);
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
@@ -651,6 +644,7 @@
       font-weight: 600;
       letter-spacing: var(--tag-letter-spacing);
       text-transform: var(--tag-case);
+      white-space: nowrap;
     }
     .meta, .desc { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.75rem; }
     .actions { display: flex; gap: 0.5rem; }
@@ -738,60 +732,126 @@
     /* Mobile Responsive Layout Styles (placed at end of stylesheet to ensure proper cascade) */
     @media (max-width: 900px) {
       body {
-        padding: 0.35rem 0.45rem;
+        padding: 0.25rem 0.35rem;
       }
       header {
-        padding: 0.45rem 0.65rem;
-        margin-bottom: 0.35rem;
+        padding: 0.35rem 0.55rem;
+        margin-bottom: 0.3rem;
+        border-radius: 10px;
       }
       .top-bar {
-        margin-bottom: 0.25rem;
-        gap: 0.25rem;
-      }
-      .title-group h1 { font-size: 1.15rem; }
-      .title-group p { display: none; }
-      .character-banner {
-        padding: 0.25rem 0.5rem;
-        gap: 0.4rem;
-        flex: 1 1 100%;
-      }
-      .character-portrait {
-        width: 34px;
-        height: 34px;
-      }
-      .character-meta h4 { font-size: 0.82rem; }
-      .character-quote { font-size: 0.72rem; }
-      .telemetry-grid {
-        gap: 0.25rem;
-        width: 100%;
+        display: flex;
         justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.2rem;
+        flex-wrap: nowrap;
+        gap: 0.35rem;
       }
-      .telemetry-item {
-        padding: 0.15rem 0.35rem;
-        flex: 1 1 auto;
-        text-align: center;
+      .title-group {
+        min-width: 0;
+        flex: 1;
       }
-      .telemetry-item .label { font-size: 0.6rem; }
-      .telemetry-item .value { font-size: 0.8rem; }
+      .title-group h1 {
+        font-size: 1.05rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .title-group p {
+        display: none;
+      }
       .game-switcher-container {
-        width: 100%;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 0.4rem;
+        gap: 0.3rem;
+        flex-shrink: 0;
+      }
+      .game-switcher-label {
+        display: none;
       }
       .game-select {
-        flex: 1;
-        min-width: 0;
+        font-size: 0.75rem;
+        padding: 0.2rem 0.45rem;
+        border-radius: 6px;
+        max-width: 140px;
+      }
+      .character-banner {
+        padding: 0.2rem 0.45rem;
+        gap: 0.45rem;
+        border-radius: 6px;
+        margin-top: 0.15rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        box-shadow: none;
+      }
+      .character-portrait {
+        width: 24px;
+        height: 24px;
+        border-width: 1.5px;
+        box-shadow: 0 0 6px var(--primary);
+      }
+      .character-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .character-name {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--primary);
+        flex-shrink: 0;
+      }
+      .character-name::after {
+        content: ':';
+        margin-right: 0.25rem;
+      }
+      .character-title {
+        display: none;
+      }
+      .character-quote {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        font-style: italic;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        margin-top: 0;
       }
       .mobile-nav-tabs {
         display: flex;
-        margin-bottom: 0.35rem;
+        gap: 0.3rem;
+        margin-bottom: 0.3rem;
+        flex-shrink: 0;
+      }
+      .mobile-tab-btn {
+        flex: 1;
+        padding: 0.42rem 0.35rem;
+        font-size: 0.76rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: 1px solid var(--card-border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+      }
+      .mobile-tab-btn.active {
+        background: var(--primary);
+        color: #060a12;
+        border-color: var(--primary);
+        font-weight: 700;
+        box-shadow: 0 0 10px var(--primary);
       }
       .spa-workspace {
         flex-direction: column !important;
         flex: 1;
         min-height: 0;
+        gap: 0;
       }
       .spa-col, .spa-col-right {
         flex: 1 1 100% !important;
@@ -803,27 +863,90 @@
         display: none !important;
       }
       .panel {
-        padding: 0.65rem 0.75rem;
+        padding: 0.55rem 0.65rem;
+        border-radius: 10px;
+      }
+      .panel-header {
+        padding-bottom: 0.35rem;
+        margin-bottom: 0.45rem;
+      }
+      .panel-title {
+        font-size: 1.05rem;
+      }
+      .currency-display {
+        font-size: 1.35rem;
+        line-height: 1.1;
+      }
+      .currency-sub {
+        font-size: 0.75rem;
+      }
+      .panel-scrollable {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        padding-right: 0 !important;
+      }
+      .panel-scrollable::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+      .cards-list {
+        gap: 0.45rem;
+        margin-bottom: 0.75rem;
       }
       .card {
         padding: 0.65rem 0.75rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
+        border-radius: 8px;
       }
       .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.35rem;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.3rem;
+      }
+      .bought-badge {
+        display: none !important;
+      }
+      .card h3, .card h4 {
+        font-size: 0.92rem;
+        line-height: 1.2;
+      }
+      .lore-text {
+        font-size: 0.7rem;
+      }
+      .meta, .desc {
+        font-size: 0.78rem;
+        margin-bottom: 0.4rem;
       }
       .actions {
         display: flex;
-        gap: 0.35rem;
+        gap: 0.4rem;
         width: 100%;
       }
       .actions .btn {
         flex: 1 1 auto;
-        padding: 0.55rem 0.65rem;
+        min-height: 42px;
+        padding: 0.5rem 0.4rem;
         font-size: 0.8rem;
+        font-weight: 700;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-buy-1 {
+        flex: 1.2 1 auto;
+      }
+      .btn-buy-max {
+        flex: 1 1 auto;
+      }
+      .sandbox-panel {
+        padding: 0.85rem;
+      }
+      .sandbox-grid {
+        gap: 0.85rem;
       }
     }
   </style>
@@ -840,55 +963,25 @@
       </div>
       <div class="game-switcher-container">
         <div id="pwa-update-toast" class="update-toast" style="display: none;">
-          <span>New update ready!</span>
+          <span>New update!</span>
           <button id="btn-refresh-app" class="btn primary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">Refresh</button>
         </div>
         <label for="game-select" class="game-switcher-label">Game:</label>
-        <select id="game-select" class="game-select"></select>
-        <button id="btn-install-pwa" class="btn primary" style="display: none; align-items: center; gap: 0.35rem; padding: 0.3rem 0.65rem; font-size: 0.78rem;" title="Install as Progressive Web App">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Install App
+        <select id="game-select" class="game-select" aria-label="Game World Selector"></select>
+        <button id="btn-install-pwa" class="btn primary" style="display: none; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; font-size: 0.76rem;" title="Install as Progressive Web App">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Install
         </button>
-        <div class="nav-links">
-          <a href="test.html">Test Suite →</a>
-        </div>
       </div>
     </div>
 
-    <!-- Character Guide & Progressive Dialogue Banner -->
-    <div class="guide-telemetry-row">
-      <div class="character-banner" id="character-banner">
-        <div class="character-portrait" id="character-portrait"></div>
-        <div class="character-meta">
-          <div style="display: flex; align-items: baseline; gap: 0.4rem;">
-            <h4 id="character-name">Guide</h4>
-            <span class="character-title" id="character-title">Coordinator</span>
-          </div>
-          <p class="character-quote" id="character-quote">"System online."</p>
-        </div>
-      </div>
-
-      <div class="telemetry-grid">
-        <div class="telemetry-item">
-          <span class="label">Cycle Freq</span>
-          <span class="value" id="telemetry-cycle-freq">1.00 /s</span>
-        </div>
-        <div class="telemetry-item">
-          <span class="label">Tick Yield</span>
-          <span class="value" id="telemetry-tick-yield">1.00</span>
-        </div>
-        <div class="telemetry-item">
-          <span class="label">Effective Ticks</span>
-          <span class="value" id="telemetry-eff-ticks">1.00 /s</span>
-        </div>
-        <div class="telemetry-item">
-          <span class="label">Total Cycles</span>
-          <span class="value" id="telemetry-total-cycles">0</span>
-        </div>
-        <div class="telemetry-item">
-          <span class="label">Total Ticks</span>
-          <span class="value" id="telemetry-total-ticks">0</span>
-        </div>
+    <!-- Character Guide & Progressive Dialogue Status Bar -->
+    <div class="character-banner" id="character-banner">
+      <div class="character-portrait" id="character-portrait"></div>
+      <div class="character-meta">
+        <h4 id="character-name" class="character-name">Guide</h4>
+        <span class="character-title" id="character-title">Coordinator</span>
+        <p class="character-quote" id="character-quote">"System online."</p>
       </div>
     </div>
   </header>
@@ -973,6 +1066,33 @@
       <section class="sandbox-panel" id="sandbox-panel">
         <h3 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 0.5rem;">Simulation Sandbox & Dev Controls</h3>
         <div class="sandbox-grid">
+          <!-- Engine Diagnostics & Telemetry -->
+          <div class="sandbox-group" style="grid-column: 1 / -1;">
+            <h4>Engine Diagnostics & Telemetry</h4>
+            <div class="telemetry-grid">
+              <div class="telemetry-item">
+                <span class="label">Cycle Freq</span>
+                <span class="value" id="telemetry-cycle-freq">1.00 /s</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="label">Tick Yield</span>
+                <span class="value" id="telemetry-tick-yield">1.00</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="label">Effective Ticks</span>
+                <span class="value" id="telemetry-eff-ticks">1.00 /s</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="label">Total Cycles</span>
+                <span class="value" id="telemetry-total-cycles">0</span>
+              </div>
+              <div class="telemetry-item">
+                <span class="label">Total Ticks</span>
+                <span class="value" id="telemetry-total-ticks">0</span>
+              </div>
+            </div>
+          </div>
+
           <div class="sandbox-group">
             <h4>Passive Time Jumps</h4>
             <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
@@ -997,6 +1117,13 @@
               <button id="btn-export" class="btn secondary">Export</button>
               <button id="btn-import" class="btn secondary">Import</button>
               <button id="btn-hard-reset" class="btn danger">Hard Reset</button>
+            </div>
+          </div>
+
+          <div class="sandbox-group">
+            <h4>Developer Tools</h4>
+            <div>
+              <a href="test.html" class="btn secondary" style="display: inline-block; text-decoration: none; padding: 0.45rem 0.75rem; font-size: 0.8rem;">Run Test Suite →</a>
             </div>
           </div>
         </div>

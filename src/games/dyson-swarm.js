@@ -4,6 +4,7 @@
 export const dysonSwarmGame = {
   id: 'dyson-swarm',
   name: 'Dyson Swarm: Protocol Sol',
+  shortName: 'Dyson Swarm',
   subtitle: 'Orbital megastructure automation & solar extraction grid',
   prestigeImage: './assets/prestige-dyson.jpg',
   prestigeTitle: 'Quantum Singularity Compression Core',

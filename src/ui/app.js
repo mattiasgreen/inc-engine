@@ -198,7 +198,7 @@ function initGame(gameId) {
   }
 
   // Update Game Title & Subtitle in Header
-  document.getElementById('game-title').textContent = activeConfig.name;
+  document.getElementById('game-title').textContent = window.innerWidth <= 900 && activeConfig.shortName ? activeConfig.shortName : activeConfig.name;
   document.getElementById('game-subtitle').textContent = activeConfig.subtitle || '';
 
   // Render Game Selector
@@ -217,7 +217,7 @@ function populateGameSelector() {
   for (const game of gamesList) {
     const opt = document.createElement('option');
     opt.value = game.id;
-    opt.textContent = `${game.name} (${game.genre})`;
+    opt.textContent = game.selectLabel || game.shortName || game.name;
     if (game.id === activeGameId) {
       opt.selected = true;
     }
@@ -272,7 +272,7 @@ function mountUI() {
 
   if (l0Title) l0Title.textContent = l0Config.name;
   if (l0Icon) l0Icon.innerHTML = l0Config.svg || '';
-  if (l0SubLabel) l0SubLabel.textContent = `Total Run ${l0Config.currency.name}:`;
+  if (l0SubLabel) l0SubLabel.textContent = `Run ${l0Config.currency.name}:`;
   if (l0CurrSymbol) l0CurrSymbol.textContent = l0Config.currency.symbol;
 
   // Mount Layer 0 Generators
@@ -296,14 +296,14 @@ function mountUI() {
       </div>
       <div class="main-view">
         <div class="card-header">
-          <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <div style="display: flex; gap: 0.65rem; align-items: center; min-width: 0; flex: 1;">
             <div class="card-icon">${gen.svg || ''}</div>
-            <div>
-              <h3>${gen.name}</h3>
+            <div style="min-width: 0; flex: 1;">
+              <h3 style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${gen.name}</h3>
               <p class="lore-text">${gen.lore || ''}</p>
             </div>
           </div>
-          <div style="display: flex; gap: 0.35rem; align-items: center;">
+          <div style="display: flex; gap: 0.35rem; align-items: center; flex-shrink: 0;">
             <span class="badge owned-badge">Owned: 0</span>
             <span class="badge bought-badge" style="background: rgba(129, 140, 248, 0.15); color: var(--secondary);">0 bought</span>
           </div>
