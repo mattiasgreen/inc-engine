@@ -653,7 +653,15 @@ function render() {
   const l1Visible = stats.visibility.layers.layer1 !== 'hidden';
   const l1Panel = document.getElementById('layer1-panel');
   if (l1Panel) {
-    l1Panel.style.display = l1Visible ? 'block' : 'none';
+    if (l1Visible) {
+      l1Panel.classList.remove('layer-locked-hidden');
+    } else {
+      l1Panel.classList.add('layer-locked-hidden');
+    }
+  }
+  const l1TabBtn = document.getElementById('mobile-tab-l1');
+  if (l1TabBtn) {
+    l1TabBtn.style.display = l1Visible ? 'block' : 'none';
   }
 
   document.getElementById('layer1-currency').textContent = layer1.currency.format();
