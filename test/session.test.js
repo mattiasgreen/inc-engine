@@ -13,11 +13,11 @@ describe('Session and Persistence Seam', () => {
 
     const state = session.getState();
     expect(state.layers.layer0.currency.toNumber()).toBe(10);
-    expect(storage.getItem('inc_engine_save')).toBeFalsy();
+    expect(storage.getItem(session.storageKey)).toBeFalsy();
 
     // Trigger save
     session.save();
-    expect(storage.getItem('inc_engine_save')).toBeTruthy();
+    expect(storage.getItem(session.storageKey)).toBeTruthy();
   });
 
   it('coordinates buying generators and upgrades through the session interface', () => {

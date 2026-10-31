@@ -18,7 +18,7 @@ export class GameSession {
     this.config = options.config;
     this.clock = options.clock || new SystemClock();
     this.storage = options.storage || new BrowserStorage();
-    this.storageKey = options.storageKey || 'inc_engine_save';
+    this.storageKey = options.storageKey || (this.config?.id ? `inc_engine_save_${this.config.id}` : 'inc_engine_save');
 
     this.state = createInitialState(this.config);
     this.lastSavedAtMs = this.clock.nowMs();

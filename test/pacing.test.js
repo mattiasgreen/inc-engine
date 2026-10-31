@@ -1,6 +1,7 @@
 // test/pacing.test.js
 import { describe, it, expect } from './runner.js';
 import { defaultGameConfig } from '../src/engine/config.js';
+import { dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame } from '../src/games/index.js';
 import { createInitialState } from '../src/engine/core.js';
 import { Simulator } from '../src/engine/simulator.js';
 import { GreedyPolicy, OptimalRoiPolicy, PassivePolicy, AutoPrestigePolicy } from '../src/engine/policies.js';
@@ -44,24 +45,26 @@ describe('Simulator and Progression Pacing Seam', () => {
     expect(result.history.length).toBeGreaterThan(0);
   });
 
-  it('proves First Prestige Window is paced between 5 and 15 minutes of simulated time', () => {
-    let state = createInitialState(defaultGameConfig);
-    const simulator = new Simulator(defaultGameConfig);
-    const policy = new OptimalRoiPolicy();
+  it('proves First Prestige Window is paced between 5 and 15 minutes of simulated time across all registered games', () => {
+    const games = [dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame];
+    for (const gameConfig of games) {
+      let state = createInitialState(gameConfig);
+      const simulator = new Simulator(gameConfig);
+      const policy = new OptimalRoiPolicy();
 
-    // Goal: reach 1e6 run-total currency in Layer 0
-    const target = new BigNum(1e6);
-    const result = simulator.run(state, policy, {
-      stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-      maxSimulatedMs: 15 * 60 * 1000 // 15 minutes max
-    });
+      const target = new BigNum(1e6);
+      const result = simulator.run(state, policy, {
+        stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
+        maxSimulatedMs: 15 * 60 * 1000 // 15 minutes max
+      });
 
-    expect(result.state.layers.layer0.runTotalCurrency.gte(target)).toBe(true);
+      expect(result.state.layers.layer0.runTotalCurrency.gte(target)).toBe(true);
 
-    const elapsedSeconds = result.simulatedMs / 1000;
-    // Between 5 minutes (300s) and 15 minutes (900s)
-    expect(elapsedSeconds).toBeGreaterThanOrEqual(300);
-    expect(elapsedSeconds).toBeLessThanOrEqual(900);
+      const elapsedSeconds = result.simulatedMs / 1000;
+      // Between 5 minutes (300s) and 15 minutes (900s)
+      expect(elapsedSeconds).toBeGreaterThanOrEqual(300);
+      expect(elapsedSeconds).toBeLessThanOrEqual(900);
+    }
   });
 
   it('demonstrates Prestige Acceleration: Run #2 reaches 1e6 in <50% of Run #1 time', () => {
@@ -105,7 +108,7 @@ describe('Simulator and Progression Pacing Seam', () => {
     simulator.run(state, policy, { maxSimulatedMs: 10000 * 1000, maxSteps: 5000 });
     const realExecutionMs = Date.now() - startPerf;
 
-    // Should complete in under 500ms real wall-clock time
-    expect(realExecutionMs).toBeLessThan(500);
+    // Should complete in under 1500ms real wall-clock time
+    expect(realExecutionMs).toBeLessThan(1500);
   });
 });

@@ -34,7 +34,7 @@ test.describe('inc-engine End-to-End User Journey', () => {
 
     // Verify owned becomes 1 and reveals Generator II
     await expect(gen1Card.locator('.owned-badge')).toHaveText('Owned: 1');
-    await expect(gen1Card.locator('.output-meta')).toContainText('1 E/tick');
+    await expect(gen1Card.locator('.output-meta')).toContainText('/tick');
     await expect(gen2Card).toBeVisible();
   });
 
@@ -51,7 +51,7 @@ test.describe('inc-engine End-to-End User Journey', () => {
     // Offline progress modal should appear
     const modal = page.locator('#offline-modal');
     await expect(modal).toBeVisible();
-    await expect(page.locator('#offline-summary')).toContainText('Energy gained');
+    await expect(page.locator('#offline-summary')).toContainText('gained');
     await page.locator('#btn-close-offline-modal').click();
     await expect(modal).toBeHidden();
 
@@ -105,7 +105,7 @@ test.describe('inc-engine End-to-End User Journey', () => {
     const prestigeBtn = page.locator('#btn-prestige');
     await expect(prestigeBtn).toBeEnabled();
     await expect(prestigeBtn).toHaveClass(/danger/);
-    await expect(prestigeBtn).toContainText('Prestige for +');
+    await expect(prestigeBtn).toContainText('(+');
 
     // Execute Prestige Reset
     await prestigeBtn.click();
@@ -149,5 +149,44 @@ test.describe('inc-engine End-to-End User Journey', () => {
     const l1BranchBCard = page.locator('#layer1-upgrades .card').nth(2);
     await expect(l1BranchACard).toBeHidden();
     await expect(l1BranchBCard).toBeHidden();
+  });
+
+  test('Stage 7: Game Switcher dynamically switches games, presentation palettes, lore, and isolated saves', async ({ page }) => {
+    await page.locator('#btn-hard-reset').click();
+
+    // Verify initial game is Dyson Swarm
+    await expect(page.locator('#game-title')).toContainText('Dyson Swarm');
+    await expect(page.locator('#character-name')).toHaveText('AURORA-7');
+    await expect(page.locator('#character-portrait svg')).toBeVisible();
+    await expect(page.locator('#layer0-generators .card').first().locator('.main-view .card-icon')).toBeVisible();
+
+    // Switch to Aetherforge (Fantasy)
+    await page.locator('#game-select').selectOption('aetherforge');
+
+    // Header, lore, character, and currency symbols update
+    await expect(page.locator('#game-title')).toContainText('Aetherforge');
+    await expect(page.locator('#character-name')).toHaveText('Archmage Vaelen');
+    await expect(page.locator('#layer0-sub-label')).toContainText('Mana');
+    const gen1Card = page.locator('#layer0-generators .card').first();
+    await expect(gen1Card.locator('.main-view h3')).toHaveText('Runic Familiar');
+
+    // Buy 1 Runic Familiar
+    await gen1Card.locator('.btn-buy-1').click();
+    await expect(gen1Card.locator('.owned-badge')).toHaveText('Owned: 1');
+
+    // Switch to The Sunken Observatory (Cosmic Horror)
+    await page.locator('#game-select').selectOption('sunken-observatory');
+    await expect(page.locator('#game-title')).toContainText('Sunken Observatory');
+    await expect(page.locator('#character-name')).toHaveText('Curator Ambrose');
+    await expect(page.locator('#layer0-sub-label')).toContainText('Insight');
+    const horrorGen1 = page.locator('#layer0-generators .card').first();
+    await expect(horrorGen1.locator('.main-view h3')).toHaveText('Cult Acolyte');
+    // Fresh save isolation: Cult Acolyte should be 0 owned
+    await expect(horrorGen1.locator('.owned-badge')).toHaveText('Owned: 0');
+
+    // Switch back to Aetherforge and verify its save was preserved
+    await page.locator('#game-select').selectOption('aetherforge');
+    await expect(page.locator('#character-name')).toHaveText('Archmage Vaelen');
+    await expect(page.locator('#layer0-generators .card').first().locator('.owned-badge')).toHaveText('Owned: 1');
   });
 });

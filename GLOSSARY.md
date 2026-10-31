@@ -17,7 +17,7 @@ _Avoid_: Game frame, Update, Point
 ### Domain Model
 
 **GameConfig**:
-A declarative, theme-agnostic definition of a game's Layers, Currencies, Generators, Upgrades, clock parameters, and prestige formulas passed into the engine.
+A declarative definition of a game's Layers, Currencies, Generators, Upgrades, clock parameters, prestige formulas, and optional presentation metadata (lore, character guide, inline SVG artwork, and palette variables). The functional core evaluates the mechanical fields while the UI shell binds to the presentation fields.
 _Avoid_: Theme, Skin, Ruleset, Manifest
 
 **Layer**:

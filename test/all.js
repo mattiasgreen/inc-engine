@@ -5,6 +5,7 @@ import './bignum.test.js';
 import './engine.test.js';
 import './session.test.js';
 import './pacing.test.js';
+import './games.test.js';
 import { runTests } from './runner.js';
 
 runTests();

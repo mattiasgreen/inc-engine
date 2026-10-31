@@ -1,12 +1,14 @@
 // src/ui/app.js
-// Interactive Game UI & Simulation Sandbox Controller with Fine-Grained Reactive DOM Updates
+// Interactive Game UI & Multi-Game Presentation Controller with Dynamic SVG Assets and Fine-Grained Reactive DOM Updates
 
-import { defaultGameConfig } from '../engine/config.js';
+import { gamesList, getGameConfig } from '../games/index.js';
 import { GameSession } from '../session/session.js';
 import { Simulator } from '../engine/simulator.js';
-import { OptimalRoiPolicy, GreedyPolicy } from '../engine/policies.js';
+import { OptimalRoiPolicy } from '../engine/policies.js';
 import { BigNum } from '../engine/bignum.js';
 
+let activeGameId = localStorage.getItem('inc_engine_active_game') || gamesList[0].id;
+let activeConfig = getGameConfig(activeGameId);
 let session;
 let simulator;
 
@@ -14,17 +16,7 @@ const generatorUI = {};
 const upgradeUI = {};
 
 function init() {
-  session = new GameSession({ config: defaultGameConfig });
-  simulator = new Simulator(defaultGameConfig);
-
-  // Check for offline progress
-  const offlineReport = session.load();
-  if (offlineReport && offlineReport.elapsedMs > 5000) {
-    showOfflineModal(offlineReport);
-  }
-
-  // Mount cards once to prevent DOM thrashing
-  mountUI();
+  initGame(activeGameId);
 
   // Setup loop for time advancement and fine-grained UI updates
   setInterval(() => {
@@ -41,36 +33,127 @@ function init() {
     session.save();
   });
 
-  setupEventListeners();
+  setupStaticEventListeners();
+}
+
+function initGame(gameId) {
+  activeGameId = gameId;
+  activeConfig = getGameConfig(gameId);
+  localStorage.setItem('inc_engine_active_game', gameId);
+
+  // Apply Theme Palette Custom Properties
+  if (activeConfig.palette) {
+    for (const [prop, val] of Object.entries(activeConfig.palette)) {
+      document.documentElement.style.setProperty(prop, val);
+    }
+  }
+
+  session = new GameSession({ config: activeConfig });
+  simulator = new Simulator(activeConfig);
+
+  // Check for offline progress
+  const offlineReport = session.load();
+  if (offlineReport && offlineReport.elapsedMs > 5000) {
+    showOfflineModal(offlineReport);
+  }
+
+  // Update Game Title & Subtitle in Header
+  document.getElementById('game-title').textContent = activeConfig.name;
+  document.getElementById('game-subtitle').textContent = activeConfig.subtitle || '';
+
+  // Render Game Selector
+  populateGameSelector();
+
+  // Mount UI and render initial state
+  mountUI();
   render();
 }
 
+function populateGameSelector() {
+  const select = document.getElementById('game-select');
+  if (!select) return;
+
+  select.innerHTML = '';
+  for (const game of gamesList) {
+    const opt = document.createElement('option');
+    opt.value = game.id;
+    opt.textContent = `${game.name} (${game.genre})`;
+    if (game.id === activeGameId) {
+      opt.selected = true;
+    }
+    select.appendChild(opt);
+  }
+
+  select.onchange = (e) => {
+    session.save();
+    initGame(e.target.value);
+  };
+}
+
 function mountUI() {
+  const l0Config = activeConfig.layers[0];
+  const l1Config = activeConfig.layers[1];
+
+  // Character Guide Banner
+  const charPortrait = document.getElementById('character-portrait');
+  const charName = document.getElementById('character-name');
+  const charTitle = document.getElementById('character-title');
+  const charQuote = document.getElementById('character-quote');
+
+  if (activeConfig.character) {
+    if (charPortrait) charPortrait.innerHTML = activeConfig.character.svg || '';
+    if (charName) charName.textContent = activeConfig.character.name || '';
+    if (charTitle) charTitle.textContent = activeConfig.character.title || '';
+    if (charQuote) charQuote.textContent = `"${activeConfig.character.dialogue?.intro || ''}"`;
+  }
+
+  // Layer 0 Header
+  const l0Title = document.getElementById('layer0-title');
+  const l0Icon = document.getElementById('layer0-icon');
+  const l0SubLabel = document.getElementById('layer0-sub-label');
+  const l0CurrSymbol = document.getElementById('layer0-currency-symbol');
+
+  if (l0Title) l0Title.textContent = l0Config.name;
+  if (l0Icon) l0Icon.innerHTML = l0Config.svg || '';
+  if (l0SubLabel) l0SubLabel.textContent = `Total Run ${l0Config.currency.name}:`;
+  if (l0CurrSymbol) l0CurrSymbol.textContent = l0Config.currency.symbol;
+
   // Mount Layer 0 Generators
   const genContainer = document.getElementById('layer0-generators');
   genContainer.innerHTML = '';
   generatorUI.layer0 = {};
 
-  for (const gen of defaultGameConfig.layers[0].generators) {
+  for (const gen of l0Config.generators) {
     const card = document.createElement('div');
     card.className = 'card';
 
     card.innerHTML = `
       <div class="lock-view" style="display: none;">
-        <h3>${gen.name} (Locked)</h3>
-        <p class="desc">Unlocks at ${BigNum.from(gen.unlockThreshold || 0).format()} total Energy</p>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <div class="card-icon" style="opacity: 0.5;">${gen.svg || ''}</div>
+          <div>
+            <h3>${gen.name} (Locked)</h3>
+            <p class="desc">Unlocks at ${BigNum.from(gen.unlockThreshold || 0).format()} total ${l0Config.currency.name}</p>
+          </div>
+        </div>
       </div>
       <div class="main-view">
         <div class="card-header">
-          <h3>${gen.name}</h3>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <div class="card-icon">${gen.svg || ''}</div>
+            <div>
+              <h3>${gen.name}</h3>
+              <p class="lore-text">${gen.lore || ''}</p>
+            </div>
+          </div>
           <div style="display: flex; gap: 0.35rem; align-items: center;">
             <span class="badge owned-badge">Owned: 0</span>
             <span class="badge bought-badge" style="background: rgba(129, 140, 248, 0.15); color: var(--secondary);">0 bought</span>
           </div>
         </div>
-        <p class="meta output-meta">Output: 0 E/tick | 0 E/s</p>
+        <p class="meta output-meta">Output: 0 ${l0Config.currency.symbol}/tick | 0 ${l0Config.currency.symbol}/s</p>
         <div class="actions">
-          <button class="btn primary btn-buy-1">Buy 1 (10 E)</button>
+          <button class="btn primary btn-buy-1">Buy 1 (10 ${l0Config.currency.symbol})</button>
           <button class="btn secondary btn-buy-max">Buy Max (0)</button>
         </div>
       </div>
@@ -113,18 +196,29 @@ function mountUI() {
   upgContainer.innerHTML = '';
   upgradeUI.layer0 = {};
 
-  for (const upg of defaultGameConfig.layers[0].upgrades) {
+  for (const upg of l0Config.upgrades) {
     const card = document.createElement('div');
     card.className = 'card';
 
     card.innerHTML = `
       <div class="lock-view" style="display: none;">
-        <h4>${upg.name} (Locked)</h4>
-        <p class="desc">Unlocks at ${BigNum.from(upg.unlockThreshold || 0).format()} run Energy</p>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <div class="card-icon" style="opacity: 0.5;">${upg.svg || ''}</div>
+          <div>
+            <h4>${upg.name} (Locked)</h4>
+            <p class="desc">Unlocks at ${BigNum.from(upg.unlockThreshold || 0).format()} run ${l0Config.currency.name}</p>
+          </div>
+        </div>
       </div>
       <div class="main-view">
         <div class="card-header">
-          <h4>${upg.name}</h4>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <div class="card-icon">${upg.svg || ''}</div>
+            <div>
+              <h4>${upg.name}</h4>
+              <p class="lore-text">${upg.lore || ''}</p>
+            </div>
+          </div>
           <span class="badge lvl-badge">Lvl 0/${upg.maxLevel || '∞'}</span>
         </div>
         <p class="desc">${upg.description}</p>
@@ -155,19 +249,42 @@ function mountUI() {
     };
   }
 
+  // Layer 1 Header & Panel
+  const l1Title = document.getElementById('layer1-title');
+  const l1Icon = document.getElementById('layer1-icon');
+  const l1PassiveTarget = document.getElementById('layer1-passive-target');
+  const l1CurrSymbol = document.getElementById('layer1-currency-symbol');
+  const l1CurrName = document.getElementById('layer1-currency-name');
+  const prestigeThresholdBadge = document.getElementById('prestige-threshold-badge');
+
+  if (l1Title) l1Title.textContent = l1Config.name;
+  if (l1Icon) l1Icon.innerHTML = l1Config.svg || '';
+  if (l1PassiveTarget) l1PassiveTarget.textContent = l0Config.name;
+  if (l1CurrSymbol) l1CurrSymbol.textContent = l1Config.currency.symbol;
+  if (l1CurrName) l1CurrName.textContent = l1Config.currency.name;
+  if (prestigeThresholdBadge) {
+    prestigeThresholdBadge.textContent = `Threshold: ${BigNum.from(l1Config.prestige.thresholdCurrency).format()} ${l0Config.currency.symbol}`;
+  }
+
   // Mount Layer 1 Upgrades
   const l1UpgContainer = document.getElementById('layer1-upgrades');
   l1UpgContainer.innerHTML = '';
   upgradeUI.layer1 = {};
 
-  for (const upg of defaultGameConfig.layers[1].upgrades) {
+  for (const upg of l1Config.upgrades) {
     const card = document.createElement('div');
     card.className = 'card';
 
     card.innerHTML = `
       <div class="main-view">
         <div class="card-header">
-          <h4>${upg.name}</h4>
+          <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <div class="card-icon">${upg.svg || ''}</div>
+            <div>
+              <h4>${upg.name}</h4>
+              <p class="lore-text">${upg.lore || ''}</p>
+            </div>
+          </div>
           <span class="badge lvl-badge">Lvl 0/${upg.maxLevel || '∞'}</span>
         </div>
         <p class="desc">${upg.description}</p>
@@ -200,12 +317,13 @@ function showOfflineModal(report) {
   if (!modal) return;
   const elapsedSec = (report.elapsedMs / 1000).toFixed(1);
   const layer0Delta = report.currencyDeltas.layer0 ? report.currencyDeltas.layer0.format() : '0';
+  const sym = activeConfig.layers[0].currency.symbol;
 
   document.getElementById('offline-summary').innerHTML = `
     <p>You were offline for <strong>${elapsedSec}s</strong>.</p>
     <p>Cycles fired: <strong>${report.cyclesFired.format()}</strong></p>
     <p>Ticks generated: <strong>${report.ticksEmitted.format()}</strong></p>
-    <p>Energy gained: <strong>+${layer0Delta} E</strong></p>
+    <p>${activeConfig.layers[0].currency.name} gained: <strong>+${layer0Delta} ${sym}</strong></p>
   `;
   modal.style.display = 'flex';
 }
@@ -213,6 +331,8 @@ function showOfflineModal(report) {
 function render() {
   const state = session.getState();
   const stats = session.getDerivedStats();
+  const l0Config = activeConfig.layers[0];
+  const l1Config = activeConfig.layers[1];
 
   // Telemetry Header
   const cycleFreq = (1000 / stats.effectiveCycleDurationMs).toFixed(2);
@@ -222,6 +342,27 @@ function render() {
   document.getElementById('telemetry-total-ticks').textContent = state.totalTicks.format();
   document.getElementById('telemetry-total-cycles').textContent = state.totalCycles.format();
 
+  // Progressive Character Dialogue updates
+  const charQuote = document.getElementById('character-quote');
+  if (charQuote && activeConfig.character?.dialogue) {
+    const l1 = activeConfig.layers[1]?.id;
+    const l0Gens = activeConfig.layers[0]?.generators || [];
+    const lastGen = l0Gens[l0Gens.length - 1]?.id;
+    const midGen = l0Gens[1]?.id;
+
+    if (l1 && state.layers[l1]?.currency.gt(0)) {
+      charQuote.textContent = `"${activeConfig.character.dialogue.prestigeExecuted}"`;
+    } else if (l1 && stats.visibility.layers[l1] === 'visible') {
+      charQuote.textContent = `"${activeConfig.character.dialogue.prestigeVisible}"`;
+    } else if (lastGen && stats.visibility.generators.layer0[lastGen] === 'visible') {
+      charQuote.textContent = `"${activeConfig.character.dialogue.gen3Revealed}"`;
+    } else if (midGen && stats.visibility.generators.layer0[midGen] === 'visible') {
+      charQuote.textContent = `"${activeConfig.character.dialogue.gen2Revealed}"`;
+    } else {
+      charQuote.textContent = `"${activeConfig.character.dialogue.intro}"`;
+    }
+  }
+
   // Layer 0 Currency
   const layer0 = state.layers.layer0;
   document.getElementById('layer0-currency').textContent = layer0.currency.format();
@@ -229,10 +370,10 @@ function render() {
 
   const netOutputPerTick = stats.layerProductionPerTick.layer0 || new BigNum(0);
   const netOutputPerSec = netOutputPerTick.mul(stats.effectiveTicksPerSec);
-  document.getElementById('layer0-output-sec').textContent = `${netOutputPerSec.format()} E/s`;
+  document.getElementById('layer0-output-sec').textContent = `${netOutputPerSec.format()} ${l0Config.currency.symbol}/s`;
 
   // Update Layer 0 Generators
-  for (const gen of defaultGameConfig.layers[0].generators) {
+  for (const gen of l0Config.generators) {
     const ui = generatorUI.layer0?.[gen.id];
     if (!ui) continue;
 
@@ -266,14 +407,14 @@ function render() {
     ui.boughtBadge.textContent = `${bought.format()} bought`;
 
     if (gen.produces && gen.produces.type === 'generator') {
-      const targetGen = defaultGameConfig.layers[0].generators.find(g => g.id === gen.produces.targetId);
+      const targetGen = l0Config.generators.find(g => g.id === gen.produces.targetId);
       const targetName = targetGen?.name || gen.produces.targetId;
       ui.outputMeta.innerHTML = `Produces: <strong>${targetName}</strong> (+<strong>${rate.format()}</strong>/tick | +<strong>${rate.mul(stats.effectiveTicksPerSec).format()}</strong>/s)`;
     } else {
-      ui.outputMeta.innerHTML = `Output: <strong>${rate.format()}</strong> E/tick | <strong>${rate.mul(stats.effectiveTicksPerSec).format()}</strong> E/s`;
+      ui.outputMeta.innerHTML = `Output: <strong>${rate.format()}</strong> ${l0Config.currency.symbol}/tick | <strong>${rate.mul(stats.effectiveTicksPerSec).format()}</strong> ${l0Config.currency.symbol}/s`;
     }
 
-    ui.buy1Btn.textContent = `Buy 1 (${cost1.format()} E)`;
+    ui.buy1Btn.textContent = `Buy 1 (${cost1.format()} ${l0Config.currency.symbol})`;
     ui.buy1Btn.disabled = !canAfford1;
     ui.buy1Btn.className = `btn btn-buy-1 ${canAfford1 ? 'primary' : 'disabled'}`;
 
@@ -284,7 +425,7 @@ function render() {
 
   // Update Layer 0 Upgrades
   let visibleL0UpgradesCount = 0;
-  for (const upg of defaultGameConfig.layers[0].upgrades) {
+  for (const upg of l0Config.upgrades) {
     const ui = upgradeUI.layer0?.[upg.id];
     if (!ui) continue;
 
@@ -320,7 +461,7 @@ function render() {
       ui.btn.disabled = true;
       ui.btn.className = 'btn btn-upgrade disabled';
     } else {
-      ui.btn.textContent = `Upgrade (${cost.format()} E)`;
+      ui.btn.textContent = `Upgrade (${cost.format()} ${l0Config.currency.symbol})`;
       ui.btn.disabled = !canAfford;
       ui.btn.className = `btn btn-upgrade ${canAfford ? 'primary' : 'disabled'}`;
     }
@@ -353,11 +494,14 @@ function render() {
   const prestigeBtn = document.getElementById('btn-prestige');
   prestigeBtn.disabled = !canPrestige;
   prestigeBtn.className = `btn ${canPrestige ? 'danger' : 'disabled'}`;
-  prestigeBtn.textContent = canPrestige ? `Prestige for +${prestigeReward.format()} Cores` : `Need 1.00M Run Energy`;
+  const actionLabel = l1Config.prestige.actionLabel || `Prestige for +${prestigeReward.format()} ${l1Config.currency.name}`;
+  prestigeBtn.textContent = canPrestige
+    ? `${actionLabel} (+${prestigeReward.format()} ${l1Config.currency.symbol})`
+    : `Need ${BigNum.from(l1Config.prestige.thresholdCurrency).format()} Run ${l0Config.currency.symbol}`;
 
   // Update Layer 1 Upgrades
   let visibleL1UpgradesCount = 0;
-  for (const upg of defaultGameConfig.layers[1].upgrades) {
+  for (const upg of l1Config.upgrades) {
     const ui = upgradeUI.layer1?.[upg.id];
     if (!ui) continue;
 
@@ -392,7 +536,7 @@ function render() {
       ui.btn.disabled = true;
       ui.btn.className = 'btn btn-upgrade disabled';
     } else {
-      ui.btn.textContent = `Upgrade (${cost.format()} Cores)`;
+      ui.btn.textContent = `Upgrade (${cost.format()} ${l1Config.currency.symbol})`;
       ui.btn.disabled = !canAfford;
       ui.btn.className = `btn btn-upgrade ${canAfford ? 'primary' : 'disabled'}`;
     }
@@ -404,7 +548,7 @@ function render() {
   }
 }
 
-function setupEventListeners() {
+function setupStaticEventListeners() {
   document.getElementById('btn-prestige').addEventListener('click', () => {
     session.resetLayer('layer1');
     render();
@@ -424,8 +568,9 @@ function setupEventListeners() {
   document.getElementById('btn-sim-optimal').addEventListener('click', () => {
     const current = session.getState();
     const policy = new OptimalRoiPolicy();
+    const target = activeConfig.layers[1].prestige.thresholdCurrency;
     const result = simulator.run(current, policy, {
-      stopCondition: st => st.layers.layer0.runTotalCurrency.gte(1e6),
+      stopCondition: st => st.layers.layer0.runTotalCurrency.gte(target),
       maxSimulatedMs: 15 * 60 * 1000
     });
     session.syncFromSimulation(result.state);
@@ -462,7 +607,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('btn-hard-reset').addEventListener('click', () => {
-    if (confirm('Are you sure you want to hard reset all progress?')) {
+    if (confirm(`Are you sure you want to hard reset all progress for ${activeConfig.name}?`)) {
       session.hardReset();
       render();
     }
