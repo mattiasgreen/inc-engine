@@ -683,30 +683,69 @@
       display: block;
     }
     .character-dossier-modal {
-      border: 1px solid var(--card-border);
-      box-shadow: var(--card-glow), 0 12px 36px rgba(0, 0, 0, 0.8);
-      max-width: 460px;
+      border: 1.5px solid var(--primary);
+      box-shadow: var(--card-glow), 0 16px 48px rgba(0, 0, 0, 0.85);
+      max-width: 440px;
+      width: 92%;
+      max-height: 88vh;
+      overflow-y: auto;
+      text-align: center;
+      padding: 1.25rem;
+      border-radius: 12px;
+      background: var(--card-bg-gradient);
     }
     .character-dossier-header {
       display: flex;
-      gap: 0.85rem;
+      flex-direction: column;
       align-items: center;
+      gap: 0.75rem;
     }
     .character-dossier-portrait {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
+      width: 160px;
+      height: 160px;
+      border-radius: 14px;
       overflow: hidden;
       border: 2px solid var(--primary);
-      box-shadow: 0 0 12px var(--primary);
+      box-shadow: 0 0 20px var(--primary), inset 0 0 12px rgba(0, 0, 0, 0.7);
       flex-shrink: 0;
       background: var(--card-bg);
+      position: relative;
+      margin: 0 auto 0.25rem auto;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .character-dossier-portrait:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 26px var(--primary);
     }
     .character-dossier-portrait img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
+    }
+    .character-dossier-portrait .halo-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .lore-card-box {
+      background: rgba(8, 14, 26, 0.65);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.9rem;
+      text-align: left;
+    }
+    .lore-card-box-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+      font-weight: 600;
     }
     .card-header {
       display: flex;
@@ -1231,21 +1270,28 @@
     </div>
   </div>
 
-  <!-- Character Lore Dossier Modal -->
+  <!-- Lore Dossier & Card Modal -->
   <div id="character-modal" class="modal-backdrop">
     <div class="modal character-dossier-modal">
       <div class="character-dossier-header">
         <div class="character-dossier-portrait" id="dossier-portrait"></div>
         <div>
-          <h2 id="dossier-name" style="margin-bottom: 0.2rem; color: var(--primary); font-size: 1.25rem;">Guide</h2>
-          <span class="badge" id="dossier-title" style="background: rgba(56, 189, 248, 0.15); color: var(--primary);">Coordinator</span>
+          <h2 id="dossier-name" style="margin-bottom: 0.25rem; color: var(--primary); font-size: 1.35rem;">Guide</h2>
+          <span class="badge" id="dossier-title" style="background: rgba(56, 189, 248, 0.15); color: var(--primary); border: 1px solid var(--primary); padding: 0.2rem 0.6rem;">Coordinator</span>
         </div>
       </div>
-      <div class="modal-content" style="margin-top: 1rem; margin-bottom: 1.25rem;">
-        <p id="dossier-quote" style="font-style: italic; color: var(--accent); margin-bottom: 0.75rem; font-size: 0.9rem; line-height: 1.4;"></p>
-        <div id="dossier-backstory" style="font-size: 0.85rem; line-height: 1.6; color: var(--text-muted);"></div>
+      <div class="modal-content" style="margin-top: 0.85rem; margin-bottom: 1rem;">
+        <p id="dossier-quote" style="font-style: italic; color: var(--accent); margin-bottom: 0.85rem; font-size: 0.88rem; line-height: 1.45; text-align: left; padding: 0.5rem 0.75rem; background: rgba(0, 0, 0, 0.35); border-left: 3px solid var(--accent); border-radius: 4px;"></p>
+        <div class="lore-card-box">
+          <div class="lore-card-box-label">Chronicle & Backstory</div>
+          <div id="dossier-backstory" style="font-size: 0.85rem; line-height: 1.6; color: var(--text);"></div>
+        </div>
+        <div id="dossier-effect-container" class="lore-card-box" style="display: none; border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.05);">
+          <div class="lore-card-box-label" style="color: var(--success);">Mechanical Specification</div>
+          <div id="dossier-effect" style="font-size: 0.85rem; line-height: 1.4; color: var(--success); font-weight: 500;"></div>
+        </div>
       </div>
-      <button id="btn-close-character-modal" class="btn primary" style="width: 100%; padding: 0.6rem;">Close Dossier</button>
+      <button id="btn-close-character-modal" class="btn primary" style="width: 100%; padding: 0.65rem;">Close Lore Card</button>
     </div>
   </div>
 

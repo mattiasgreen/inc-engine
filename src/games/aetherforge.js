@@ -128,6 +128,7 @@ export const aetherforgeGame = {
           id: 'gen1',
           name: 'Runic Familiar',
           lore: 'Minor ethereal spirits bonded to harvest lingering ambient mana crystals.',
+          backstory: 'Spiritual entities summoned from the twilight realm between dreams and reality. Bound by silver torcs inscribed with primordial binding runes, these glowing sprites flutter through ancient crystalline caves, gathering ambient mana condensation and transmuting it directly into pure magical energy.',
           image: './assets/gen-aether-1.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-familiar">
             <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4 21l3.39-.97C8.93 20.66 10.42 21 12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z" />
@@ -143,6 +144,7 @@ export const aetherforgeGame = {
           id: 'gen2',
           name: 'Leyline Conduit',
           lore: 'Carved obsidian pillars drawing subterranean mystic currents to manifest familiars.',
+          backstory: 'Monolithic pillars of enchanted volcanic glass driven deep into subterranean planar faults. By channeling subterranean veins of raw planetary magic upward into consecrated runic circles, each conduit automatically summons and binds new Runic Familiars to expand the weave.',
           image: './assets/gen-aether-2.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-conduit">
             <line x1="12" y1="2" x2="12" y2="22" />
@@ -163,6 +165,7 @@ export const aetherforgeGame = {
           id: 'gen3',
           name: 'Astral Citadel',
           lore: 'Floating spire-sanctuaries anchored in the astral plane, projecting conduits onto earth.',
+          backstory: 'Floating spire-fortresses suspended between the physical earth and the celestial astral plane. Governed by circle sorcerers in perpetual meditation, these sky-sanctuaries project harmonic resonance beams onto terrestrial landscapes, transmuting bedrock into self-constructing Leyline Conduits.',
           image: './assets/gen-aether-3.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-citadel">
             <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
@@ -184,6 +187,7 @@ export const aetherforgeGame = {
           name: 'Chrono-Incantation',
           description: 'Speeds weave frequency by 15%',
           lore: 'Compresses casting syllables through harmonic vocal resonances.',
+          backstory: 'An ancient polyphonic casting technique perfected by the First Chantry. By overlapping vocal cadences across three tonal registers simultaneously, complex spell formulas collapse into pure musical chords, quickening weave cycles by 15%.',
           image: './assets/upg-leyline.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
@@ -203,6 +207,7 @@ export const aetherforgeGame = {
           name: 'Prismatic Loom',
           description: 'Doubles Ticks emitted per Cycle',
           lore: 'Splits each strand of mana into dual resonant frequencies.',
+          backstory: 'Carved from a fallen celestial prism discovered in the crater of Mount Vael. The loom splits unformed ether into golden dawn and violet dusk harmonic spectra, allowing the spellcaster to harvest twice as many discrete mana pulses during every weave resonance.',
           image: './assets/upg-prism.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 2 22 22 22 12 2" />
@@ -221,6 +226,7 @@ export const aetherforgeGame = {
           name: 'Ethereal Bond',
           description: 'Boosts Runic Familiar mana harvest by 1.75x per level',
           lore: 'Tethers spirits directly to the caster’s spiritual reservoir.',
+          backstory: 'A sacred blood-and-mana pact inscribed onto the familiar spirits astral essence. By opening an unbroken psychic channel to the archmage, the spirits draw upon bottomless reservoirs of will, boosting each familiar mana yield by 75% per rank.',
           image: './assets/upg-bond.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -271,6 +277,7 @@ export const aetherforgeGame = {
           name: 'Astral Resonance',
           description: 'Multiplies all Layer 0 output by 2.6x per level',
           lore: 'Harmonizes mortal runes with transcendent celestial frequencies.',
+          backstory: 'By aligning mortal ritual glyphs with the music of the celestial spheres, the chantry dissolves terrestrial limitations. Conduits and familiars channel pure starry luminescence directly from the crown of creation, multiplying all Layer 0 production by 2.6x per tier.',
           image: './assets/upg-astral-amp.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="8" />
@@ -294,6 +301,7 @@ export const aetherforgeGame = {
           name: 'Temporal Enchantment',
           description: 'Adds +1 base Tick per Cycle',
           lore: 'Weaves ancient haste sigils permanently into the fabric of space.',
+          backstory: 'Forged from sands gathered during the shattered Age of Chronos. This sigil dilates the flow of moments within the sanctum perimeter, causing the mortal weave to pulse with additional discrete spell-ticks during every natural heartbeat.',
           image: './assets/upg-spirits.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
@@ -315,6 +323,7 @@ export const aetherforgeGame = {
           name: 'Artificer Dedication',
           description: 'Increases purchase synergy from 1.03x to 1.08x',
           lore: 'Master artisans imprint each familiar and conduit with sacred runes.',
+          backstory: 'Generations of guild artificers have inscribed silver filaments across every conduit pedestal and summoning brazier. This dedicated craftsmanship ensures each newly purchased construct amplifies the metaphysical resonance of all existing generators.',
           image: './assets/upg-planetary-siphon.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -336,6 +345,7 @@ export const aetherforgeGame = {
           name: 'The Living Loom',
           description: 'Dynamic boost scaling with total progression time',
           lore: 'The weave becomes conscious, self-generating mana across infinite timelines.',
+          backstory: 'The woven strands of reality achieve sentience. The living tapestry breathes in synchrony with the cosmos, tapping into timeless currents where magic is limitless. Its output ascends ever higher with every moment spent tending its immortal threads.',
           image: './assets/upg-astral-amp.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />

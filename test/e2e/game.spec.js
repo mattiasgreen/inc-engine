@@ -189,4 +189,54 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await expect(page.locator('#character-name')).toHaveText('Archmage Vaelen');
     await expect(page.locator('#layer0-generators .card').first().locator('.owned-badge')).toHaveText('Owned: 1');
   });
+
+  test('Stage 8: Clicking character, generator, or upgrade image opens Lore Card modal with large image and backstory', async ({ page }) => {
+    await page.locator('#btn-hard-reset').click();
+
+    // 1. Click character portrait image
+    const charPortrait = page.locator('#character-portrait');
+    await charPortrait.click();
+
+    // Modal is visible with character details
+    const modal = page.locator('#character-modal');
+    await expect(modal).toBeVisible();
+    await expect(page.locator('#dossier-name')).toHaveText('AURORA-7');
+    await expect(page.locator('#dossier-backstory')).toContainText('Manufactured by the Sol Engineering Collective');
+    await expect(page.locator('#dossier-portrait img')).toBeVisible();
+
+    // Close modal via close button
+    await page.locator('#btn-close-character-modal').click();
+    await expect(modal).toBeHidden();
+
+    // 2. Click generator icon image
+    const genIcon = page.locator('#layer0-generators .card').first().locator('.main-view .card-icon');
+    await genIcon.click();
+    await expect(modal).toBeVisible();
+    await expect(page.locator('#dossier-name')).toHaveText('Solar Drone');
+    await expect(page.locator('#dossier-backstory')).toContainText('carbon aerogels');
+    await page.locator('#btn-close-character-modal').click();
+    await expect(modal).toBeHidden();
+
+    // 3. Buy generator and time skip to reveal upgrades
+    await page.locator('#layer0-generators .card').first().locator('.btn-buy-1').click();
+    await page.locator('button[data-jump-ms="900000"]').click();
+    await page.locator('#btn-close-offline-modal').click();
+
+    // 4. Click an upgrade image
+    const upgThumb = page.locator('#layer0-upgrades .card .card-thumb-art').first();
+    await expect(upgThumb).toBeVisible();
+    await upgThumb.click();
+
+    // Modal opens with upgrade lore details
+    await expect(modal).toBeVisible();
+    await expect(page.locator('#dossier-name')).toHaveText('Telemetry Overclock');
+    await expect(page.locator('#dossier-backstory')).toContainText('1.4 million kilometers');
+    await expect(page.locator('#dossier-effect-container')).toBeVisible();
+    await expect(page.locator('#dossier-effect')).toContainText('15%');
+    await expect(page.locator('#dossier-portrait img')).toBeVisible();
+
+    // Close via escape key
+    await page.keyboard.press('Escape');
+    await expect(modal).toBeHidden();
+  });
 });

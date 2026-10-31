@@ -258,6 +258,19 @@ function mountUI() {
       } else {
         charPortrait.innerHTML = activeConfig.character.svg || '';
       }
+      charPortrait.style.cursor = 'pointer';
+      charPortrait.title = `Click to view ${activeConfig.character.name} Lore Card`;
+      charPortrait.onclick = (e) => {
+        e.stopPropagation();
+        openLoreModal({
+          title: activeConfig.character.name,
+          subtitle: activeConfig.character.title,
+          image: activeConfig.character.image,
+          svg: activeConfig.character.svg,
+          quote: document.getElementById('character-quote')?.textContent || activeConfig.character.dialogue?.intro,
+          backstory: activeConfig.character.backstory
+        });
+      };
     }
     if (charName) charName.textContent = activeConfig.character.name || '';
     if (charTitle) charTitle.textContent = activeConfig.character.title || '';
@@ -344,6 +357,23 @@ function mountUI() {
       render();
     });
 
+    card.querySelectorAll('.card-icon').forEach(genIcon => {
+      genIcon.style.cursor = 'pointer';
+      genIcon.title = `Click to view ${gen.name} Lore Card`;
+      genIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openLoreModal({
+          title: gen.name,
+          subtitle: `${l0Config.name} Generator`,
+          image: gen.image,
+          svg: gen.svg,
+          quote: gen.lore,
+          backstory: gen.backstory || gen.lore,
+          effect: `Base yield: ${gen.baseOutputPerTick} ${typeof gen.produces === 'string' ? l0Config.currency.symbol : 'units'}/tick`
+        });
+      });
+    });
+
     genContainer.appendChild(card);
 
     generatorUI.layer0[gen.id] = {
@@ -414,6 +444,23 @@ function mountUI() {
       session.buyUpgrade('layer0', upg.id);
       triggerUpgradeAnimation(btn, card);
       render();
+    });
+
+    card.querySelectorAll('.card-thumb-art, .card-icon').forEach(upgArt => {
+      upgArt.style.cursor = 'pointer';
+      upgArt.title = `Click to view ${upg.name} Lore Card`;
+      upgArt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openLoreModal({
+          title: upg.name,
+          subtitle: `${l0Config.name} Upgrade`,
+          image: upg.image,
+          svg: upg.svg,
+          quote: upg.lore,
+          backstory: upg.backstory || upg.lore,
+          effect: upg.description
+        });
+      });
     });
 
     upgContainer.appendChild(card);
@@ -500,6 +547,23 @@ function mountUI() {
       session.buyUpgrade('layer1', upg.id);
       triggerUpgradeAnimation(btn, card);
       render();
+    });
+
+    card.querySelectorAll('.card-thumb-art, .card-icon').forEach(l1UpgArt => {
+      l1UpgArt.style.cursor = 'pointer';
+      l1UpgArt.title = `Click to view ${upg.name} Lore Card`;
+      l1UpgArt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openLoreModal({
+          title: upg.name,
+          subtitle: `${l1Config.name} Prestige Upgrade`,
+          image: upg.image,
+          svg: upg.svg,
+          quote: upg.lore,
+          backstory: upg.backstory || upg.lore,
+          effect: upg.description
+        });
+      });
     });
 
     l1UpgContainer.appendChild(card);
@@ -825,43 +889,97 @@ function setupStaticEventListeners() {
     document.getElementById('offline-modal').style.display = 'none';
   });
 
-  // Character Lore Dossier Modal
+  // Character & Upgrade Lore Dossier Modal
   const charBanner = document.getElementById('character-banner');
   if (charBanner) {
     charBanner.style.cursor = 'pointer';
     charBanner.title = 'View Character Lore Dossier';
     charBanner.addEventListener('click', () => {
       if (!activeConfig.character) return;
-      const modal = document.getElementById('character-modal');
-      const portrait = document.getElementById('dossier-portrait');
-      const name = document.getElementById('dossier-name');
-      const title = document.getElementById('dossier-title');
-      const quote = document.getElementById('dossier-quote');
-      const backstory = document.getElementById('dossier-backstory');
+      openLoreModal({
+        title: activeConfig.character.name,
+        subtitle: activeConfig.character.title,
+        image: activeConfig.character.image,
+        svg: activeConfig.character.svg,
+        quote: document.getElementById('character-quote')?.textContent || activeConfig.character.dialogue?.intro,
+        backstory: activeConfig.character.backstory
+      });
+    });
+  }
 
-      if (portrait) {
-        if (activeConfig.character.image) {
-          portrait.innerHTML = `<img src="${activeConfig.character.image}" alt="${activeConfig.character.name}" />`;
-        } else {
-          portrait.innerHTML = activeConfig.character.svg || '';
-        }
+  const loreModal = document.getElementById('character-modal');
+  if (loreModal) {
+    loreModal.addEventListener('click', (e) => {
+      if (e.target === loreModal) {
+        loreModal.style.display = 'none';
       }
-      if (name) name.textContent = activeConfig.character.name || 'Guide';
-      if (title) title.textContent = activeConfig.character.title || 'Coordinator';
-      if (quote) {
-        const q = document.getElementById('character-quote')?.textContent || activeConfig.character.dialogue?.intro || '';
-        quote.textContent = q;
-      }
-      if (backstory) {
-        backstory.textContent = activeConfig.character.backstory || 'No transmission data recorded.';
-      }
-      if (modal) modal.style.display = 'flex';
     });
   }
 
   document.getElementById('btn-close-character-modal')?.addEventListener('click', () => {
-    document.getElementById('character-modal').style.display = 'none';
+    if (loreModal) loreModal.style.display = 'none';
   });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (loreModal) loreModal.style.display = 'none';
+      const offlineModal = document.getElementById('offline-modal');
+      if (offlineModal) offlineModal.style.display = 'none';
+    }
+  });
+}
+
+export function openLoreModal({ title, subtitle, image, svg, quote, backstory, effect }) {
+  const modal = document.getElementById('character-modal');
+  const portrait = document.getElementById('dossier-portrait');
+  const name = document.getElementById('dossier-name');
+  const titleEl = document.getElementById('dossier-title');
+  const quoteEl = document.getElementById('dossier-quote');
+  const backstoryEl = document.getElementById('dossier-backstory');
+  const effectContainer = document.getElementById('dossier-effect-container');
+  const effectEl = document.getElementById('dossier-effect');
+
+  if (portrait) {
+    if (image) {
+      portrait.innerHTML = `
+        <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+          <img src="${image}" alt="${title || ''}" />
+          ${svg ? `<div class="halo-overlay">${svg}</div>` : ''}
+        </div>
+      `;
+    } else if (svg) {
+      portrait.innerHTML = svg;
+    } else {
+      portrait.innerHTML = '';
+    }
+  }
+
+  if (name) name.textContent = title || '';
+  if (titleEl) titleEl.textContent = subtitle || 'Archive Dossier';
+
+  if (quoteEl) {
+    if (quote) {
+      quoteEl.textContent = quote.startsWith('"') ? quote : `"${quote}"`;
+      quoteEl.style.display = 'block';
+    } else {
+      quoteEl.style.display = 'none';
+    }
+  }
+
+  if (backstoryEl) {
+    backstoryEl.textContent = backstory || 'No additional transmission recorded.';
+  }
+
+  if (effectContainer && effectEl) {
+    if (effect) {
+      effectEl.textContent = effect;
+      effectContainer.style.display = 'block';
+    } else {
+      effectContainer.style.display = 'none';
+    }
+  }
+
+  if (modal) modal.style.display = 'flex';
 }
 
 if (document.readyState === 'loading') {

@@ -120,6 +120,7 @@ export const sunkenObservatoryGame = {
           id: 'gen1',
           name: 'Cult Acolyte',
           lore: 'Sleepless scribes feverishly translating drowned star-charts by tallow candlelight.',
+          backstory: 'Former maritime naturalists and shipwreck survivors rescued from the Pacific deeps. Eyes permanently dilated from the crushing twilight of the abyss, they obsessively transcribe drowned astronomical charts onto treated vellum, decoding forgotten constellations that shone before humanity walked the earth.',
           image: './assets/gen-horror-1.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-acolyte">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -134,6 +135,7 @@ export const sunkenObservatoryGame = {
           id: 'gen2',
           name: 'Whispering Monolith',
           lore: 'Barnacle-encrusted obelisks transmitting low-frequency psychic instructions that recruit acolytes.',
+          backstory: 'Basalt obelisks raised from oceanic trenches by forgotten pre-human architects. Inscribed with cyclopean pictograms, they emit infrasonic acoustic pulses through the brine that seep into the minds of coastal scholars worldwide, drawing willing acolytes down into the underwater library.',
           image: './assets/gen-horror-2.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-monolith">
             <path d="M8 21h8l-2-18h-4z" />
@@ -152,6 +154,7 @@ export const sunkenObservatoryGame = {
           id: 'gen3',
           name: 'Rift Harvester',
           lore: 'Diving bells equipped with gravimetric dredges, opening fissures that manifest monoliths.',
+          backstory: 'Armored bathyspheres cast from abyssal bronze, fitted with pneumatic void dredges and quartz viewing ports. Piloted deep into the Mariana Trench, their ultrasonic drills fracture the continental crust, prying open reality-warping rifts that allow dormant monoliths to breach the seabed.',
           image: './assets/gen-horror-3.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-rift">
             <circle cx="12" cy="12" r="9" />
@@ -175,6 +178,7 @@ export const sunkenObservatoryGame = {
           name: 'Fever Dreams',
           description: 'Speeds research Cycle frequency by 15%',
           lore: 'Hallucinogenic deep-sea flora eliminate the necessity for mundane slumber.',
+          backstory: 'Distilled from phosphorescent kelp harvested along hydrothermal vents. Consuming the bitter brew liberates the scholar intellect from the constraint of physical sleep, allowing relentless analysis of submerged star-matrices and accelerating research frequency by 15%.',
           image: './assets/upg-astrolabe.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
@@ -194,6 +198,7 @@ export const sunkenObservatoryGame = {
           name: 'Lucid Trance Channel',
           description: 'Doubles Ticks emitted per Cycle',
           lore: 'Allows the conscious intellect to perceive past and present simultaneously.',
+          backstory: 'Through curved obsidian mirrors polished with sea-salt, researchers divide their waking consciousness across multiple temporal planes. Observing archaic stellar alignments and present ocean currents simultaneously doubles the discrete insight pulses generated per cycle.',
           image: './assets/upg-lenses.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
@@ -213,6 +218,7 @@ export const sunkenObservatoryGame = {
           name: 'Black Ink Inscription',
           description: 'Increases Cult Acolyte output by 1.75x per level',
           lore: 'Binding glyphs penned in cephalopod bioluminescent ichor.',
+          backstory: 'Drawn from abyssal giant cephalopods that feed upon thermal plumes. This viscous black ink remains warm to the touch and glows faintly in absolute darkness. Texts copied with this ink crawl across the page, compelling acolytes to furious transcriptive output.',
           image: './assets/upg-black-ink.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 19l7-7 3 3-7 7-3-3z" />
@@ -264,6 +270,7 @@ export const sunkenObservatoryGame = {
           name: 'Non-Euclidean Echoes',
           description: 'Multiplies all Layer 0 output by 2.55x per level',
           lore: 'Echoes from unmapped spatial dimensions warp mortal comprehension.',
+          backstory: 'Resonances bouncing off submerged cyclopean architecture return to the listener before the initial wave was produced. By listening through helical conch shells, scholars tap into hyper-dimensional geometric theorems that multiply mortal research capacity by 2.55x per rank.',
           image: './assets/upg-void-gaze.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2" />
@@ -283,6 +290,7 @@ export const sunkenObservatoryGame = {
           name: 'Frozen Epoch',
           description: 'Adds +1 base Tick per Cycle',
           lore: 'Suspends the passage of local time within the flooded library.',
+          backstory: 'Sealed behind stone airlocks carved with slumbering cephalopod sigils, the archive exists in a pocket of stopped time. Surface decades elapse in minutes while the archive interior generates relentless additional research ticks per cycle.',
           image: './assets/upg-hysteria.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
@@ -304,6 +312,7 @@ export const sunkenObservatoryGame = {
           name: 'Hierophant Fanaticism',
           description: 'Increases purchase synergy from 1.025x to 1.075x',
           lore: 'Devotees sacrifice reason to commune directly with cosmic entities.',
+          backstory: 'Acolytes abandon individual ego, intertwining their neural pathways into a shared telepathic hive mind. Each new obelisk and acolyte brought into the circle reinforces the psychic trance, elevating the cumulative synergy of all research assets.',
           image: './assets/upg-geometries.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -325,6 +334,7 @@ export const sunkenObservatoryGame = {
           name: 'The Abyssal Awakening',
           description: 'Dynamic boost scaling with total progression time',
           lore: 'The entity sleeping beneath the ocean trench stirs in slumber.',
+          backstory: 'Kilometers beneath the bedrock, an ancient titan stirs in eons-old slumber. As the observatory continues its vigil, the dream waves radiated by the sleeper grow stronger, compounding insight yields continuously with every tick of elapsed time.',
           image: './assets/upg-void-gaze.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />

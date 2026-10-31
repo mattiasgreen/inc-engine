@@ -139,6 +139,7 @@ export const dysonSwarmGame = {
           id: 'gen1',
           name: 'Solar Drone',
           lore: 'Autonomous photovoltaic mirror drones capturing raw stellar radiation.',
+          backstory: 'Forged from ultra-lightweight carbon aerogels, these autonomous mirror units unfold hexagonal photovoltaic sails upon orbital insertion. Guided by micro-ion thrusters, each drone maneuvers along coronal magnetic field lines, harvesting raw stellar flux and relaying digitized megawatts down to collection hubs via coherent microwave beams.',
           image: './assets/gen-dyson-1.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-drone">
             <polygon points="12 2 19 21 12 17 5 21 12 2" />
@@ -152,6 +153,7 @@ export const dysonSwarmGame = {
           id: 'gen2',
           name: 'Orbital Fabricator',
           lore: 'Automated micro-factories 3D-printing swarms of Solar Drones directly in space.',
+          backstory: 'Positioned in stable Lagrange orbits, these zero-gravity foundry modules capture metallic asteroids using tractor arrays. Inside pressurized induction bays, automated robotic arms smelt planetary regolith to 3D-print complete Solar Drones, launching fresh wings into orbit every standard solar cycle.',
           image: './assets/gen-dyson-2.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-fabricator">
             <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -174,6 +176,7 @@ export const dysonSwarmGame = {
           id: 'gen3',
           name: 'Stellar Harvester',
           lore: 'Gigantic atmospheric scoops skimming the solar corona to forge Fabricators.',
+          backstory: 'Massive magnetic ring vessels skimming the upper chromosphere. Reinforced with quantum magnetic forcefields, these leviathans scoop charged solar plasma directly from solar flares, transmuting raw hydrogen into dense building materials required to construct new Orbital Fabricators.',
           image: './assets/gen-dyson-3.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-harvester">
             <circle cx="12" cy="12" r="10" />
@@ -197,6 +200,7 @@ export const dysonSwarmGame = {
           name: 'Telemetry Overclock',
           description: 'Increases telemetry Cycle frequency by 15%',
           lore: 'Upgrades inter-satellite communications to sub-picosecond microwave relays.',
+          backstory: 'By synchronizing orbital microwave transmitters through optical atomic clocks, telemetry latency across 1.4 million kilometers of space is eliminated. Autonomous swarm clusters react to solar coronal mass ejections instantaneously, accelerating processing cycles by 15%.',
           image: './assets/upg-telemetry.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
@@ -215,6 +219,7 @@ export const dysonSwarmGame = {
           name: 'Multi-Phase Transceiver',
           description: 'Doubles Ticks emitted per Cycle',
           lore: 'Processes parallel energy ingestion channels on dual orbital planes.',
+          backstory: 'Engineered using high-temperature superconductive metamaterials, this transceiver operates on dual orthogonal orbital planes simultaneously. By processing polar and equatorial solar flux concurrently, it doubles the operational ticks emitted during each computational cycle.',
           image: './assets/upg-transceiver.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 12h5l3-9 4 18 3-9h5" />
@@ -233,6 +238,7 @@ export const dysonSwarmGame = {
           name: 'Reflective Coating',
           description: 'Increases Solar Drone output by 1.75x per level',
           lore: 'Applies metamaterial dielectric mirrors to drone capture surfaces.',
+          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 75% per upgrade rank.',
           image: './assets/upg-coating.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
@@ -286,6 +292,7 @@ export const dysonSwarmGame = {
           name: 'Sub-Space Quantum Link',
           description: 'Multiplies all Layer 0 output by 2.5x per level',
           lore: 'Tethers orbital swarm telemetry directly through zero-point vacuum nodes.',
+          backstory: 'By creating micro-wormholes inside cryogenic magnetic traps, telemetry channels bypass the speed of light entirely. Swarm nodes transfer harvested joules directly to core distribution matrices with near-zero line resistance, multiplying all base solar energy output by 2.5x per level.',
           image: './assets/upg-quantum-link.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="3" />
@@ -306,6 +313,7 @@ export const dysonSwarmGame = {
           name: 'Temporal Nanosecond Matrix',
           description: 'Adds +1 base Tick per Cycle',
           lore: 'Re-aligns array clock synchronization with relativistic solar orbit frames.',
+          backstory: 'Relativistic frame-dragging near Sol causes time differentials between inner orbits and planetary outposts. This matrix synthesizes a unified temporal mesh across the solar system, inserting additional discrete operational ticks into every collection cycle.',
           image: './assets/upg-superconductivity.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
@@ -327,6 +335,7 @@ export const dysonSwarmGame = {
           name: 'Modular Architecture Protocol',
           description: 'Increases purchase synergy boost from 1.02x to 1.07x',
           lore: 'Standardizes component sockets across all drone and fabricator chassis.',
+          backstory: 'An open-source architectural standard ratified by the orbital collective. Standardization allows hot-swappable inductive power linkages across drone chassis, ensuring each new generator installed magnifies the baseline efficiency of all active orbital infrastructure.',
           image: './assets/upg-nanites.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M16 16v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h1" />
@@ -349,6 +358,7 @@ export const dysonSwarmGame = {
           name: 'Dyson Sphere Matrix Singularity',
           description: 'Dynamic boost scaling with total progression time',
           lore: 'The megastructure attains self-sustaining orbital equilibrium around Sol.',
+          backstory: 'The culmination of centuries of autonomous construction. Trillions of solar rings interlock into a closed, self-optimizing sphere surrounding the sun. The singularity continually adapts to stellar fluctuations, scaling its output perpetually as total operational duration increases.',
           image: './assets/upg-quantum-link.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="2" />

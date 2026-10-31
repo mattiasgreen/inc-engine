@@ -53,9 +53,16 @@ test('take desktop and mobile screenshots of all 3 games with animations & scene
   await page.screenshot({ path: 'test-results/android-sunken-upgrades.png' });
 
   // Character Lore Dossier Modal
-  await page.locator('#character-banner').click();
+  await page.locator('#character-portrait').click();
   await page.waitForTimeout(200);
   await page.screenshot({ path: 'test-results/android-character-dossier.png' });
+  await page.locator('#btn-close-character-modal').click();
+  await page.waitForTimeout(100);
+
+  // Upgrade Lore Card Modal
+  await page.locator('#layer0-upgrades .card .card-thumb-art').first().click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'test-results/android-upgrade-lore-card.png' });
   await page.locator('#btn-close-character-modal').click();
   await page.waitForTimeout(100);
 
