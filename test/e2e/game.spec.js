@@ -113,4 +113,40 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await expect(gen1Card.locator('.owned-badge')).toHaveText('Owned: 0');
     await expect(page.locator('#layer0-currency')).toHaveText(/10/);
   });
+
+  test('Stage 6: Metagenerator cascade spawns lower-tier units and Upgrade Tree handles DAG branching', async ({ page }) => {
+    await page.locator('#btn-hard-reset').click();
+    await page.locator('#layer0-generators .card').first().locator('.btn-buy-1').click();
+
+    // Skip 1 hour to easily unlock and buy Generator II (Metagenerator)
+    await page.locator('button[data-jump-ms="3600000"]').click();
+    await page.locator('#btn-close-offline-modal').click();
+
+    // Buy 1 Generator II (which produces Generator I)
+    const gen2Card = page.locator('#layer0-generators .card').nth(1);
+    await gen2Card.locator('.btn-buy-1').click();
+    await expect(gen2Card.locator('.owned-badge')).toHaveText('Owned: 1');
+
+    // Note Gen 1 owned before metageneration
+    const gen1Card = page.locator('#layer0-generators .card').first();
+    const gen1OwnedBefore = await gen1Card.locator('.owned-badge').textContent();
+
+    // Skip 15 minutes: Generator II produces 0.1 Gen 1 per tick
+    // In 900 ticks, Gen 2 produces ~90 Generator I units!
+    await page.locator('button[data-jump-ms="900000"]').click();
+    await page.locator('#btn-close-offline-modal').click();
+
+    // Generator 1 owned count must have increased significantly
+    await expect(gen1Card.locator('.owned-badge')).not.toHaveText(gen1OwnedBefore);
+
+    // Verify Upgrade Tree prerequisites in Layer 1: Branch A is locked before Root is bought
+    const l1RootCard = page.locator('#layer1-upgrades .card').nth(0);
+    const l1BranchACard = page.locator('#layer1-upgrades .card').nth(1);
+    const l1BranchBCard = page.locator('#layer1-upgrades .card').nth(2);
+
+    await expect(l1BranchACard.locator('.btn-upgrade')).toContainText('Requires Prerequisites');
+    await expect(l1BranchACard.locator('.btn-upgrade')).toBeDisabled();
+    await expect(l1BranchBCard.locator('.btn-upgrade')).toContainText('Requires Prerequisites');
+    await expect(l1BranchBCard.locator('.btn-upgrade')).toBeDisabled();
+  });
 });

@@ -63,7 +63,10 @@ function mountUI() {
       <div class="main-view">
         <div class="card-header">
           <h3>${gen.name}</h3>
-          <span class="badge owned-badge">Owned: 0</span>
+          <div style="display: flex; gap: 0.35rem; align-items: center;">
+            <span class="badge owned-badge">Owned: 0</span>
+            <span class="badge bought-badge" style="background: rgba(129, 140, 248, 0.15); color: var(--secondary);">0 bought</span>
+          </div>
         </div>
         <p class="meta output-meta">Output: 0 E/tick | 0 E/s</p>
         <div class="actions">
@@ -76,6 +79,7 @@ function mountUI() {
     const lockView = card.querySelector('.lock-view');
     const mainView = card.querySelector('.main-view');
     const ownedBadge = card.querySelector('.owned-badge');
+    const boughtBadge = card.querySelector('.bought-badge');
     const outputMeta = card.querySelector('.output-meta');
     const buy1Btn = card.querySelector('.btn-buy-1');
     const buyMaxBtn = card.querySelector('.btn-buy-max');
@@ -97,6 +101,7 @@ function mountUI() {
       lockView,
       mainView,
       ownedBadge,
+      boughtBadge,
       outputMeta,
       buy1Btn,
       buyMaxBtn
@@ -243,6 +248,7 @@ function render() {
     ui.mainView.style.display = 'block';
     ui.card.className = 'card';
 
+    const bought = layer0.generators[gen.id].bought || layer0.generators[gen.id].owned;
     const owned = layer0.generators[gen.id].owned;
     const rate = stats.generatorOutputs.layer0[gen.id];
     const cost1 = stats.generatorCosts.layer0[gen.id];
@@ -250,7 +256,15 @@ function render() {
     const canAfford1 = layer0.currency.gte(cost1);
 
     ui.ownedBadge.textContent = `Owned: ${owned.format()}`;
-    ui.outputMeta.innerHTML = `Output: <strong>${rate.format()}</strong> E/tick | <strong>${rate.mul(stats.effectiveTicksPerSec).format()}</strong> E/s`;
+    ui.boughtBadge.textContent = `${bought.format()} bought`;
+
+    if (gen.produces && gen.produces.type === 'generator') {
+      const targetGen = defaultGameConfig.layers[0].generators.find(g => g.id === gen.produces.targetId);
+      const targetName = targetGen?.name || gen.produces.targetId;
+      ui.outputMeta.innerHTML = `Produces: <strong>${targetName}</strong> (+<strong>${rate.format()}</strong>/tick | +<strong>${rate.mul(stats.effectiveTicksPerSec).format()}</strong>/s)`;
+    } else {
+      ui.outputMeta.innerHTML = `Output: <strong>${rate.format()}</strong> E/tick | <strong>${rate.mul(stats.effectiveTicksPerSec).format()}</strong> E/s`;
+    }
 
     ui.buy1Btn.textContent = `Buy 1 (${cost1.format()} E)`;
     ui.buy1Btn.disabled = !canAfford1;
@@ -324,11 +338,21 @@ function render() {
     const cost = stats.upgradeCosts.layer1[upg.id];
     const canAfford = cost && layer1.currency.gte(cost);
 
-    ui.card.className = `card ${isMax ? 'maxed' : ''}`;
+    ui.card.className = `card ${isMax ? 'maxed' : (!cost ? 'locked' : '')}`;
     ui.lvlBadge.textContent = isMax ? 'MAX' : `Lvl ${level}/${upg.maxLevel}`;
 
     if (isMax) {
       ui.btn.textContent = 'Maxed';
+      ui.btn.disabled = true;
+      ui.btn.className = 'btn btn-upgrade disabled';
+    } else if (!cost) {
+      let reason = 'Locked';
+      if (upg.exclusiveWith && upg.exclusiveWith.some(s => (layer1.upgrades[s]?.level || 0) > 0)) {
+        reason = 'Locked (Exclusive Branch)';
+      } else if (upg.prerequisites) {
+        reason = 'Requires Prerequisites';
+      }
+      ui.btn.textContent = reason;
       ui.btn.disabled = true;
       ui.btn.className = 'btn btn-upgrade disabled';
     } else {

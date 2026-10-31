@@ -28,9 +28,17 @@ _Avoid_: Level, Stage, World, Realm
 A repeatable purchase within a Layer that produces a currency (or another Generator) per Tick.
 _Avoid_: Building, Producer, Unit, Facility
 
+**Metagenerator**:
+A Generator whose output per Tick is another Generator rather than a currency, forming a cascading polynomial chain (or, if cyclic, an exponential feedback loop).
+_Avoid_: Spawner, Factory, Sub-generator, Producer tier
+
 **Upgrade**:
-A purchase within a Layer that modifies production multipliers, cost scaling, Cycle frequency, Tick yield, or Layer mechanics.
+A node within a Layer's Upgrade Tree that modifies production multipliers, cost scaling, Cycle frequency, Tick yield, purchase synergy, or unlocks Generators and Layer mechanics.
 _Avoid_: Perk, Talent, Boost, Research
+
+**Upgrade Tree**:
+A directed acyclic graph (DAG) of Upgrades within a Layer where nodes can declare prerequisite Upgrade levels and mutually exclusive branches.
+_Avoid_: Skill tree, Talent tree, Tech tree, Perk grid
 
 ### Simulation and Persistence
 

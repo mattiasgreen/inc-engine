@@ -99,6 +99,7 @@ export class GameSession {
 
       for (const [genId, gen] of Object.entries(layerState.generators)) {
         serializedLayer.generators[genId] = {
+          bought: (gen.bought || gen.owned).toJSON(),
           owned: gen.owned.toJSON()
         };
       }
@@ -136,8 +137,11 @@ export class GameSession {
 
       for (const gen of layer.generators || []) {
         const savedGen = savedLayer?.generators?.[gen.id];
+        const owned = savedGen ? BigNum.fromJSON(savedGen.owned) : new BigNum(0);
+        const bought = savedGen?.bought ? BigNum.fromJSON(savedGen.bought) : new BigNum(owned);
         layerState.generators[gen.id] = {
-          owned: savedGen ? BigNum.fromJSON(savedGen.owned) : new BigNum(0)
+          bought,
+          owned
         };
       }
 

@@ -1,0 +1,7 @@
+# Metagenerator Cascades and Semigroup Integration
+
+To support **Metagenerators** (Generators that produce other Generators) without breaking purchase economy or offline equivalence, we decouple manual purchases from total inventory and evaluate acyclic cascades using exact Taylor polynomial series for all time steps.
+
+1. **Decoupled `bought` and `owned` Counts**: Each Generator tracks `bought` (manual purchases by the player) separately from `owned` (total active units including those produced by Metagenerators, stored as fractional `BigNum` values). Purchase cost scales exclusively with `bought` so Metagenerator output never inflates manual prices, while `bought` also grants a multiplicative synergy boost to output so manual purchases remain impactful alongside high Metagenerator production.
+2. **Exact Semigroup Polynomial Integration**: Rather than using forward Euler stepping for single Ticks and polynomial integration for offline jumps (which diverge by $\frac{T}{2}$ discretization error), the engine evaluates the exact Taylor polynomial expansion ($\sum \frac{\Delta t^k}{k!}$) across any $\Delta t$ on acyclic generator chains. Because the Taylor transition satisfies the semigroup property, $1,000$ one-second steps produce the exact same state as a single $1,000$-second offline jump.
+3. **Future Considerations**: Cyclic/exponential generator loops ($G_i \to \dots \to G_i$) and dynamic prestige requirement scaling based on active cascade depth are deferred for future layers and routed through chunked **Irreducible Transitions** when introduced.

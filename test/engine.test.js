@@ -134,4 +134,146 @@ describe('Engine Core Seam', () => {
     expect(nextState.layers.layer0.currency.toNumber()).toBe(10);
     expect(nextState.layers.layer0.ticksInLayer.toNumber()).toBe(10);
   });
+
+  it('decouples bought from owned count so metagenerator production does not inflate purchase price', () => {
+    let state = createInitialState(defaultGameConfig);
+    // Gen 1 costs 10 Energy base
+    state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
+    expect(state.layers.layer0.generators.gen1.bought.toNumber()).toBe(1);
+    expect(state.layers.layer0.generators.gen1.owned.toNumber()).toBe(1);
+
+    const costBeforeMeta = getDerivedStats(state, defaultGameConfig).generatorCosts.layer0.gen1;
+
+    // Simulate metagenerator producing 50 additional gen1 units to 'owned'
+    state.layers.layer0.generators.gen1.owned = state.layers.layer0.generators.gen1.owned.add(50);
+    expect(state.layers.layer0.generators.gen1.owned.toNumber()).toBe(51);
+    expect(state.layers.layer0.generators.gen1.bought.toNumber()).toBe(1);
+
+    // Next purchase cost must be identical to costBeforeMeta because 'bought' is still 1
+    const costAfterMeta = getDerivedStats(state, defaultGameConfig).generatorCosts.layer0.gen1;
+    expect(costAfterMeta.toNumber()).toBe(costBeforeMeta.toNumber());
+  });
+
+  it('evaluates metagenerator cascades with exact semigroup equivalence (stepping vs single jump)', () => {
+    // Custom test config with 3-tier cascade: Gen 3 -> Gen 2 -> Gen 1 -> Currency
+    const cascadeConfig = {
+      id: 'test-cascade',
+      clock: { baseCycleDurationMs: 1000, baseTicksPerCycle: 1 },
+      layers: [
+        {
+          id: 'layer0',
+          currency: { id: 'energy', initialAmount: 0 },
+          generators: [
+            { id: 'gen1', baseCost: 10, costGrowth: 1.15, baseOutputPerTick: 2, produces: 'currency' },
+            { id: 'gen2', baseCost: 100, costGrowth: 1.25, baseOutputPerTick: 1, produces: { type: 'generator', layerId: 'layer0', targetId: 'gen1' } },
+            { id: 'gen3', baseCost: 1000, costGrowth: 1.40, baseOutputPerTick: 0.5, produces: { type: 'generator', layerId: 'layer0', targetId: 'gen2' } }
+          ],
+          upgrades: []
+        }
+      ]
+    };
+
+    let stateA = createInitialState(cascadeConfig);
+    stateA.layers.layer0.generators.gen1.owned = new BigNum(10);
+    stateA.layers.layer0.generators.gen1.bought = new BigNum(10);
+    stateA.layers.layer0.generators.gen2.owned = new BigNum(4);
+    stateA.layers.layer0.generators.gen2.bought = new BigNum(4);
+    stateA.layers.layer0.generators.gen3.owned = new BigNum(2);
+    stateA.layers.layer0.generators.gen3.bought = new BigNum(2);
+
+    // Clone for stateB
+    let stateB = JSON.parse(JSON.stringify(stateA));
+    for (const gid of ['gen1', 'gen2', 'gen3']) {
+      stateB.layers.layer0.generators[gid].owned = new BigNum(stateA.layers.layer0.generators[gid].owned);
+      stateB.layers.layer0.generators[gid].bought = new BigNum(stateA.layers.layer0.generators[gid].bought);
+    }
+    stateB.layers.layer0.currency = new BigNum(0);
+    stateB.layers.layer0.runTotalCurrency = new BigNum(0);
+    stateB.layers.layer0.totalLifetimeCurrency = new BigNum(0);
+    stateB.layers.layer0.ticksInLayer = new BigNum(0);
+    stateB.totalTicks = new BigNum(0);
+    stateB.totalCycles = new BigNum(0);
+
+    // Mode A: 50 individual 1-tick steps
+    for (let i = 0; i < 50; i++) {
+      stateA = advanceTicks(stateA, cascadeConfig, new BigNum(1));
+    }
+
+    // Mode B: 1 single 50-tick jump
+    stateB = advanceTicks(stateB, cascadeConfig, new BigNum(50));
+
+    // Verify Semigroup property holds: stateA equals stateB within float precision
+    const gen1Diff = Math.abs(stateA.layers.layer0.generators.gen1.owned.toNumber() - stateB.layers.layer0.generators.gen1.owned.toNumber());
+    const gen2Diff = Math.abs(stateA.layers.layer0.generators.gen2.owned.toNumber() - stateB.layers.layer0.generators.gen2.owned.toNumber());
+    const currDiff = Math.abs(stateA.layers.layer0.currency.toNumber() - stateB.layers.layer0.currency.toNumber());
+
+    expect(gen1Diff).toBeLessThan(1e-6);
+    expect(gen2Diff).toBeLessThan(1e-6);
+    expect(currDiff).toBeLessThan(1e-5);
+  });
+
+  it('evaluates Upgrade Tree DAG prerequisites and mutually exclusive branches', () => {
+    const treeConfig = {
+      id: 'test-tree',
+      clock: { baseCycleDurationMs: 1000, baseTicksPerCycle: 1 },
+      layers: [
+        {
+          id: 'layer0',
+          currency: { id: 'energy', initialAmount: 1000 },
+          generators: [],
+          upgrades: [
+            { id: 'root', name: 'Root', baseCost: 10, maxLevel: 1, effect: { target: 'cycleFrequency', operation: 'multiply', value: 1.1 } },
+            { id: 'branch_a', name: 'Branch A', baseCost: 20, maxLevel: 1, prerequisites: [{ id: 'root', minLevel: 1 }], exclusiveWith: ['branch_b'], effect: { target: 'tickYield', operation: 'add', value: 1 } },
+            { id: 'branch_b', name: 'Branch B', baseCost: 20, maxLevel: 1, prerequisites: [{ id: 'root', minLevel: 1 }], exclusiveWith: ['branch_a'], effect: { target: 'tickYield', operation: 'add', value: 2 } },
+            { id: 'leaf_a', name: 'Leaf A', baseCost: 50, maxLevel: 1, prerequisites: [{ id: 'branch_a', minLevel: 1 }], effect: { target: 'cycleFrequency', operation: 'multiply', value: 1.5 } }
+          ]
+        }
+      ]
+    };
+
+    let state = createInitialState(treeConfig);
+    const stats0 = getDerivedStats(state, treeConfig);
+    expect(stats0.upgradeCosts.layer0.root.toNumber()).toBe(10);
+    // branch_a and branch_b are locked because root is level 0
+    expect(stats0.upgradeCosts.layer0.branch_a).toBe(null);
+    expect(stats0.upgradeCosts.layer0.branch_b).toBe(null);
+
+    // Buy Root
+    state = buyUpgrade(state, treeConfig, 'layer0', 'root');
+    const stats1 = getDerivedStats(state, treeConfig);
+    expect(stats1.upgradeCosts.layer0.branch_a.toNumber()).toBe(20);
+    expect(stats1.upgradeCosts.layer0.branch_b.toNumber()).toBe(20);
+    // leaf_a is still locked because branch_a is not bought
+    expect(stats1.upgradeCosts.layer0.leaf_a).toBe(null);
+
+    // Choose Branch A
+    state = buyUpgrade(state, treeConfig, 'layer0', 'branch_a');
+    const stats2 = getDerivedStats(state, treeConfig);
+    // leaf_a is now available!
+    expect(stats2.upgradeCosts.layer0.leaf_a.toNumber()).toBe(50);
+    // branch_b is now permanently locked due to exclusiveWith: ['branch_a']
+    expect(stats2.upgradeCosts.layer0.branch_b).toBe(null);
+  });
+
+  it('evaluates dynamic formula upgrade effects on live game state', () => {
+    let state = createInitialState(defaultGameConfig);
+    // Advance 999 ticks (totalTicks = 999)
+    state = advanceTicks(state, defaultGameConfig, new BigNum(999));
+    expect(state.totalTicks.toNumber()).toBe(999);
+
+    // Give 10 prestige cores
+    state.layers.layer1.currency = new BigNum(10);
+    // Buy Root
+    state = buyUpgrade(state, defaultGameConfig, 'layer1', 'upg_l1_exp_mult');
+    // Buy Branch A
+    state = buyUpgrade(state, defaultGameConfig, 'layer1', 'upg_l1_clock');
+    // Buy Apex (Logarithmic Cascade Synergy, cost 5)
+    state = buyUpgrade(state, defaultGameConfig, 'layer1', 'upg_l1_apex');
+
+    const stats = getDerivedStats(state, defaultGameConfig);
+    // log10(999 + 1) = log10(1000) = 3
+    // Dynamic formula multiplier is 1 + 3 * 0.5 = 2.5x
+    // Combined with Root (2.5x) and base (1.0x)
+    expect(stats.layerMultipliers.layer0.gt(5.0)).toBe(true);
+  });
 });

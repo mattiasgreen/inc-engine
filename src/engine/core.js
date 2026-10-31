@@ -23,6 +23,7 @@ export function createInitialState(config) {
 
     for (const gen of layer.generators || []) {
       layerState.generators[gen.id] = {
+        bought: new BigNum(0),
         owned: new BigNum(0)
       };
     }
@@ -73,10 +74,12 @@ export function getDerivedStats(state, config) {
 
   const layerMultipliers = {};
   const costScalingReductions = {};
+  const boughtSynergyBonuses = {};
 
   for (const layer of config.layers) {
     layerMultipliers[layer.id] = new BigNum(1.0);
     costScalingReductions[layer.id] = 0;
+    boughtSynergyBonuses[layer.id] = 0;
   }
 
   // Calculate passive prestige multipliers
@@ -97,7 +100,15 @@ export function getDerivedStats(state, config) {
       if (level <= 0) continue;
 
       const eff = upg.effect;
-      if (eff.target === 'cycleFrequency') {
+      if (!eff) continue;
+
+      if (typeof eff.formula === 'function') {
+        const dynamicVal = eff.formula(state);
+        if (eff.target === 'layerGenerators') {
+          const targetLayer = eff.targetId || layer.id;
+          layerMultipliers[targetLayer] = layerMultipliers[targetLayer].mul(dynamicVal);
+        }
+      } else if (eff.target === 'cycleFrequency') {
         if (eff.operation === 'multiply') {
           cycleFreqMult *= Math.pow(eff.value, level);
         }
@@ -116,6 +127,11 @@ export function getDerivedStats(state, config) {
         const targetLayer = eff.targetId || layer.id;
         if (eff.operation === 'subtract' || eff.operation === 'add') {
           costScalingReductions[targetLayer] += eff.value * level;
+        }
+      } else if (eff.target === 'boughtSynergy') {
+        const targetLayer = eff.targetId || layer.id;
+        if (eff.operation === 'add') {
+          boughtSynergyBonuses[targetLayer] += eff.value * level;
         }
       }
     }
@@ -139,36 +155,47 @@ export function getDerivedStats(state, config) {
     const layerState = state.layers[layer.id];
     const layerMult = layerMultipliers[layer.id];
     const costReduction = costScalingReductions[layer.id] || 0;
+    const synergyBonus = boughtSynergyBonuses[layer.id] || 0;
 
     for (const gen of layer.generators || []) {
-      const owned = layerState.generators[gen.id].owned;
+      const genState = layerState.generators[gen.id];
+      const bought = genState?.bought || genState?.owned || new BigNum(0);
+      const owned = genState?.owned || new BigNum(0);
       let genMult = layerMult;
 
       // Check generator specific upgrades
       for (const upg of layer.upgrades || []) {
         const level = layerState?.upgrades[upg.id]?.level || 0;
-        if (level > 0 && upg.effect.target === 'generator' && upg.effect.targetId === gen.id) {
+        if (level > 0 && upg.effect && upg.effect.target === 'generator' && upg.effect.targetId === gen.id) {
           if (upg.effect.operation === 'multiply') {
             genMult = genMult.mul(Math.pow(upg.effect.value, level));
           }
         }
       }
 
+      // Bought synergy multiplier: 1st purchase produces base output, additional purchases multiply output
+      const baseSynergy = gen.boughtSynergyMultiplier || layer.boughtSynergyMultiplier || 1.0;
+      const effectiveSynergy = baseSynergy + synergyBonus;
+      const synergyExponent = bought.gt(1) ? bought.sub(1) : new BigNum(0);
+      const synergyMult = new BigNum(effectiveSynergy).pow(synergyExponent);
+      genMult = genMult.mul(synergyMult);
+
       const unitOutput = BigNum.from(gen.baseOutputPerTick).mul(genMult);
       generatorOutputs[layer.id][gen.id] = unitOutput;
 
-      if (owned.gt(0)) {
+      // Only generators producing layer currency directly contribute to layerProductionPerTick
+      const producesCurrency = !gen.produces || gen.produces === 'currency' || gen.produces.type === 'currency';
+      if (owned.gt(0) && producesCurrency) {
         layerProductionPerTick[layer.id] = layerProductionPerTick[layer.id].add(owned.mul(unitOutput));
       }
 
-      // Effective cost growth
+      // Effective cost growth based on BOUGHT count
       const r = Math.max(1.01, gen.costGrowth - costReduction);
-      // Cost: baseCost * (r ^ owned)
       const rBig = new BigNum(r);
-      const cost1 = BigNum.from(gen.baseCost).mul(rBig.pow(owned));
+      const cost1 = BigNum.from(gen.baseCost).mul(rBig.pow(bought));
       generatorCosts[layer.id][gen.id] = cost1;
 
-      // Max affordable calculation
+      // Max affordable calculation from current bought
       const budget = layerState.currency;
       if (budget.lt(cost1)) {
         maxAffordable[layer.id][gen.id] = { count: 0, totalCost: new BigNum(0) };
@@ -188,14 +215,32 @@ export function getDerivedStats(state, config) {
     }
   }
 
+  // Upgrade Tree DAG Evaluation
   const upgradeCosts = {};
   for (const layer of config.layers) {
     upgradeCosts[layer.id] = {};
     const layerState = state.layers[layer.id];
     for (const upg of layer.upgrades || []) {
-      const isLocked = upg.unlockThreshold && layerState.runTotalCurrency.lt(upg.unlockThreshold);
+      const isLockedThreshold = Boolean(upg.unlockThreshold && layerState.runTotalCurrency.lt(upg.unlockThreshold));
+
+      // Prerequisites
+      let prereqsMet = true;
+      if (upg.prerequisites && upg.prerequisites.length > 0) {
+        if (upg.requireMode === 'any') {
+          prereqsMet = upg.prerequisites.some(p => (layerState.upgrades[p.id]?.level || 0) >= (p.minLevel || 1));
+        } else {
+          prereqsMet = upg.prerequisites.every(p => (layerState.upgrades[p.id]?.level || 0) >= (p.minLevel || 1));
+        }
+      }
+
+      // Mutual Exclusivity
+      let isExclusiveLocked = false;
+      if (upg.exclusiveWith && upg.exclusiveWith.length > 0) {
+        isExclusiveLocked = upg.exclusiveWith.some(siblingId => (layerState.upgrades[siblingId]?.level || 0) > 0);
+      }
+
       const level = layerState.upgrades[upg.id]?.level || 0;
-      if (isLocked) {
+      if (isLockedThreshold || !prereqsMet || isExclusiveLocked) {
         upgradeCosts[layer.id][upg.id] = null; // Locked
       } else if (level >= (upg.maxLevel || Infinity)) {
         upgradeCosts[layer.id][upg.id] = null; // Maxed
@@ -221,6 +266,7 @@ export function getDerivedStats(state, config) {
     tickYieldPerCycle,
     effectiveTicksPerSec,
     layerMultipliers,
+    costScalingReductions,
     generatorOutputs,
     generatorCosts,
     maxAffordable,
@@ -235,19 +281,142 @@ export function advanceTicks(state, config, ticks) {
   if (tickCount.lte(0)) return state;
 
   const stats = getDerivedStats(state, config);
-  const nextLayers = {};
+
+  // Map of all generators across layers
+  const genMap = new Map();
+  const outgoing = new Map();
+  const inDegree = new Map();
 
   for (const layer of config.layers) {
+    for (const gen of layer.generators || []) {
+      const key = `${layer.id}:${gen.id}`;
+      genMap.set(key, { layer, gen });
+      inDegree.set(key, 0);
+    }
+  }
+
+  // Determine production targets and graph edges
+  for (const [key, { layer, gen }] of genMap) {
+    let targetKey = null;
+    if (!gen.produces || gen.produces === 'currency' || gen.produces.type === 'currency') {
+      targetKey = `currency:${layer.id}`;
+    } else if (gen.produces.type === 'generator') {
+      const targetLayerId = gen.produces.layerId || layer.id;
+      const targetGenId = gen.produces.targetId || gen.produces.id;
+      targetKey = `${targetLayerId}:${targetGenId}`;
+    } else if (typeof gen.produces === 'string') {
+      targetKey = `${layer.id}:${gen.produces}`;
+    }
+    outgoing.set(key, targetKey);
+    if (targetKey && genMap.has(targetKey)) {
+      inDegree.set(targetKey, (inDegree.get(targetKey) || 0) + 1);
+    }
+  }
+
+  // Kahn's algorithm for topological sort of generators
+  const queue = [];
+  for (const [key, deg] of inDegree) {
+    if (deg === 0) queue.push(key);
+  }
+
+  const topoOrder = [];
+  while (queue.length > 0) {
+    const u = queue.shift();
+    topoOrder.push(u);
+    const v = outgoing.get(u);
+    if (v && genMap.has(v)) {
+      const newDeg = inDegree.get(v) - 1;
+      inDegree.set(v, newDeg);
+      if (newDeg === 0) queue.push(v);
+    }
+  }
+
+  // If there's a cycle or remaining nodes, append them
+  if (topoOrder.length < genMap.size) {
+    for (const key of genMap.keys()) {
+      if (!topoOrder.includes(key)) topoOrder.push(key);
+    }
+  }
+
+  // Polynomial representation: poly[key] = Array of BigNum [a_0, a_1, a_2, ...]
+  const poly = new Map();
+  for (const [key, { layer, gen }] of genMap) {
+    const owned = state.layers[layer.id].generators[gen.id]?.owned || new BigNum(0);
+    poly.set(key, [new BigNum(owned)]);
+  }
+
+  for (const layer of config.layers) {
+    poly.set(`currency:${layer.id}`, [new BigNum(0)]);
+  }
+
+  // Propagate polynomials along directed edges in topological order
+  for (const u of topoOrder) {
+    const { layer, gen } = genMap.get(u);
+    const rate = stats.generatorOutputs[layer.id][gen.id] || new BigNum(0);
+    const targetKey = outgoing.get(u);
+    if (!targetKey) continue;
+
+    const uTerms = poly.get(u) || [];
+    if (!poly.has(targetKey)) {
+      poly.set(targetKey, [new BigNum(0)]);
+    }
+    const targetTerms = poly.get(targetKey);
+
+    for (let p = 0; p < uTerms.length; p++) {
+      const term = uTerms[p];
+      if (!term || term.isZero()) continue;
+      const integratedTerm = term.mul(rate);
+      const nextP = p + 1;
+      while (targetTerms.length <= nextP) {
+        targetTerms.push(new BigNum(0));
+      }
+      targetTerms[nextP] = targetTerms[nextP].add(integratedTerm);
+    }
+  }
+
+  const factorials = [1, 1, 2, 6, 24, 120, 720, 5040, 40320];
+  function evalPoly(terms, dtBig) {
+    let sum = new BigNum(0);
+    let dtPow = new BigNum(1);
+    for (let p = 0; p < terms.length; p++) {
+      const a = terms[p];
+      if (a && !a.isZero()) {
+        const fact = factorials[p] || 1;
+        const val = a.mul(dtPow).div(fact);
+        sum = sum.add(val);
+      }
+      if (p + 1 < terms.length) {
+        dtPow = dtPow.mul(dtBig);
+      }
+    }
+    return sum;
+  }
+
+  // Build next layers state
+  const nextLayers = {};
+  for (const layer of config.layers) {
     const prevLayer = state.layers[layer.id];
-    const ratePerTick = stats.layerProductionPerTick[layer.id] || new BigNum(0);
-    const netProduced = ratePerTick.mul(tickCount);
+    const nextGens = {};
+
+    for (const gen of layer.generators || []) {
+      const key = `${layer.id}:${gen.id}`;
+      const terms = poly.get(key) || [prevLayer.generators[gen.id]?.owned || new BigNum(0)];
+      const nextOwned = evalPoly(terms, tickCount);
+      nextGens[gen.id] = {
+        bought: prevLayer.generators[gen.id]?.bought || prevLayer.generators[gen.id]?.owned || new BigNum(0),
+        owned: nextOwned
+      };
+    }
+
+    const currencyDelta = evalPoly(poly.get(`currency:${layer.id}`) || [], tickCount);
 
     nextLayers[layer.id] = {
       ...prevLayer,
-      currency: prevLayer.currency.add(netProduced),
-      runTotalCurrency: prevLayer.runTotalCurrency.add(netProduced),
-      totalLifetimeCurrency: prevLayer.totalLifetimeCurrency.add(netProduced),
-      ticksInLayer: prevLayer.ticksInLayer.add(tickCount)
+      currency: prevLayer.currency.add(currencyDelta),
+      runTotalCurrency: prevLayer.runTotalCurrency.add(currencyDelta),
+      totalLifetimeCurrency: prevLayer.totalLifetimeCurrency.add(currencyDelta),
+      ticksInLayer: prevLayer.ticksInLayer.add(tickCount),
+      generators: nextGens
     };
   }
 
@@ -346,7 +515,8 @@ export function buyGenerator(state, config, layerId, genId, countOrMax = 1) {
     totalCost = maxInfo.totalCost;
   } else {
     countToBuy = Number(countOrMax);
-    const r = genConfig.costGrowth;
+    const costReduction = stats.costScalingReductions?.[layerId] || 0;
+    const r = Math.max(1.01, genConfig.costGrowth - costReduction);
     const cost1 = stats.generatorCosts[layerId][genId];
     if (countToBuy === 1) {
       totalCost = cost1;
@@ -359,10 +529,15 @@ export function buyGenerator(state, config, layerId, genId, countOrMax = 1) {
     return state;
   }
 
+  const currentGen = layerState.generators[genId];
+  const currentBought = currentGen.bought || currentGen.owned || new BigNum(0);
+  const currentOwned = currentGen.owned || new BigNum(0);
+
   const nextGenerators = {
     ...layerState.generators,
     [genId]: {
-      owned: layerState.generators[genId].owned.add(countToBuy)
+      bought: currentBought.add(countToBuy),
+      owned: currentOwned.add(countToBuy)
     }
   };
 
@@ -387,20 +562,12 @@ export function buyUpgrade(state, config, layerId, upgId) {
   const upgConfig = config.layers.find(l => l.id === layerId)?.upgrades.find(u => u.id === upgId);
   if (!upgConfig) throw new Error(`Upgrade ${upgId} not found in ${layerId}`);
 
-  if (upgConfig.unlockThreshold && layerState.runTotalCurrency.lt(upgConfig.unlockThreshold)) {
-    return state;
-  }
-
-  const currentLevel = layerState.upgrades[upgId]?.level || 0;
-  if (currentLevel >= (upgConfig.maxLevel || Infinity)) {
-    return state;
-  }
-
   const cost = stats.upgradeCosts[layerId][upgId];
   if (!cost || layerState.currency.lt(cost)) {
     return state;
   }
 
+  const currentLevel = layerState.upgrades[upgId]?.level || 0;
   const nextUpgrades = {
     ...layerState.upgrades,
     [upgId]: {
@@ -446,7 +613,10 @@ export function resetLayer(state, config, layerId) {
   const targetConfig = config.layers.find(l => l.id === targetLayerId);
   const resetGenerators = {};
   for (const gen of targetConfig.generators || []) {
-    resetGenerators[gen.id] = { owned: new BigNum(0) };
+    resetGenerators[gen.id] = {
+      bought: new BigNum(0),
+      owned: new BigNum(0)
+    };
   }
 
   const resetUpgrades = {};
