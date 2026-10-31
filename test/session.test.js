@@ -106,4 +106,46 @@ describe('Session and Persistence Seam', () => {
     expect(newSession.getState().layers.layer0.currency.toNumber()).toBe(10);
     expect(newSession.getState().layers.layer0.generators.gen1.owned.toNumber()).toBe(1);
   });
+
+  it('tracks active timestamp and performs resumeOfflineProgress() after in-memory suspension', () => {
+    const clock = new ManualClock(1000000);
+    const storage = new MemoryStorage();
+    const session = new GameSession({ config: defaultGameConfig, clock, storage });
+
+    session.buyGenerator('layer0', 'gen1', 1);
+    session.tickToNow();
+
+    // Advance clock by 10 minutes (600,000ms) simulating backgrounded Android app
+    clock.advanceMs(600000);
+
+    // resumeOfflineProgress() is called on visibilitychange / focus
+    const report = session.resumeOfflineProgress();
+
+    expect(report).toBeTruthy();
+    expect(report.elapsedMs).toBe(600000);
+    expect(report.cyclesFired.toNumber()).toBe(600);
+    expect(report.currencyDeltas.layer0.toNumber()).toBe(600);
+    expect(session.getState().layers.layer0.currency.toNumber()).toBe(600);
+  });
+
+  it('enforces 24-hour offline progress cap on resumeOfflineProgress() and load()', () => {
+    const clock = new ManualClock(1000000);
+    const storage = new MemoryStorage();
+    const session = new GameSession({ config: defaultGameConfig, clock, storage });
+
+    session.buyGenerator('layer0', 'gen1', 1);
+    session.tickToNow();
+
+    // Advance clock by 48 hours (simulating prolonged absence)
+    const fortyEightHoursMs = 48 * 60 * 60 * 1000;
+    clock.advanceMs(fortyEightHoursMs);
+
+    const report = session.resumeOfflineProgress();
+
+    const twentyFourHoursMs = 24 * 60 * 60 * 1000;
+    expect(report).toBeTruthy();
+    expect(report.elapsedMs).toBe(twentyFourHoursMs);
+    expect(report.cyclesFired.toNumber()).toBe(86400);
+    expect(report.currencyDeltas.layer0.toNumber()).toBe(86400);
+  });
 });

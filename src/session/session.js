@@ -13,24 +13,20 @@ import {
 } from '../engine/core.js';
 import { SystemClock, BrowserStorage } from './ports.js';
 
+export const MAX_OFFLINE_PROGRESS_MS = 24 * 60 * 60 * 1000; // 24-hour progression cap
+
 export class GameSession {
   constructor(options = {}) {
     this.config = options.config;
     this.clock = options.clock || new SystemClock();
     this.storage = options.storage || new BrowserStorage();
     this.storageKey = options.storageKey || (this.config?.id ? `inc_engine_save_${this.config.id}` : 'inc_engine_save');
+    this.activeTimestampKey = `${this.storageKey}_active_time`;
 
     this.state = createInitialState(this.config);
     this.lastSavedAtMs = this.clock.nowMs();
     this.lastTickAtMs = this.clock.nowMs();
-
-    if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-          this.save();
-        }
-      });
-    }
+    this.lastActiveAtMs = this.clock.nowMs();
   }
 
   getState() {
@@ -45,11 +41,44 @@ export class GameSession {
     const now = this.clock.nowMs();
     const elapsedMs = Math.max(0, now - this.lastTickAtMs);
     this.lastTickAtMs = now;
+    this.lastActiveAtMs = now;
     if (elapsedMs <= 0) return null;
 
     const { nextState, report } = advanceTime(this.state, this.config, elapsedMs);
     this.state = nextState;
     return report;
+  }
+
+  _advanceOffline(elapsedMs, options = {}) {
+    const now = this.clock.nowMs();
+    const maxCap = options.maxOfflineMs || MAX_OFFLINE_PROGRESS_MS;
+    const clampedMs = Math.min(Math.max(0, elapsedMs), maxCap);
+
+    this.lastTickAtMs = now;
+    this.lastActiveAtMs = now;
+
+    if (clampedMs <= 0) return null;
+
+    const { nextState, report } = advanceTime(this.state, this.config, clampedMs, options);
+    this.state = nextState;
+    this.save();
+    return report;
+  }
+
+  resumeOfflineProgress(options = {}) {
+    const now = this.clock.nowMs();
+    let lastActive = options.referenceTimeMs || this.lastActiveAtMs || this.lastTickAtMs;
+
+    const storedActive = this.storage.getItem(this.activeTimestampKey);
+    if (storedActive) {
+      const parsed = parseInt(storedActive, 10);
+      if (!isNaN(parsed) && parsed < lastActive) {
+        lastActive = parsed;
+      }
+    }
+
+    const elapsedMs = Math.max(0, now - lastActive);
+    return this._advanceOffline(elapsedMs, options);
   }
 
   jumpTime(elapsedMs, options = {}) {
@@ -159,12 +188,15 @@ export class GameSession {
   }
 
   save() {
+    const now = this.clock.nowMs();
+    this.lastActiveAtMs = now;
     const serialized = this.serializeState();
     this.storage.setItem(this.storageKey, JSON.stringify(serialized));
-    this.lastSavedAtMs = this.clock.nowMs();
+    this.storage.setItem(this.activeTimestampKey, String(now));
+    this.lastSavedAtMs = now;
   }
 
-  load() {
+  load(options = {}) {
     const raw = this.storage.getItem(this.storageKey);
     if (!raw) return null;
 
@@ -174,16 +206,7 @@ export class GameSession {
       const savedAtMs = data.savedAtMs || this.clock.nowMs();
       const now = this.clock.nowMs();
       const elapsedOfflineMs = Math.max(0, now - savedAtMs);
-      this.lastTickAtMs = now;
-      this.lastSavedAtMs = now;
-
-      if (elapsedOfflineMs > 0) {
-        const { nextState, report } = advanceTime(this.state, this.config, elapsedOfflineMs);
-        this.state = nextState;
-        this.save();
-        return report;
-      }
-      return null;
+      return this._advanceOffline(elapsedOfflineMs, options);
     } catch {
       return null;
     }
@@ -212,13 +235,16 @@ export class GameSession {
     const data = JSON.parse(json);
     this.state = this.deserializeState(data);
     this.lastTickAtMs = this.clock.nowMs();
+    this.lastActiveAtMs = this.clock.nowMs();
     this.save();
   }
 
   hardReset() {
     this.storage.removeItem(this.storageKey);
+    this.storage.removeItem(this.activeTimestampKey);
     this.state = createInitialState(this.config);
     this.lastTickAtMs = this.clock.nowMs();
+    this.lastActiveAtMs = this.clock.nowMs();
     this.lastSavedAtMs = this.clock.nowMs();
   }
 }

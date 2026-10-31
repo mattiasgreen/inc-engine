@@ -41,22 +41,52 @@ function triggerUpgradeAnimation(btn, card, label = '+UPGRADE!') {
   }
 }
 
+function handleAppResume() {
+  if (!session) return;
+  const report = session.resumeOfflineProgress();
+  if (report && report.elapsedMs > 5000) {
+    showOfflineModal(report);
+  }
+  render();
+}
+
 function init() {
   initGame(activeGameId);
 
   // Setup loop for time advancement and fine-grained UI updates
   setInterval(() => {
-    session.tickToNow();
+    session?.tickToNow();
     render();
   }, 100);
 
   // Auto-save every 5 seconds
   setInterval(() => {
-    session.save();
+    session?.save();
   }, 5000);
 
+  // Mobile App Suspension & Unload Lifecycle
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      session?.save();
+    } else {
+      handleAppResume();
+    }
+  });
+
+  window.addEventListener('pagehide', () => {
+    session?.save();
+  });
+
+  window.addEventListener('pageshow', () => {
+    handleAppResume();
+  });
+
+  window.addEventListener('focus', () => {
+    handleAppResume();
+  });
+
   window.addEventListener('beforeunload', () => {
-    session.save();
+    session?.save();
   });
 
   setupStaticEventListeners();

@@ -66,6 +66,14 @@ _Avoid_: Emulator, Fast-forwarder
 A summary produced when advancing the engine across elapsed offline wall-clock time, recording elapsed duration, Cycles fired, Ticks generated, and currency gains.
 _Avoid_: Catchup summary, Welcome back data
 
+**Offline Progress**:
+The discrete advancement of Cycles, Ticks, and Generator production across elapsed wall-clock time between the last active session timestamp and current resumption, capped at a bounded maximum duration.
+_Avoid_: Offline income, Background AFK earning, Idle gains
+
+**Active Timestamp**:
+A lightweight persistent timestamp written to the StoragePort recording the engine's most recent live activity, used to measure elapsed time upon cold start or lifecycle resumption.
+_Avoid_: Heartbeat, Latest timestamp hack, Ping timer, Watchdog tick
+
 **ClockPort**:
 The boundary interface supplying current wall-clock time (`nowMs()`) to the imperative session shell, implemented by `SystemClock` in the browser and `ManualClock` in tests.
 _Avoid_: Timer, TimeProvider

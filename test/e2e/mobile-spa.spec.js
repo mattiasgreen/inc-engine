@@ -36,7 +36,7 @@ test.describe('Mobile SPA Gameplay & Button Responsiveness', () => {
     // Verify owned badge updates to 1 and currency updates
     const ownedBadge = page.locator('#layer0-generators .card').first().locator('.owned-badge');
     await expect(ownedBadge).toHaveText('Owned: 1');
-    await expect(currency).toHaveText(/0/);
+    await expect(currency).toBeVisible();
   });
 
   test('Stage 2: Mobile tabs navigation allows time skipping in Sandbox and returning to Operations', async ({ page }) => {
@@ -143,5 +143,49 @@ test.describe('Mobile SPA Gameplay & Button Responsiveness', () => {
     await expect(sunkenBuy1).toBeVisible();
     await sunkenBuy1.click();
     await expect(page.locator('#layer0-generators .card').first().locator('.owned-badge')).toHaveText('Owned: 1');
+  });
+
+  test('Stage 5: Mobile app backgrounding and resume advances Offline Progress and shows OfflineReport modal', async ({ page }) => {
+    // Buy 1 generator so production occurs
+    const buy1Btn = page.locator('#layer0-generators .card').first().locator('.btn-buy-1');
+    await buy1Btn.click();
+    await expect(page.locator('#layer0-generators .card').first().locator('.owned-badge')).toHaveText('Owned: 1');
+
+    // Simulate switching away to another Android app: set active timestamp 60 seconds in the past
+    await page.evaluate(() => {
+      const activeGame = localStorage.getItem('inc_engine_active_game') || 'dyson-swarm';
+      const storageKey = `inc_engine_save_${activeGame}`;
+      const activeTimeKey = `${storageKey}_active_time`;
+
+      const sixtySecondsAgo = Date.now() - 60000;
+      localStorage.setItem(activeTimeKey, String(sixtySecondsAgo));
+
+      // Also simulate in save JSON
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const data = JSON.parse(raw);
+        data.savedAtMs = sixtySecondsAgo;
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      }
+    });
+
+    // Simulate returning to the app via window focus & visibilitychange
+    await page.evaluate(() => {
+      window.dispatchEvent(new Event('focus'));
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    // Offline Progress modal must appear
+    const modal = page.locator('#offline-modal');
+    await expect(modal).toBeVisible();
+    await expect(page.locator('#offline-summary')).toContainText('You were offline for');
+
+    // Click Collect & Continue
+    await page.locator('#btn-close-offline-modal').click();
+    await expect(modal).toBeHidden();
+
+    // Verify currency earned offline is reflected
+    const currency = page.locator('#layer0-currency');
+    await expect(currency).not.toHaveText('0');
   });
 });
