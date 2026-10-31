@@ -6,6 +6,7 @@ import { GameSession } from '../session/session.js';
 import { Simulator } from '../engine/simulator.js';
 import { OptimalRoiPolicy } from '../engine/policies.js';
 import { BigNum } from '../engine/bignum.js';
+import { BUILD_INFO } from '../version.js';
 
 let activeGameId = localStorage.getItem('inc_engine_active_game') || gamesList[0].id;
 let activeConfig = getGameConfig(activeGameId);
@@ -41,6 +42,15 @@ function triggerUpgradeAnimation(btn, card, label = '+UPGRADE!') {
   }
 }
 
+function renderVersion() {
+  const el = document.getElementById('version-indicator');
+  if (!el || !BUILD_INFO) return;
+  el.textContent = `git:${BUILD_INFO.commit} · ${BUILD_INFO.date}`;
+  if (BUILD_INFO.commit) {
+    el.href = `https://github.com/mattiasgreen/inc-engine/commit/${BUILD_INFO.commit}`;
+  }
+}
+
 function handleAppResume() {
   if (!session) return;
   const report = session.resumeOfflineProgress();
@@ -52,6 +62,7 @@ function handleAppResume() {
 
 function init() {
   initGame(activeGameId);
+  renderVersion();
 
   // Setup loop for time advancement and fine-grained UI updates
   setInterval(() => {

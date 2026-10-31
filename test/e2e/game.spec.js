@@ -19,6 +19,10 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await page.locator('#btn-hard-reset').click();
 
     // Verify initial clean state with progressive disclosure
+    const versionIndicator = page.locator('#version-indicator');
+    await expect(versionIndicator).toBeVisible();
+    await expect(versionIndicator).toContainText(/git:[0-9a-f]{7}/);
+
     await expect(page.locator('#layer0-currency')).toHaveText(/10/);
     await expect(page.locator('#layer1-panel')).toBeHidden();
     const gen1Card = page.locator('#layer0-generators .card').first();

@@ -4,6 +4,7 @@ import { gamesList, getGameConfig } from '../src/games/index.js';
 import { createInitialState, getDerivedStats } from '../src/engine/core.js';
 import { Simulator } from '../src/engine/simulator.js';
 import { OptimalRoiPolicy } from '../src/engine/policies.js';
+import { BUILD_INFO } from '../src/version.js';
 
 describe('Multi-Game Definitions and Presentation Seam', () => {
   it('registers all 3 distinct playable games: dyson-swarm, aetherforge, sunken-observatory', () => {
@@ -82,5 +83,12 @@ describe('Multi-Game Definitions and Presentation Seam', () => {
       expect(result.state.layers.layer0.runTotalCurrency.gt(10)).toBe(true);
       expect(result.history.length).toBeGreaterThan(0);
     }
+  });
+
+  it('guarantees build metadata provides valid git commit hash and timestamp', () => {
+    expect(typeof BUILD_INFO.commit).toBe('string');
+    expect(BUILD_INFO.commit.length).toBeGreaterThanOrEqual(7);
+    expect(typeof BUILD_INFO.date).toBe('string');
+    expect(BUILD_INFO.date.length).toBeGreaterThanOrEqual(10);
   });
 });

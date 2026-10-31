@@ -119,6 +119,24 @@
       height: 100%;
       object-fit: cover;
     }
+    .version-indicator {
+      font-size: 0.68rem;
+      font-family: var(--font-display, monospace);
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      opacity: 0.65;
+      display: inline-block;
+      margin-bottom: 0.25rem;
+      text-decoration: none;
+      position: relative;
+      z-index: 1;
+      transition: opacity 0.2s ease, color 0.2s ease;
+    }
+    .version-indicator:hover {
+      opacity: 1;
+      color: var(--primary);
+      text-decoration: underline;
+    }
     .top-bar, .guide-telemetry-row {
       position: relative;
       z-index: 1;
@@ -1053,6 +1071,10 @@
         margin-bottom: 0.3rem;
         border-radius: 10px;
       }
+      .version-indicator {
+        font-size: 0.62rem;
+        margin-bottom: 0.15rem;
+      }
       .top-bar {
         display: flex;
         justify-content: space-between;
@@ -1274,6 +1296,9 @@
   <header>
     <!-- Background Panorama Scenery -->
     <div class="scenery-container" id="scenery-bg"></div>
+
+    <!-- Git Version Indicator -->
+    <a id="version-indicator" class="version-indicator" href="#" target="_blank" rel="noopener noreferrer" title="Current build version from git"></a>
 
     <div class="top-bar">
       <div class="title-group">
