@@ -1030,17 +1030,6 @@ function render() {
     }
   }
 
-    if (isMax) {
-      ui.btn.textContent = 'Maxed';
-      ui.btn.disabled = true;
-      ui.btn.className = 'btn btn-upgrade disabled';
-    } else {
-      ui.btn.textContent = `Upgrade (${cost.format()} ${l0Config.currency.symbol})`;
-      ui.btn.disabled = !canAfford;
-      ui.btn.className = `btn btn-upgrade ${canAfford ? 'primary' : 'disabled'}`;
-    }
-  }
-
   const l0UpgHeader = document.getElementById('layer0-upgrades-header');
   if (l0UpgHeader) {
     l0UpgHeader.style.display = visibleL0UpgradesCount > 0 ? 'block' : 'none';
