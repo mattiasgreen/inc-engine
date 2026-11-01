@@ -1382,6 +1382,14 @@
         background-position: -200% 0;
       }
     }
+    @keyframes cycleProgressFill {
+      0% {
+        transform: scaleX(0);
+      }
+      100% {
+        transform: scaleX(1);
+      }
+    }
     .gen-progress-track {
       position: relative;
       width: 100%;
@@ -1403,21 +1411,36 @@
       transform: scaleX(0);
       will-change: transform;
     }
-    .gen-progress-track.overdrive {
+    .card[data-cycle-state="standby"] .gen-progress-fill {
+      transform: scaleX(0) !important;
+      animation: none !important;
+    }
+    .card[data-cycle-state="static"] .gen-progress-fill {
+      transform: scaleX(1) !important;
+      animation: none !important;
+    }
+    .card[data-cycle-state="cycling"] .gen-progress-fill {
+      animation: cycleProgressFill var(--cycle-period-ms, 6000ms) linear infinite;
+    }
+    .gen-progress-track.overdrive,
+    .card[data-cycle-state="overdrive"] .gen-progress-track {
       border-color: var(--accent);
       box-shadow: 0 0 12px rgba(245, 158, 11, 0.40), inset 0 0 8px rgba(245, 158, 11, 0.25);
     }
-    .gen-progress-track.overdrive .gen-progress-fill {
+    .gen-progress-track.overdrive .gen-progress-fill,
+    .card[data-cycle-state="overdrive"] .gen-progress-fill {
       transform: scaleX(1) !important;
       background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 25%, #ffffff 50%, var(--accent) 75%, var(--primary) 100%);
       background-size: 200% 100%;
-      animation: overdriveShimmer 1.4s linear infinite;
+      animation: overdriveShimmer 1.4s linear infinite !important;
       opacity: 0.90;
     }
-    body.fidelity-no-overdrive-glow .gen-progress-track.overdrive {
+    body.fidelity-no-overdrive-glow .gen-progress-track.overdrive,
+    body.fidelity-no-overdrive-glow .card[data-cycle-state="overdrive"] .gen-progress-track {
       box-shadow: none;
     }
-    body.fidelity-no-overdrive-glow .gen-progress-track.overdrive .gen-progress-fill {
+    body.fidelity-no-overdrive-glow .gen-progress-track.overdrive .gen-progress-fill,
+    body.fidelity-no-overdrive-glow .card[data-cycle-state="overdrive"] .gen-progress-fill {
       animation: none;
     }
     .gen-progress-label {
@@ -1793,6 +1816,6 @@
     </div>
   </div>
 
-  <script type="module" src="./src/ui/app.js?v=699338b"></script>
+  <script type="module" src="./src/ui/app.js?v=2e8336d"></script>
 </body>
 </html>

@@ -1,7 +1,9 @@
 // src/games/aetherforge.js
 // Fantasy / Arcane World GameConfig with presentation metadata, lore, and SVG assets
 
-export const aetherforgeGame = {
+import { compileGameConfig } from './blueprint.js';
+
+export const aetherforgeGame = compileGameConfig({
   id: 'aetherforge',
   name: 'Aetherforge: The Grand Ascension',
   shortName: 'Aetherforge',
@@ -443,4 +445,4 @@ export const aetherforgeGame = {
       ]
     }
   ]
-};
+});

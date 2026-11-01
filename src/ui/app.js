@@ -7,6 +7,7 @@ import { Simulator } from '../engine/simulator.js';
 import { OptimalRoiPolicy } from '../engine/policies.js';
 import { BigNum } from '../engine/bignum.js';
 import { BUILD_INFO } from '../version.js';
+import { createViewModel } from '../engine/view-model.js';
 
 let activeGameId = localStorage.getItem('inc_engine_active_game') || gamesList[0].id;
 let activeConfig = getGameConfig(activeGameId);
@@ -146,16 +147,19 @@ function updateSmoothProgressBars() {
         const genState = state.layers.layer0?.generators?.[gen.id];
         const owned = genState?.owned;
         if (!owned || owned.lte(0)) {
+          ui.card.dataset.cycleState = 'standby';
           ui.progressFill.style.transform = 'scaleX(0)';
           continue;
         }
 
         const isOverdrive = cachedRenderStats.generatorOverdrive?.layer0?.[gen.id];
         if (isOverdrive) {
+          ui.card.dataset.cycleState = 'overdrive';
           ui.progressFill.style.transform = 'scaleX(1)';
           continue;
         }
 
+        ui.card.dataset.cycleState = 'cycling';
         const periodTicks = cachedRenderStats.generatorPeriods?.layer0?.[gen.id] || 1;
         const startTick = genState.startTick || 0;
         const ticksSinceStart = Math.max(0, Math.round(baseTicksNum) - Math.round(startTick));
@@ -176,17 +180,6 @@ function updateSmoothProgressBars() {
   } finally {
     rafId = requestAnimationFrame(updateSmoothProgressBars);
   }
-}
-
-function formatEtaSeconds(sec) {
-  if (!isFinite(sec) || sec <= 0) return '';
-  if (sec < 60) return `ETA: ~${Math.max(1, Math.ceil(sec))}s`;
-  const mins = Math.floor(sec / 60);
-  const remSec = Math.round(sec % 60);
-  if (mins < 60) return remSec > 0 ? `ETA: ~${mins}m ${remSec}s` : `ETA: ~${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  const remMins = mins % 60;
-  return `ETA: ~${hrs}h ${remMins}m`;
 }
 
 function triggerUpgradeAnimation(btn, card, label = '+UPGRADE!') {
@@ -857,6 +850,7 @@ function render() {
   cachedRenderStats = stats;
   const l0Config = activeConfig.layers[0];
   const l1Config = activeConfig.layers[1];
+  const vm = createViewModel(state, activeConfig, stats, fidelitySettings);
 
   if (fidelitySettings.progressBarMode === 'smooth' && !rafId) {
     rafId = requestAnimationFrame(updateSmoothProgressBars);
@@ -899,13 +893,9 @@ function render() {
 
   // Layer 0 Currency
   const layer0 = state.layers.layer0;
-  document.getElementById('layer0-currency').textContent = layer0.currency.format();
-  document.getElementById('layer0-run-total').textContent = layer0.runTotalCurrency.format();
-
-  const netOutputPerTick = stats.layerProductionPerTick.layer0 || new BigNum(0);
-  const netOutputPerSec = netOutputPerTick.mul(stats.effectiveTicksPerSec);
-  const netOutputPerSecNum = netOutputPerSec.toNumber();
-  document.getElementById('layer0-output-sec').textContent = `${netOutputPerSec.format()} ${l0Config.currency.symbol}/s`;
+  document.getElementById('layer0-currency').textContent = vm.header.currencyFormatted;
+  document.getElementById('layer0-run-total').textContent = vm.header.runTotalFormatted;
+  document.getElementById('layer0-output-sec').textContent = `${vm.header.rateFormatted} ${vm.header.rateUnit}`;
 
   // Update Layer 0 Generators
   for (const gen of l0Config.generators) {
@@ -930,100 +920,59 @@ function render() {
     ui.lockView.style.display = 'none';
     ui.mainView.style.display = 'block';
 
-    const bought = layer0.generators[gen.id].bought || layer0.generators[gen.id].owned;
-    const owned = layer0.generators[gen.id].owned;
-    const rate = stats.generatorOutputs.layer0[gen.id];
-    const cost1 = stats.generatorCosts.layer0[gen.id];
-    const maxInfo = stats.maxAffordable.layer0[gen.id];
-    const canAfford1 = layer0.currency.gte(cost1);
+    const genVm = vm.generators.layer0?.[gen.id];
+    if (!genVm) continue;
 
     // Milestone Tier & Asset metadata
-    const msInfo = stats.generatorMilestones?.layer0?.[gen.id];
-    const tierId = msInfo?.tierId || 'm0';
-    ui.card.className = `card gen-card tier-${tierId}`;
-    ui.card.dataset.milestoneTier = tierId;
-    if (msInfo?.assetPath) {
-      ui.card.dataset.milestoneAsset = msInfo.assetPath;
+    ui.card.className = `card gen-card tier-${genVm.milestoneTier}`;
+    ui.card.dataset.milestoneTier = genVm.milestoneTier;
+    if (genVm.milestoneAsset) {
+      ui.card.dataset.milestoneAsset = genVm.milestoneAsset;
     }
+    ui.card.dataset.cycleState = genVm.cycleState;
+    ui.card.style.setProperty('--cycle-period-ms', `${genVm.periodMs}ms`);
 
-    if (ui.milestoneBadge && msInfo) {
-      ui.milestoneBadge.className = `milestone-badge tier-${tierId}`;
-      const multStr = msInfo.multiplier > 1 ? ` · ${msInfo.multiplier.toFixed(1).replace(/\.0$/, '')}x` : '';
-      const boughtCountDisplay = Math.floor(msInfo.boughtCount);
-      const nextStr = msInfo.nextThreshold
-        ? ` · ${boughtCountDisplay}/${msInfo.nextThreshold} to ${msInfo.nextTierName} (${msInfo.nextMultiplier.toFixed(1).replace(/\.0$/, '')}x)`
-        : ' · MAX TIER';
-      ui.milestoneBadge.textContent = `${msInfo.tierName} (${tierId}${multStr})${nextStr}`;
+    if (ui.milestoneBadge) {
+      ui.milestoneBadge.className = `milestone-badge tier-${genVm.milestoneTier}`;
+      ui.milestoneBadge.textContent = genVm.milestoneBadgeText;
     }
 
     if (ui.etaHint) {
-      if (!canAfford1 && netOutputPerSecNum > 0) {
-        const deficit = cost1.sub(layer0.currency).toNumber();
-        ui.etaHint.textContent = formatEtaSeconds(deficit / netOutputPerSecNum);
-      } else {
-        ui.etaHint.textContent = '';
-      }
+      ui.etaHint.textContent = genVm.etaText;
     }
 
     // Generator Progress Bar & Overdrive State
-    const periodTicks = stats.generatorPeriods?.layer0?.[gen.id] || 1;
-    const effPeriodMs = stats.generatorEffectivePeriodMs?.layer0?.[gen.id] || 1000;
-    const isOverdrive = stats.generatorOverdrive?.layer0?.[gen.id] || false;
-    const phase = stats.generatorCyclePhase?.layer0?.[gen.id] || 0;
-
+    const showOverdrive = genVm.cycleState === 'overdrive';
     if (ui.progressTrack && ui.progressFill) {
-      const showOverdrive = owned.gt(0) && isOverdrive;
       ui.progressTrack.classList.toggle('overdrive', showOverdrive);
       if (fidelitySettings.progressBarMode === 'off') {
-        ui.progressFill.style.transform = owned.gt(0) ? 'scaleX(1)' : 'scaleX(0)';
+        ui.progressFill.style.transform = genVm.cycleState === 'standby' ? 'scaleX(0)' : 'scaleX(1)';
       } else if (showOverdrive) {
         ui.progressFill.style.transform = 'scaleX(1)';
-      } else if (owned.lte(0)) {
+      } else if (genVm.cycleState === 'standby') {
         ui.progressFill.style.transform = 'scaleX(0)';
       } else {
+        const phase = stats.generatorCyclePhase?.layer0?.[gen.id] || 0;
         ui.progressFill.style.transform = `scaleX(${phase.toFixed(4)})`;
       }
 
       if (ui.periodText && ui.phaseText) {
-        if (owned.lte(0)) {
-          ui.periodText.textContent = `${periodTicks} ${periodTicks === 1 ? 'Tick' : 'Ticks'} (${(effPeriodMs / 1000).toFixed(1)}s)`;
-          ui.phaseText.textContent = 'Standby (Buy to start)';
-        } else if (showOverdrive) {
-          const hz = (1000 / effPeriodMs).toFixed(2);
-          ui.periodText.textContent = `OVERDRIVE · ${hz} Hz`;
-          ui.phaseText.textContent = 'FLOWING';
-        } else {
-          ui.periodText.textContent = `${periodTicks} ${periodTicks === 1 ? 'Tick' : 'Ticks'} (${(effPeriodMs / 1000).toFixed(1)}s/cycle)`;
-          if (fidelitySettings.progressBarMode === 'off') {
-            ui.phaseText.textContent = 'Active';
-          } else if (effPeriodMs < 15000) {
-            ui.phaseText.textContent = '';
-          } else {
-            const pct = Math.min(99, Math.floor(phase * 100));
-            ui.phaseText.textContent = `${pct}%`;
-          }
-        }
+        ui.periodText.textContent = genVm.periodText;
+        ui.phaseText.textContent = genVm.phaseText;
       }
     }
 
-    ui.ownedBadge.textContent = `Owned: ${owned.format()}`;
-    ui.boughtBadge.textContent = `${bought.format()} bought`;
+    ui.ownedBadge.textContent = genVm.ownedText;
+    ui.boughtBadge.textContent = genVm.boughtText;
+    ui.outputMeta.innerHTML = genVm.outputHtml;
 
-    if (gen.produces && gen.produces.type === 'generator') {
-      const targetGen = l0Config.generators.find(g => g.id === gen.produces.targetId);
-      const targetName = targetGen?.name || gen.produces.targetId;
-      ui.outputMeta.innerHTML = `Produces: <strong>${targetName}</strong> (+<strong>${rate.format()}</strong>/tick | +<strong>${rate.mul(stats.effectiveTicksPerSec).format()}</strong>/s)`;
-    } else {
-      ui.outputMeta.innerHTML = `Output: <strong>${rate.format()}</strong> ${l0Config.currency.symbol}/tick | <strong>${rate.mul(stats.effectiveTicksPerSec).format()}</strong> ${l0Config.currency.symbol}/s`;
-    }
+    ui.buy1Btn.textContent = genVm.buy1Text;
+    ui.buy1Btn.disabled = !genVm.canAfford1;
+    ui.buy1Btn.className = `btn btn-buy-1 ${genVm.canAfford1 ? 'primary' : 'disabled'}`;
 
-    ui.buy1Btn.textContent = `Buy 1 (${cost1.format()} ${l0Config.currency.symbol})`;
-    ui.buy1Btn.disabled = !canAfford1;
-    ui.buy1Btn.className = `btn btn-buy-1 ${canAfford1 ? 'primary' : 'disabled'}`;
-
-    ui.buyMaxBtn.textContent = `Buy Max (${maxInfo.count})`;
-    ui.buyMaxBtn.disabled = maxInfo.count <= 0;
-    ui.buyMaxBtn.className = `btn btn-buy-max ${maxInfo.count > 0 ? 'secondary' : 'disabled'}`;
+    ui.buyMaxBtn.textContent = genVm.buyMaxText;
+    ui.buyMaxBtn.disabled = !genVm.canAffordMax;
+    ui.buyMaxBtn.className = `btn btn-buy-max ${genVm.canAffordMax ? 'secondary' : 'disabled'}`;
   }
 
   // Update Layer 0 Upgrades
@@ -1051,32 +1000,35 @@ function render() {
     ui.lockView.style.display = 'none';
     ui.mainView.style.display = 'block';
 
-    const level = layer0.upgrades[upg.id]?.level || 0;
-    const isMax = level >= (upg.maxLevel || Infinity);
-    const cost = stats.upgradeCosts.layer0[upg.id];
-    const canAfford = cost && layer0.currency.gte(cost);
+    const upgVm = vm.upgrades.layer0?.[upg.id];
+    if (!upgVm) continue;
 
-    const upgMs = stats.upgradeMilestones?.layer0?.[upg.id];
-    const upgTierId = upgMs?.tierId || 'm0';
-    ui.card.className = `card upg-card tier-${upgTierId} ${isMax ? 'maxed' : ''}`;
-    ui.card.dataset.milestoneTier = upgTierId;
-    if (upgMs?.assetPath) {
-      ui.card.dataset.milestoneAsset = upgMs.assetPath;
+    ui.card.className = `card upg-card tier-${upgVm.tierId} ${upgVm.isMax ? 'maxed' : ''}`;
+    ui.card.dataset.milestoneTier = upgVm.tierId;
+    if (upgVm.assetPath) {
+      ui.card.dataset.milestoneAsset = upgVm.assetPath;
     }
-    if (ui.tierBadge && upgMs) {
-      ui.tierBadge.className = `milestone-badge upg-tier-badge tier-${upgTierId}`;
-      ui.tierBadge.textContent = `${upgMs.tierName} (${upgTierId})`;
+    if (ui.tierBadge) {
+      ui.tierBadge.className = `milestone-badge upg-tier-badge tier-${upgVm.tierId}`;
+      ui.tierBadge.textContent = upgVm.tierBadgeText;
     }
     if (ui.etaHint) {
-      if (!isMax && cost && !canAfford && netOutputPerSecNum > 0) {
-        const deficit = cost.sub(layer0.currency).toNumber();
-        ui.etaHint.textContent = formatEtaSeconds(deficit / netOutputPerSecNum);
-      } else {
-        ui.etaHint.textContent = '';
-      }
+      ui.etaHint.textContent = upgVm.etaText;
     }
 
-    ui.lvlBadge.textContent = isMax ? 'MAX' : `Lvl ${level}/${upg.maxLevel}`;
+    ui.lvlBadge.textContent = upgVm.levelText;
+
+    if (upgVm.isMax) {
+      ui.btn.textContent = 'Maxed';
+      ui.btn.disabled = true;
+      ui.btn.className = 'btn btn-upgrade disabled';
+    } else {
+      const cost = stats.upgradeCosts.layer0[upg.id];
+      ui.btn.textContent = `Upgrade (${cost.format()} ${l0Config.currency.symbol})`;
+      ui.btn.disabled = !upgVm.canAfford;
+      ui.btn.className = `btn btn-upgrade ${upgVm.canAfford ? 'primary' : 'disabled'}`;
+    }
+  }
 
     if (isMax) {
       ui.btn.textContent = 'Maxed';

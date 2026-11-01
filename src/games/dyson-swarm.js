@@ -1,7 +1,9 @@
 // src/games/dyson-swarm.js
 // Engineering / Megastructure World GameConfig with presentation metadata, lore, and SVG assets
 
-export const dysonSwarmGame = {
+import { compileGameConfig } from './blueprint.js';
+
+export const dysonSwarmGame = compileGameConfig({
   id: 'dyson-swarm',
   name: 'Dyson Swarm: Protocol Sol',
   shortName: 'Dyson Swarm',
@@ -461,4 +463,4 @@ export const dysonSwarmGame = {
       ]
     }
   ]
-};
+});

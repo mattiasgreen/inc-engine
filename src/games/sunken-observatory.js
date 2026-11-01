@@ -1,7 +1,9 @@
 // src/games/sunken-observatory.js
 // Cosmic Horror / Eldritch Investigation GameConfig with presentation metadata, lore, and SVG assets
 
-export const sunkenObservatoryGame = {
+import { compileGameConfig } from './blueprint.js';
+
+export const sunkenObservatoryGame = compileGameConfig({
   id: 'sunken-observatory',
   name: 'The Sunken Observatory',
   shortName: 'Sunken Observatory',
@@ -435,4 +437,4 @@ export const sunkenObservatoryGame = {
       ]
     }
   ]
-};
+});
