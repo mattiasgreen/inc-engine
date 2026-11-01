@@ -115,7 +115,7 @@ export const aetherforgeGame = {
             <circle cx="15" cy="11" r="1" fill="#c084fc" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.35,
+          costGrowth: 1.405,
           cyclePeriodTicks: 1,
           baseOutputPerTick: 6.0,
           produces: 'currency'
@@ -132,15 +132,15 @@ export const aetherforgeGame = {
             <circle cx="12" cy="17" r="3" />
           </svg>`,
           baseCost: 1850,
-          costGrowth: 1.40,
+          costGrowth: 1.44,
           cyclePeriodTicks: 4,
-          baseOutputPerTick: 0.00018,
+          baseOutputPerTick: 0.016,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 900
+          unlockThreshold: 650
         },
         {
           id: 'gen3',
@@ -151,16 +151,16 @@ export const aetherforgeGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-citadel">
             <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
           </svg>`,
-          baseCost: 26500,
-          costGrowth: 1.45,
-          cyclePeriodTicks: 10,
-          baseOutputPerTick: 0.00008,
+          baseCost: 20000,
+          costGrowth: 1.48,
+          cyclePeriodTicks: 8,
+          baseOutputPerTick: 0.009,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 12000
+          unlockThreshold: 8500
         }
       ],
       upgrades: [
@@ -176,7 +176,7 @@ export const aetherforgeGame = {
             <polyline points="12 6 12 12 8 14" />
           </svg>`,
           baseCost: 250,
-          costGrowth: 2.35,
+          costGrowth: 2.6,
           maxLevel: 10,
           effect: {
             target: 'cycleFrequency',
@@ -194,8 +194,8 @@ export const aetherforgeGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>`,
-          baseCost: 420,
-          costGrowth: 2.45,
+          baseCost: 550,
+          costGrowth: 2.75,
           maxLevel: 10,
           effect: {
             target: 'generator',
@@ -215,11 +215,11 @@ export const aetherforgeGame = {
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 3800,
-          costGrowth: 4.5,
+          baseCost: 4400,
+          costGrowth: 5.4,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 1800,
+          unlockThreshold: 2200,
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
@@ -237,7 +237,7 @@ export const aetherforgeGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 2 22 22 22 12 2" />
           </svg>`,
-          baseCost: 82000,
+          baseCost: 92000,
           costGrowth: 8.0,
           maxLevel: 5,
           effect: {
@@ -257,11 +257,11 @@ export const aetherforgeGame = {
             <circle cx="12" cy="12" r="9" />
             <polygon points="12 4 19 18 5 18 12 4" />
           </svg>`,
-          baseCost: 14000,
-          costGrowth: 3.5,
+          baseCost: 17000,
+          costGrowth: 3.9,
           maxLevel: 4,
           milestoneRank: 3,
-          unlockThreshold: 7000,
+          unlockThreshold: 8500,
           effect: {
             target: 'crossGeneratorSynergy',
             targetId: 'layer0',
@@ -279,11 +279,11 @@ export const aetherforgeGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
           </svg>`,
-          baseCost: 34000,
-          costGrowth: 4.0,
+          baseCost: 40000,
+          costGrowth: 4.6,
           maxLevel: 2,
           milestoneRank: 3,
-          unlockThreshold: 17000,
+          unlockThreshold: 20000,
           effect: {
             target: 'milestoneMultiplier',
             targetId: 'layer0',
@@ -302,11 +302,11 @@ export const aetherforgeGame = {
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 118000,
+          baseCost: 130000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 60000,
+          unlockThreshold: 70000,
           effect: {
             target: 'logMomentum',
             targetId: 'layer0',

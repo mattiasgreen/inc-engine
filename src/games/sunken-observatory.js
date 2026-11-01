@@ -108,7 +108,7 @@ export const sunkenObservatoryGame = {
             <circle cx="12" cy="7" r="4" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.35,
+          costGrowth: 1.405,
           cyclePeriodTicks: 1,
           baseOutputPerTick: 6.0,
           produces: 'currency'
@@ -122,16 +122,16 @@ export const sunkenObservatoryGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-monolith">
             <path d="M8 21h8l-2-18h-4z" />
           </svg>`,
-          baseCost: 1820,
-          costGrowth: 1.40,
+          baseCost: 1850,
+          costGrowth: 1.44,
           cyclePeriodTicks: 4,
-          baseOutputPerTick: 0.00018,
+          baseOutputPerTick: 0.016,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 900
+          unlockThreshold: 650
         },
         {
           id: 'gen3',
@@ -144,16 +144,16 @@ export const sunkenObservatoryGame = {
             <line x1="12" y1="3" x2="12" y2="21" />
             <line x1="3" y1="12" x2="21" y2="12" />
           </svg>`,
-          baseCost: 26200,
-          costGrowth: 1.45,
-          cyclePeriodTicks: 10,
-          baseOutputPerTick: 0.00008,
+          baseCost: 20000,
+          costGrowth: 1.48,
+          cyclePeriodTicks: 8,
+          baseOutputPerTick: 0.009,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 12000
+          unlockThreshold: 8500
         }
       ],
       upgrades: [
@@ -169,7 +169,7 @@ export const sunkenObservatoryGame = {
             <line x1="12" y1="2" x2="12" y2="12" />
           </svg>`,
           baseCost: 250,
-          costGrowth: 2.35,
+          costGrowth: 2.6,
           maxLevel: 10,
           effect: {
             target: 'cycleFrequency',
@@ -188,8 +188,8 @@ export const sunkenObservatoryGame = {
             <path d="M12 19l7-7 3 3-7 7-3-3z" />
             <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
           </svg>`,
-          baseCost: 420,
-          costGrowth: 2.45,
+          baseCost: 550,
+          costGrowth: 2.75,
           maxLevel: 10,
           effect: {
             target: 'generator',
@@ -209,11 +209,11 @@ export const sunkenObservatoryGame = {
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 3800,
-          costGrowth: 4.5,
+          baseCost: 4400,
+          costGrowth: 5.4,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 1800,
+          unlockThreshold: 2200,
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
@@ -232,7 +232,7 @@ export const sunkenObservatoryGame = {
             <circle cx="12" cy="12" r="10" />
             <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" />
           </svg>`,
-          baseCost: 82000,
+          baseCost: 92000,
           costGrowth: 8.0,
           maxLevel: 5,
           effect: {
@@ -252,11 +252,11 @@ export const sunkenObservatoryGame = {
             <circle cx="12" cy="12" r="9" />
             <circle cx="12" cy="12" r="4" />
           </svg>`,
-          baseCost: 14000,
-          costGrowth: 3.5,
+          baseCost: 17000,
+          costGrowth: 3.9,
           maxLevel: 4,
           milestoneRank: 3,
-          unlockThreshold: 7000,
+          unlockThreshold: 8500,
           effect: {
             target: 'crossGeneratorSynergy',
             targetId: 'layer0',
@@ -274,11 +274,11 @@ export const sunkenObservatoryGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
           </svg>`,
-          baseCost: 34000,
-          costGrowth: 4.0,
+          baseCost: 40000,
+          costGrowth: 4.6,
           maxLevel: 2,
           milestoneRank: 3,
-          unlockThreshold: 17000,
+          unlockThreshold: 20000,
           effect: {
             target: 'milestoneMultiplier',
             targetId: 'layer0',
@@ -297,11 +297,11 @@ export const sunkenObservatoryGame = {
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 118000,
+          baseCost: 130000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 60000,
+          unlockThreshold: 70000,
           effect: {
             target: 'logMomentum',
             targetId: 'layer0',

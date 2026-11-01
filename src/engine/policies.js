@@ -66,8 +66,8 @@ export class OptimalRoiPolicy {
     const l0Config = config.layers[0];
     const ticksPerSec = stats.effectiveTicksPerSec;
 
-    // Map each generator's effective currency value per unit per tick over a 180-tick strategic horizon
-    const horizonTicks = 180;
+    // Map each generator's effective currency value per unit per tick over a 220-tick strategic horizon
+    const horizonTicks = 220;
     const unitCurrencyPerTick = {};
 
     // Pass 1: direct currency generators
@@ -78,14 +78,14 @@ export class OptimalRoiPolicy {
       }
     }
 
-    // Pass 2 & 3: metagenerators (up to 3 tiers deep)
+    // Pass 2 & 3: metagenerators with quadratic and cubic cascade integration
     for (let pass = 0; pass < 3; pass++) {
       for (const gen of l0Config.generators || []) {
         if (gen.produces && gen.produces.type === 'generator') {
           const targetId = gen.produces.targetId;
           const targetVal = unitCurrencyPerTick[targetId] || 0;
           const rate = stats.generatorOutputs.layer0[gen.id].toNumber();
-          unitCurrencyPerTick[gen.id] = rate * targetVal * (horizonTicks * 0.35);
+          unitCurrencyPerTick[gen.id] = rate * targetVal * (horizonTicks * 0.5);
         }
       }
     }
@@ -95,9 +95,7 @@ export class OptimalRoiPolicy {
       const owned = layer0.generators[gen.id]?.owned?.toNumber() || 0;
       const bought = layer0.generators[gen.id]?.bought?.toNumber() || 0;
       const effectiveUnits = Math.max(owned, bought);
-      const periodDiv = Math.max(1, stats.generatorPeriods?.layer0?.[gen.id] || 1);
-      const speedBonus = 1 + (1 / periodDiv) * 0.15;
-      totalPowerPerSec += effectiveUnits * (unitCurrencyPerTick[gen.id] || 0) * ticksPerSec * speedBonus;
+      totalPowerPerSec += effectiveUnits * (unitCurrencyPerTick[gen.id] || 0) * ticksPerSec;
     }
 
     return { totalPowerPerSec, unitCurrencyPerTick };
@@ -123,8 +121,8 @@ export class OptimalRoiPolicy {
       const waitSec = deficit / currentProdPerSec;
       const paybackSec = costNum / deltaPowerPerSec;
 
-      // Avoid saving for >9 minutes if faster stepping stones exist
-      const waitPenalty = waitSec > 500 ? waitSec * 4.0 : waitSec * 1.35;
+      // Avoid saving for >10 minutes if faster stepping stones exist
+      const waitPenalty = waitSec > 600 ? waitSec * 2.8 : waitSec * 1.25;
       const effectiveTimeCost = Math.max(0.01, waitPenalty + paybackSec);
       const score = 1 / effectiveTimeCost;
 
@@ -167,7 +165,7 @@ export class OptimalRoiPolicy {
 
       // First purchase of a newly unlocked generator gets an exploration priority boost
       if (boughtNum === 0) {
-        deltaPower *= 2.5;
+        deltaPower *= 3.5;
       }
 
       evaluateCandidate(
@@ -204,8 +202,9 @@ export class OptimalRoiPolicy {
       const { totalPowerPerSec: nextPowerPerSec } = this._estimateTotalCurrencyPowerPerSec(hypoState, config, hypoStats);
       let deltaPower = Math.max(0.01, nextPowerPerSec - totalPowerPerSec);
 
-      // Handle costScaling upgrades which reduce future generator purchase costs
-      if (upg.effect?.target === 'costScaling') {
+      if (upg.effect?.target === 'generatorPeriod') {
+        deltaPower = Math.max(deltaPower, totalPowerPerSec * 0.40);
+      } else if (upg.effect?.target === 'costScaling') {
         deltaPower = Math.max(deltaPower, totalPowerPerSec * 0.45);
       }
 
@@ -243,7 +242,7 @@ export class SemiOptimalPolicy extends OptimalRoiPolicy {
     this.reactionLagMs = options.reactionLagMs ?? 45000;
     this.offlineBreaksTaken = 0;
     this.maxOfflineBreaks = options.maxOfflineBreaks ?? 3;
-    this.offlineBreakDurationMs = options.offlineBreakDurationMs ?? 45 * 60 * 1000;
+    this.offlineBreakDurationMs = options.offlineBreakDurationMs ?? 50 * 60 * 1000;
     this.actionCount = 0;
   }
 
@@ -267,13 +266,13 @@ export class SemiOptimalPolicy extends OptimalRoiPolicy {
 
     let delayMs = this.reactionLagMs;
     const runTotal = l0?.runTotalCurrency?.toNumber() || 0;
-    if (this.offlineBreaksTaken === 0 && runTotal >= 25000 && this.maxOfflineBreaks >= 1) {
+    if (this.offlineBreaksTaken === 0 && runTotal >= 20000 && this.maxOfflineBreaks >= 1) {
       this.offlineBreaksTaken++;
       delayMs += this.offlineBreakDurationMs;
-    } else if (this.offlineBreaksTaken === 1 && runTotal >= 150000 && this.maxOfflineBreaks >= 2) {
+    } else if (this.offlineBreaksTaken === 1 && runTotal >= 100000 && this.maxOfflineBreaks >= 2) {
       this.offlineBreaksTaken++;
       delayMs += this.offlineBreakDurationMs;
-    } else if (this.offlineBreaksTaken === 2 && runTotal >= 450000 && this.maxOfflineBreaks >= 3) {
+    } else if (this.offlineBreaksTaken === 2 && runTotal >= 350000 && this.maxOfflineBreaks >= 3) {
       this.offlineBreaksTaken++;
       delayMs += this.offlineBreakDurationMs;
     }

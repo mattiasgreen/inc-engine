@@ -123,7 +123,7 @@ export const dysonSwarmGame = {
             <polygon points="12 2 19 21 12 17 5 21 12 2" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.35,
+          costGrowth: 1.405,
           cyclePeriodTicks: 1,
           baseOutputPerTick: 6,
           produces: 'currency'
@@ -141,16 +141,16 @@ export const dysonSwarmGame = {
             <path d="M3 9h18" />
             <path d="M3 15h18" />
           </svg>`,
-          baseCost: 1800,
-          costGrowth: 1.40,
+          baseCost: 1850,
+          costGrowth: 1.44,
           cyclePeriodTicks: 4,
-          baseOutputPerTick: 0.00018,
+          baseOutputPerTick: 0.016,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 900
+          unlockThreshold: 650
         },
         {
           id: 'gen3',
@@ -163,16 +163,16 @@ export const dysonSwarmGame = {
             <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
             <path d="M2 12h20" />
           </svg>`,
-          baseCost: 26000,
-          costGrowth: 1.45,
-          cyclePeriodTicks: 10,
-          baseOutputPerTick: 0.00008,
+          baseCost: 20000,
+          costGrowth: 1.48,
+          cyclePeriodTicks: 8,
+          baseOutputPerTick: 0.009,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 12000
+          unlockThreshold: 8500
         }
       ],
       upgrades: [
@@ -187,7 +187,7 @@ export const dysonSwarmGame = {
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>`,
           baseCost: 250,
-          costGrowth: 2.35,
+          costGrowth: 2.6,
           maxLevel: 10,
           effect: {
             target: 'cycleFrequency',
@@ -207,8 +207,8 @@ export const dysonSwarmGame = {
             <path d="M12 3v18" />
             <path d="M12 8l4 4-4 4" />
           </svg>`,
-          baseCost: 420,
-          costGrowth: 2.45,
+          baseCost: 550,
+          costGrowth: 2.75,
           maxLevel: 10,
           effect: {
             target: 'generator',
@@ -228,11 +228,11 @@ export const dysonSwarmGame = {
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 3800,
-          costGrowth: 4.5,
+          baseCost: 4400,
+          costGrowth: 5.4,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 1800,
+          unlockThreshold: 2200,
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
@@ -250,7 +250,7 @@ export const dysonSwarmGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 12h5l3-9 4 18 3-9h5" />
           </svg>`,
-          baseCost: 82000,
+          baseCost: 92000,
           costGrowth: 8.0,
           maxLevel: 5,
           effect: {
@@ -274,11 +274,11 @@ export const dysonSwarmGame = {
             <line x1="7.5" y1="8.5" x2="10.5" y2="15.5" />
             <line x1="16.5" y1="8.5" x2="13.5" y2="15.5" />
           </svg>`,
-          baseCost: 14000,
-          costGrowth: 3.5,
+          baseCost: 17000,
+          costGrowth: 3.9,
           maxLevel: 4,
           milestoneRank: 3,
-          unlockThreshold: 7000,
+          unlockThreshold: 8500,
           effect: {
             target: 'crossGeneratorSynergy',
             targetId: 'layer0',
@@ -296,11 +296,11 @@ export const dysonSwarmGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
           </svg>`,
-          baseCost: 34000,
-          costGrowth: 4.0,
+          baseCost: 40000,
+          costGrowth: 4.6,
           maxLevel: 2,
           milestoneRank: 3,
-          unlockThreshold: 17000,
+          unlockThreshold: 20000,
           effect: {
             target: 'milestoneMultiplier',
             targetId: 'layer0',
@@ -319,11 +319,11 @@ export const dysonSwarmGame = {
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 118000,
+          baseCost: 130000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 60000,
+          unlockThreshold: 70000,
           effect: {
             target: 'logMomentum',
             targetId: 'layer0',
