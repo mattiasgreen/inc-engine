@@ -381,7 +381,7 @@ export function getDerivedStats(state, config) {
       const tickOffsetInPeriod = ticksSinceStart % effectivePeriodTicks;
       const fractionalTicksInCycle = baseCyclePhase * tickYieldPerCycle.toNumber();
       const rawPhase = (tickOffsetInPeriod + Math.min(1, fractionalTicksInCycle)) / effectivePeriodTicks;
-      const cyclePhase = isOverdrive ? 1.0 : Math.min(1, Math.max(0, rawPhase));
+      const cyclePhase = isOverdrive ? 1.0 : Math.min(0.9999, Math.max(0, rawPhase));
 
       generatorPeriods[layer.id][gen.id] = effectivePeriodTicks;
       generatorEffectivePeriodMs[layer.id][gen.id] = effectivePeriodMs;

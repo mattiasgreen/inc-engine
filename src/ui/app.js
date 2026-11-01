@@ -161,7 +161,7 @@ function updateSmoothProgressBars() {
         const ticksSinceStart = Math.max(0, baseTicksNum - startTick);
         const tickOffset = ticksSinceStart % periodTicks;
         const fracTicks = Math.min(1, cyclePhase * tickYieldNum);
-        const phase = Math.min(1, Math.max(0, (tickOffset + fracTicks) / periodTicks));
+        const phase = Math.min(0.9999, Math.max(0, (tickOffset + fracTicks) / periodTicks));
         ui.progressFill.style.transform = `scaleX(${phase.toFixed(4)})`;
 
         const effPeriodMs = cachedRenderStats.generatorEffectivePeriodMs?.layer0?.[gen.id] || 1000;
@@ -987,7 +987,7 @@ function render() {
       if (ui.periodText && ui.phaseText) {
         if (owned.lte(0)) {
           ui.periodText.textContent = `${periodTicks} ${periodTicks === 1 ? 'Tick' : 'Ticks'} (${(effPeriodMs / 1000).toFixed(1)}s)`;
-          ui.phaseText.textContent = 'Standby';
+          ui.phaseText.textContent = 'Standby (Buy to start)';
         } else if (showOverdrive) {
           const hz = (1000 / effPeriodMs).toFixed(2);
           ui.periodText.textContent = `OVERDRIVE · ${hz} Hz`;
