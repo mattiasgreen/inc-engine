@@ -158,8 +158,8 @@ function updateSmoothProgressBars() {
 
         const periodTicks = cachedRenderStats.generatorPeriods?.layer0?.[gen.id] || 1;
         const startTick = genState.startTick || 0;
-        const ticksSinceStart = Math.max(0, baseTicksNum - startTick);
-        const tickOffset = ticksSinceStart % periodTicks;
+        const ticksSinceStart = Math.max(0, Math.round(baseTicksNum) - Math.round(startTick));
+        const tickOffset = Math.floor(ticksSinceStart) % periodTicks;
         const fracTicks = Math.min(1, cyclePhase * tickYieldNum);
         const phase = Math.min(0.9999, Math.max(0, (tickOffset + fracTicks) / periodTicks));
         ui.progressFill.style.transform = `scaleX(${phase.toFixed(4)})`;

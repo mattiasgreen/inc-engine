@@ -2,7 +2,7 @@
 // Progressive Web App Service Worker for inc-engine
 // Provides offline capability, asset caching, and standalone PWA installation
 
-const CACHE_NAME = 'inc-engine-f8b2788';
+const CACHE_NAME = 'inc-engine-1b04002';
 
 const PRECACHE_URLS = [
   './',

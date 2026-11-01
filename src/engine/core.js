@@ -377,8 +377,8 @@ export function getDerivedStats(state, config) {
 
       const totalTicksNum = state.totalTicks ? state.totalTicks.toNumber() : 0;
       const startTick = genState?.startTick || 0;
-      const ticksSinceStart = Math.max(0, totalTicksNum - startTick);
-      const tickOffsetInPeriod = ticksSinceStart % effectivePeriodTicks;
+      const ticksSinceStart = Math.max(0, Math.round(totalTicksNum) - Math.round(startTick));
+      const tickOffsetInPeriod = Math.floor(ticksSinceStart) % effectivePeriodTicks;
       const fractionalTicksInCycle = baseCyclePhase * tickYieldPerCycle.toNumber();
       const rawPhase = (tickOffsetInPeriod + Math.min(1, fractionalTicksInCycle)) / effectivePeriodTicks;
       const cyclePhase = isOverdrive ? 1.0 : Math.min(0.9999, Math.max(0, rawPhase));
@@ -729,8 +729,8 @@ export function advanceTicks(state, config, ticks) {
   }
 
   // Propagate polynomials along directed edges in topological order
-  const startTickNum = state.totalTicks ? state.totalTicks.toNumber() : 0;
-  const tickCountNum = tickCount.toNumber();
+  const startTickNum = state.totalTicks ? Math.round(state.totalTicks.toNumber()) : 0;
+  const tickCountNum = Math.round(tickCount.toNumber());
   const endTickNum = startTickNum + tickCountNum;
 
   for (const u of topoOrder) {
@@ -962,7 +962,7 @@ export function buyGenerator(state, config, layerId, genId, countOrMax = 1) {
     bought: currentBought.add(countToBuy),
     owned: currentOwned.add(countToBuy),
     startTick: isFirstPurchaseOfGen
-      ? (state.totalTicks ? state.totalTicks.toNumber() : 0)
+      ? (state.totalTicks ? Math.round(state.totalTicks.toNumber()) : 0)
       : (currentGen.startTick || 0)
   };
 
@@ -1046,7 +1046,8 @@ export function resetLayer(state, config, layerId) {
   for (const gen of targetConfig.generators || []) {
     resetGenerators[gen.id] = {
       bought: new BigNum(0),
-      owned: new BigNum(0)
+      owned: new BigNum(0),
+      startTick: 0
     };
   }
 

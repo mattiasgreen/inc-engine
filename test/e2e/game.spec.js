@@ -303,4 +303,34 @@ test.describe('inc-engine End-to-End User Journey', () => {
     const secondPhase = secondScale ? parseFloat(secondScale[1]) : 0;
     expect(secondPhase).toBeLessThan(0.10);
   });
+
+  test('Stage 10: Importing post-prestige save state with floating-point totalTicks preserves active progress bar cycling', async ({ page }) => {
+    const userSave = 'eyJ2ZXJzaW9uIjoxLCJzYXZlZEF0TXMiOjE3OTM1MTkxMzc2NTAsImN5Y2xlUmVtYWluZGVyTXMiOjM4NTQsInRvdGFsQ3ljbGVzIjp7Im0iOjEuNjYzNDk5OTk5OTk5OTk5NSwiZSI6NH0sInRvdGFsVGlja3MiOnsibSI6MS45ODk1OTk5OTk5OTk5OTEsImUiOjR9LCJsYXllcnMiOnsibGF5ZXIwIjp7ImN1cnJlbmN5Ijp7Im0iOjMuMDc2NjQ5OTk5OTk5OTk5LCJlIjo0fSwicnVuVG90YWxDdXJyZW5jeSI6eyJtIjozLjA3ODk5OTk5OTk5OTk5OTMsImUiOjR9LCJ0b3RhbExpZmV0aW1lQ3VycmVuY3kiOnsibSI6Mi41NzQ4NTMwOTI2Mjc0Njc1LCJlIjo4fSwidGlja3NJbkxheWVyIjp7Im0iOjcuMzk5OTk5OTk5OTk5OTk3LCJlIjoyfSwiZ2VuZXJhdG9ycyI6eyJnZW4xIjp7ImJvdWdodCI6eyJtIjoyLCJlIjowfSwib3duZWQiOnsibSI6MiwiZSI6MH0sInN0YXJ0VGljayI6MTkzMjkuOTk5OTk5OTk5OTEzfSwiZ2VuMiI6eyJib3VnaHQiOnsibSI6MCwiZSI6MH0sIm93bmVkIjp7Im0iOjAsImUiOjB9LCJzdGFydFRpY2siOjB9LCJnZW4zIjp7ImJvdWdodCI6eyJtIjowLCJlIjowfSwib3duZWQiOnsibSI6MCwiZSI6MH0sInN0YXJ0VGljayI6MH19LCJ1cGdyYWRlcyI6eyJ1cGdfY3ljbGVfYWNjZWwiOnsibGV2ZWwiOjB9LCJ1cGdfZ2VuMV9vdmVyZHJpdmUiOnsibGV2ZWwiOjB9LCJ1cGdfcGVyaW9kX2NvbXByZXNzIjp7ImxldmVsIjowfSwidXBnX3RpY2tfYW1wIjp7ImxldmVsIjowfSwidXBnX2Nyb3NzX3N5bmVyZ3kiOnsibGV2ZWwiOjB9LCJ1cGdfbWlsZXN0b25lX3Jlc29uYW5jZSI6eyJsZXZlbCI6MH0sInVwZ19sb2dfbW9tZW50dW0iOnsibGV2ZWwiOjB9fX0sImxheWVyMSI6eyJjdXJyZW5jeSI6eyJtIjoxLjYsImUiOjF9LCJydW5Ub3RhbEN1cnJlbmN5Ijp7Im0iOjEuNiwiZSI6MX0sInRvdGFsTGlmZXRpbWVDdXJyZW5jeSI6eyJtIjoxLjYsImUiOjF9LCJ0aWNrc0luTGF5ZXIiOnsibSI6MS45ODk1OTk5OTk5OTk5OTEsImUiOjR9LCJnZW5lcmF0b3JzIjp7fSwidXBncmFkZXMiOnsidXBnX2wxX2V4cF9tdWx0Ijp7ImxldmVsIjowfSwidXBnX2wxX2Nsb2NrIjp7ImxldmVsIjowfSwidXBnX2wxX3N5bmVyZ3kiOnsibGV2ZWwiOjB9LCJ1cGdfbDFfYXBleCI6eyJsZXZlbCI6MH19fX19';
+
+    // Import save via evaluate / UI
+    await page.evaluate((saveStr) => {
+      window.prompt = () => saveStr;
+      document.getElementById('btn-import').click();
+    }, userSave);
+
+    await page.waitForTimeout(500);
+
+    // Observe progress bar transform changing across 4 seconds
+    const firstCard = page.locator('#layer0-generators .card').first();
+    const fill1 = await firstCard.locator('.gen-progress-fill').evaluate(el => el.style.transform);
+    await page.waitForTimeout(1500);
+    const fill2 = await firstCard.locator('.gen-progress-fill').evaluate(el => el.style.transform);
+    await page.waitForTimeout(1500);
+    const fill3 = await firstCard.locator('.gen-progress-fill').evaluate(el => el.style.transform);
+
+    // Ensure fill is moving and not frozen at any value
+    expect(fill1).not.toBe(fill2);
+    expect(fill2).not.toBe(fill3);
+
+    // Verify fill does not equal scaleX(0.9999) or scaleX(1) permanently
+    const s1 = parseFloat(fill1.match(/scaleX\(([0-9.]+)\)/)[1]);
+    const s2 = parseFloat(fill2.match(/scaleX\(([0-9.]+)\)/)[1]);
+    const s3 = parseFloat(fill3.match(/scaleX\(([0-9.]+)\)/)[1]);
+    expect([s1, s2, s3].every(v => v < 1.0)).toBe(true);
+  });
 });
