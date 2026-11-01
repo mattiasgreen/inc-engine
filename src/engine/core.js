@@ -3,6 +3,121 @@
 
 import { BigNum } from './bignum.js';
 
+export const DEFAULT_MILESTONE_TIERS = [
+  { id: 'm0', rank: 0, name: 'Common', minBought: 0, multiplier: 1 },
+  { id: 'm1', rank: 1, name: 'Uncommon', minBought: 25, multiplier: 2 },
+  { id: 'm2', rank: 2, name: 'Rare', minBought: 50, multiplier: 4 },
+  { id: 'm3', rank: 3, name: 'Epic', minBought: 100, multiplier: 12 },
+  { id: 'm4', rank: 4, name: 'Legendary', minBought: 250, multiplier: 50 }
+];
+
+export function formatMilestoneAssetPath(baseImage, tierId = 'm0', milestoneAssets = null) {
+  if (milestoneAssets && milestoneAssets[tierId]) {
+    return milestoneAssets[tierId];
+  }
+  if (!baseImage || typeof baseImage !== 'string') {
+    return `./assets/placeholder-${tierId}.jpg`;
+  }
+  const dotIdx = baseImage.lastIndexOf('.');
+  if (dotIdx === -1) return `${baseImage}-${tierId}.jpg`;
+  return `${baseImage.slice(0, dotIdx)}-${tierId}${baseImage.slice(dotIdx)}`;
+}
+
+export function getGeneratorMilestoneInfo(boughtBig, genConfig, milestoneMultBonus = 1) {
+  const boughtNum = boughtBig ? boughtBig.toNumber() : 0;
+  const tiers = genConfig?.milestones || DEFAULT_MILESTONE_TIERS;
+  let currentTier = tiers[0];
+  let nextTier = null;
+
+  for (let i = 0; i < tiers.length; i++) {
+    if (boughtNum >= tiers[i].minBought) {
+      currentTier = tiers[i];
+      nextTier = tiers[i + 1] || null;
+    } else {
+      nextTier = tiers[i];
+      break;
+    }
+  }
+
+  const effectiveMultiplier = currentTier.rank > 0
+    ? currentTier.multiplier * milestoneMultBonus
+    : currentTier.multiplier;
+
+  const prevMin = currentTier.minBought;
+  const nextMin = nextTier ? nextTier.minBought : currentTier.minBought;
+  const span = Math.max(1, nextMin - prevMin);
+  const progressToNext = nextTier
+    ? Math.min(1, Math.max(0, (boughtNum - prevMin) / span))
+    : 1;
+
+  return {
+    tierId: currentTier.id,
+    rank: currentTier.rank,
+    tierName: currentTier.name,
+    multiplier: effectiveMultiplier,
+    boughtCount: boughtNum,
+    nextTierId: nextTier ? nextTier.id : null,
+    nextTierName: nextTier ? nextTier.name : null,
+    nextThreshold: nextTier ? nextTier.minBought : null,
+    nextMultiplier: nextTier ? (nextTier.rank > 0 ? nextTier.multiplier * milestoneMultBonus : nextTier.multiplier) : null,
+    progressToNext,
+    assetPath: formatMilestoneAssetPath(genConfig?.image, currentTier.id, genConfig?.milestoneAssets),
+    fallbackImage: genConfig?.image || null
+  };
+}
+
+export function getUpgradeMilestoneInfo(level, upgConfig) {
+  const maxLvl = upgConfig?.maxLevel || 1;
+  let tierIdx = 0;
+  if (level <= 0) {
+    tierIdx = 0;
+  } else if (maxLvl === 1) {
+    const targetRank = upgConfig?.milestoneRank ?? 2;
+    tierIdx = Math.min(4, Math.max(1, targetRank));
+  } else {
+    const ratio = level / maxLvl;
+    if (ratio >= 1) tierIdx = 4;
+    else if (ratio >= 0.7) tierIdx = 3;
+    else if (ratio >= 0.4) tierIdx = 2;
+    else tierIdx = 1;
+  }
+  const tier = DEFAULT_MILESTONE_TIERS[tierIdx] || DEFAULT_MILESTONE_TIERS[0];
+  return {
+    tierId: tier.id,
+    rank: tier.rank,
+    tierName: tier.name,
+    assetPath: formatMilestoneAssetPath(upgConfig?.image, tier.id, upgConfig?.milestoneAssets),
+    fallbackImage: upgConfig?.image || null
+  };
+}
+
+export function getCharacterMilestoneInfo(state, config) {
+  let tierIdx = 0;
+  const l0 = state.layers?.layer0;
+  const l1Config = config.layers?.[1];
+  const l1 = l1Config ? state.layers?.[l1Config.id] : null;
+
+  if (l1 && (l1.upgrades?.upg_l1_apex?.level || 0) >= 1) {
+    tierIdx = 4;
+  } else if (l1 && l1.totalLifetimeCurrency?.gt(0)) {
+    tierIdx = 3;
+  } else if (l1Config?.prestige && l0?.runTotalCurrency?.gte(l1Config.prestige.thresholdCurrency * 0.1)) {
+    tierIdx = 2;
+  } else if (l0) {
+    const anyM1 = Object.values(l0.generators || {}).some(g => (g.bought || g.owned)?.gte(25));
+    if (anyM1) tierIdx = 1;
+  }
+
+  const tier = DEFAULT_MILESTONE_TIERS[tierIdx];
+  return {
+    tierId: tier.id,
+    rank: tier.rank,
+    tierName: tier.name,
+    assetPath: formatMilestoneAssetPath(config.character?.image, tier.id, config.character?.milestoneAssets),
+    fallbackImage: config.character?.image || null
+  };
+}
+
 export function createInitialState(config) {
   const state = {
     cycleRemainderMs: 0,
@@ -75,11 +190,19 @@ export function getDerivedStats(state, config) {
   const layerMultipliers = {};
   const costScalingReductions = {};
   const boughtSynergyBonuses = {};
+  const milestoneMultipliers = {};
+  const crossGeneratorSynergies = {};
+  const logMomentumExponents = {};
+  const periodDivisors = {};
 
   for (const layer of config.layers) {
     layerMultipliers[layer.id] = new BigNum(1.0);
     costScalingReductions[layer.id] = 0;
     boughtSynergyBonuses[layer.id] = 0;
+    milestoneMultipliers[layer.id] = 1.0;
+    crossGeneratorSynergies[layer.id] = 0;
+    logMomentumExponents[layer.id] = 0;
+    periodDivisors[layer.id] = {};
   }
 
   // Calculate passive prestige multipliers
@@ -120,7 +243,7 @@ export function getDerivedStats(state, config) {
         }
       } else if (eff.target === 'layerGenerators') {
         if (eff.operation === 'multiply') {
-          const targetLayer = eff.targetId;
+          const targetLayer = eff.targetId || layer.id;
           layerMultipliers[targetLayer] = layerMultipliers[targetLayer].mul(Math.pow(eff.value, level));
         }
       } else if (eff.target === 'costScaling') {
@@ -133,21 +256,77 @@ export function getDerivedStats(state, config) {
         if (eff.operation === 'add') {
           boughtSynergyBonuses[targetLayer] += eff.value * level;
         }
+      } else if (eff.target === 'milestoneMultiplier') {
+        const targetLayer = eff.targetId || layer.id;
+        if (eff.operation === 'multiply') {
+          milestoneMultipliers[targetLayer] *= Math.pow(eff.value, level);
+        } else if (eff.operation === 'add') {
+          milestoneMultipliers[targetLayer] += eff.value * level;
+        }
+      } else if (eff.target === 'crossGeneratorSynergy') {
+        const targetLayer = eff.targetId || layer.id;
+        crossGeneratorSynergies[targetLayer] += eff.value * level;
+      } else if (eff.target === 'logMomentum') {
+        const targetLayer = eff.targetId || layer.id;
+        logMomentumExponents[targetLayer] += eff.value * level;
+      } else if (eff.target === 'generatorPeriod') {
+        const targetLayer = eff.layerId || layer.id;
+        const targetGen = eff.targetId || 'all';
+        const factor = Math.pow(eff.value || 2, level);
+        periodDivisors[targetLayer][targetGen] = (periodDivisors[targetLayer][targetGen] || 1) * factor;
       }
+    }
+  }
+
+  // Calculate Cross-Generator Synergy and Logarithmic Momentum currency multipliers
+  const currencyMultipliers = {};
+  for (const layer of config.layers) {
+    currencyMultipliers[layer.id] = new BigNum(1.0);
+    const layerState = state.layers[layer.id];
+    if (!layerState) continue;
+
+    if (crossGeneratorSynergies[layer.id] > 0) {
+      let totalBought = 0;
+      for (const gen of layer.generators || []) {
+        const b = layerState.generators[gen.id]?.bought || layerState.generators[gen.id]?.owned || new BigNum(0);
+        totalBought += b.toNumber();
+      }
+      const crossMult = 1 + crossGeneratorSynergies[layer.id] * totalBought;
+      currencyMultipliers[layer.id] = currencyMultipliers[layer.id].mul(crossMult);
+    }
+
+    if (logMomentumExponents[layer.id] > 0) {
+      const runCur = Math.max(1, layerState.runTotalCurrency?.toNumber() || 1);
+      const logBase = Math.max(1, Math.log10(runCur + 10));
+      const logMult = Math.pow(logBase, logMomentumExponents[layer.id]);
+      currencyMultipliers[layer.id] = currencyMultipliers[layer.id].mul(logMult);
     }
   }
 
   const effectiveCycleDurationMs = config.clock.baseCycleDurationMs / cycleFreqMult;
   const tickYieldPerCycle = baseTickYield.add(tickYieldAdd).mul(tickYieldMult);
   const effectiveTicksPerSec = (1000 / effectiveCycleDurationMs) * tickYieldPerCycle.toNumber();
+  const baseCyclePhase = Math.min(1, Math.max(0, (state.cycleRemainderMs || 0) / effectiveCycleDurationMs));
 
   const generatorOutputs = {};
+  const generatorBatchOutputs = {};
+  const generatorPeriods = {};
+  const generatorEffectivePeriodMs = {};
+  const generatorOverdrive = {};
+  const generatorCyclePhase = {};
+  const generatorMilestones = {};
   const generatorCosts = {};
   const maxAffordable = {};
   const layerProductionPerTick = {};
 
   for (const layer of config.layers) {
     generatorOutputs[layer.id] = {};
+    generatorBatchOutputs[layer.id] = {};
+    generatorPeriods[layer.id] = {};
+    generatorEffectivePeriodMs[layer.id] = {};
+    generatorOverdrive[layer.id] = {};
+    generatorCyclePhase[layer.id] = {};
+    generatorMilestones[layer.id] = {};
     generatorCosts[layer.id] = {};
     maxAffordable[layer.id] = {};
     layerProductionPerTick[layer.id] = new BigNum(0);
@@ -156,6 +335,7 @@ export function getDerivedStats(state, config) {
     const layerMult = layerMultipliers[layer.id];
     const costReduction = costScalingReductions[layer.id] || 0;
     const synergyBonus = boughtSynergyBonuses[layer.id] || 0;
+    const milestoneBonus = milestoneMultipliers[layer.id] || 1.0;
 
     for (const gen of layer.generators || []) {
       const genState = layerState.generators[gen.id];
@@ -180,11 +360,44 @@ export function getDerivedStats(state, config) {
       const synergyMult = new BigNum(effectiveSynergy).pow(synergyExponent);
       genMult = genMult.mul(synergyMult);
 
+      // Milestone Tier multiplier (m0..m4)
+      const milestoneInfo = getGeneratorMilestoneInfo(bought, gen, milestoneBonus);
+      generatorMilestones[layer.id][gen.id] = milestoneInfo;
+      if (milestoneInfo.multiplier !== 1) {
+        genMult = genMult.mul(milestoneInfo.multiplier);
+      }
+
+      // Integer Tick Period & Cycle Phase
+      const basePeriod = Math.max(1, Math.round(gen.cyclePeriodTicks || 1));
+      const allDivisor = periodDivisors[layer.id].all || 1;
+      const specificDivisor = periodDivisors[layer.id][gen.id] || 1;
+      const effectivePeriodTicks = Math.max(1, Math.round(basePeriod / (allDivisor * specificDivisor)));
+      const effectivePeriodMs = (effectivePeriodTicks / effectiveTicksPerSec) * 1000;
+      const isOverdrive = effectivePeriodMs < 999.9 || (basePeriod > 1 && effectivePeriodMs <= 1000);
+
+      const totalTicksNum = state.totalTicks ? state.totalTicks.toNumber() : 0;
+      const startTick = genState?.startTick || 0;
+      const ticksSinceStart = Math.max(0, totalTicksNum - startTick);
+      const tickOffsetInPeriod = ticksSinceStart % effectivePeriodTicks;
+      const fractionalTicksInCycle = baseCyclePhase * tickYieldPerCycle.toNumber();
+      const rawPhase = (tickOffsetInPeriod + Math.min(1, fractionalTicksInCycle)) / effectivePeriodTicks;
+      const cyclePhase = isOverdrive ? 1.0 : Math.min(1, Math.max(0, rawPhase));
+
+      generatorPeriods[layer.id][gen.id] = effectivePeriodTicks;
+      generatorEffectivePeriodMs[layer.id][gen.id] = effectivePeriodMs;
+      generatorOverdrive[layer.id][gen.id] = isOverdrive;
+      generatorCyclePhase[layer.id][gen.id] = cyclePhase;
+
+      const producesCurrency = !gen.produces || gen.produces === 'currency' || gen.produces.type === 'currency';
+      if (producesCurrency && currencyMultipliers[layer.id]) {
+        genMult = genMult.mul(currencyMultipliers[layer.id]);
+      }
+
       const unitOutput = BigNum.from(gen.baseOutputPerTick).mul(genMult);
       generatorOutputs[layer.id][gen.id] = unitOutput;
+      generatorBatchOutputs[layer.id][gen.id] = unitOutput.mul(effectivePeriodTicks);
 
       // Only generators producing layer currency directly contribute to layerProductionPerTick
-      const producesCurrency = !gen.produces || gen.produces === 'currency' || gen.produces.type === 'currency';
       if (owned.gt(0) && producesCurrency) {
         layerProductionPerTick[layer.id] = layerProductionPerTick[layer.id].add(owned.mul(unitOutput));
       }
@@ -217,8 +430,10 @@ export function getDerivedStats(state, config) {
 
   // Upgrade Tree DAG Evaluation
   const upgradeCosts = {};
+  const upgradeMilestones = {};
   for (const layer of config.layers) {
     upgradeCosts[layer.id] = {};
+    upgradeMilestones[layer.id] = {};
     const layerState = state.layers[layer.id];
     for (const upg of layer.upgrades || []) {
       const isLockedThreshold = Boolean(upg.unlockThreshold && layerState.runTotalCurrency.lt(upg.unlockThreshold));
@@ -240,6 +455,7 @@ export function getDerivedStats(state, config) {
       }
 
       const level = layerState.upgrades[upg.id]?.level || 0;
+      upgradeMilestones[layer.id][upg.id] = getUpgradeMilestoneInfo(level, upg);
       if (isLockedThreshold || !prereqsMet || isExclusiveLocked) {
         upgradeCosts[layer.id][upg.id] = null; // Locked
       } else if (level >= (upg.maxLevel || Infinity)) {
@@ -261,18 +477,29 @@ export function getDerivedStats(state, config) {
   }
 
   const visibility = getVisibilityStates(state, config);
+  const characterMilestone = getCharacterMilestoneInfo(state, config);
 
   return {
     cycleFrequencyMultiplier: cycleFreqMult,
     effectiveCycleDurationMs,
     tickYieldPerCycle,
     effectiveTicksPerSec,
+    baseCyclePhase,
     layerMultipliers,
     costScalingReductions,
+    milestoneMultipliers,
     generatorOutputs,
+    generatorBatchOutputs,
+    generatorPeriods,
+    generatorEffectivePeriodMs,
+    generatorOverdrive,
+    generatorCyclePhase,
+    generatorMilestones,
     generatorCosts,
     maxAffordable,
     upgradeCosts,
+    upgradeMilestones,
+    characterMilestone,
     prestigeRewards,
     layerProductionPerTick,
     visibility
@@ -502,9 +729,21 @@ export function advanceTicks(state, config, ticks) {
   }
 
   // Propagate polynomials along directed edges in topological order
+  const startTickNum = state.totalTicks ? state.totalTicks.toNumber() : 0;
+  const tickCountNum = tickCount.toNumber();
+  const endTickNum = startTickNum + tickCountNum;
+
   for (const u of topoOrder) {
     const { layer, gen } = genMap.get(u);
-    const rate = stats.generatorOutputs[layer.id][gen.id] || new BigNum(0);
+    let rate = stats.generatorOutputs[layer.id][gen.id] || new BigNum(0);
+    const periodTicks = stats.generatorPeriods?.[layer.id]?.[gen.id] || 1;
+    const isOverdrive = stats.generatorOverdrive?.[layer.id]?.[gen.id] || false;
+
+    if (gen.batchPayout && periodTicks > 1 && !isOverdrive && tickCountNum > 0 && tickCountNum <= periodTicks) {
+      const periodsCompleted = Math.floor(endTickNum / periodTicks) - Math.floor(startTickNum / periodTicks);
+      rate = rate.mul((periodsCompleted * periodTicks) / tickCountNum);
+    }
+
     const targetKey = outgoing.get(u);
     if (!targetKey) continue;
 
@@ -552,11 +791,18 @@ export function advanceTicks(state, config, ticks) {
 
     for (const gen of layer.generators || []) {
       const key = `${layer.id}:${gen.id}`;
-      const terms = poly.get(key) || [prevLayer.generators[gen.id]?.owned || new BigNum(0)];
+      const prevGen = prevLayer.generators[gen.id];
+      const prevOwned = prevGen?.owned || new BigNum(0);
+      const terms = poly.get(key) || [prevOwned];
       const nextOwned = evalPoly(terms, tickCount);
+      const startTick = (prevOwned.isZero() && nextOwned.gt(0))
+        ? endTickNum
+        : (prevGen?.startTick || 0);
+
       nextGens[gen.id] = {
-        bought: prevLayer.generators[gen.id]?.bought || prevLayer.generators[gen.id]?.owned || new BigNum(0),
-        owned: nextOwned
+        bought: prevGen?.bought || prevOwned,
+        owned: nextOwned,
+        startTick
       };
     }
 
@@ -585,6 +831,25 @@ export function advanceTime(state, config, elapsedMs, options = {}) {
       nextState: state,
       report: {
         elapsedMs: 0,
+        cyclesFired: new BigNum(0),
+        ticksEmitted: new BigNum(0),
+        currencyDeltas: {}
+      }
+    };
+  }
+
+  // If no generators are owned yet, idle elapsed time does not advance cycles
+  let totalOwned = 0;
+  for (const layer of config.layers) {
+    for (const gen of layer.generators || []) {
+      totalOwned += state.layers[layer.id]?.generators[gen.id]?.owned.toNumber() || 0;
+    }
+  }
+  if (totalOwned === 0) {
+    return {
+      nextState: { ...state, cycleRemainderMs: 0 },
+      report: {
+        elapsedMs,
         cyclesFired: new BigNum(0),
         ticksEmitted: new BigNum(0),
         currencyDeltas: {}
@@ -685,12 +950,25 @@ export function buyGenerator(state, config, layerId, genId, countOrMax = 1) {
   const currentBought = currentGen.bought || currentGen.owned || new BigNum(0);
   const currentOwned = currentGen.owned || new BigNum(0);
 
+  let totalOwnedBefore = 0;
+  for (const layer of config.layers) {
+    for (const gen of layer.generators || []) {
+      totalOwnedBefore += state.layers[layer.id]?.generators[gen.id]?.owned.toNumber() || 0;
+    }
+  }
+
+  const isFirstPurchaseOfGen = currentOwned.isZero();
+  const nextGenState = {
+    bought: currentBought.add(countToBuy),
+    owned: currentOwned.add(countToBuy),
+    startTick: isFirstPurchaseOfGen
+      ? (state.totalTicks ? state.totalTicks.toNumber() : 0)
+      : (currentGen.startTick || 0)
+  };
+
   const nextGenerators = {
     ...layerState.generators,
-    [genId]: {
-      bought: currentBought.add(countToBuy),
-      owned: currentOwned.add(countToBuy)
-    }
+    [genId]: nextGenState
   };
 
   const nextLayers = {
@@ -704,6 +982,7 @@ export function buyGenerator(state, config, layerId, genId, countOrMax = 1) {
 
   return {
     ...state,
+    cycleRemainderMs: totalOwnedBefore === 0 ? 0 : state.cycleRemainderMs,
     layers: nextLayers
   };
 }

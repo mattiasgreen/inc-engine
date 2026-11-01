@@ -4,7 +4,7 @@ import { defaultGameConfig } from '../src/engine/config.js';
 import { dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame } from '../src/games/index.js';
 import { createInitialState } from '../src/engine/core.js';
 import { Simulator } from '../src/engine/simulator.js';
-import { GreedyPolicy, OptimalRoiPolicy, PassivePolicy, AutoPrestigePolicy } from '../src/engine/policies.js';
+import { GreedyPolicy, OptimalRoiPolicy, SemiOptimalPolicy, PassivePolicy, AutoPrestigePolicy } from '../src/engine/policies.js';
 import { BigNum } from '../src/engine/bignum.js';
 
 describe('Simulator and Progression Pacing Seam', () => {
@@ -21,11 +21,11 @@ describe('Simulator and Progression Pacing Seam', () => {
   it('supports AutoPrestigePolicy to automatically reset upon reaching prestige threshold', () => {
     let state = createInitialState(defaultGameConfig);
     const simulator = new Simulator(defaultGameConfig);
-    const policy = new AutoPrestigePolicy({ prestigeLayerId: 'layer1', minReward: 1 });
+    const policy = new AutoPrestigePolicy({ prestigeLayerId: 'layer1', minReward: 1, basePolicy: new OptimalRoiPolicy() });
 
     const result = simulator.run(state, policy, {
       stopCondition: st => st.layers.layer1.currency.gte(1),
-      maxSimulatedMs: 15 * 60 * 1000
+      maxSimulatedMs: 3 * 60 * 60 * 1000
     });
 
     expect(result.state.layers.layer1.currency.gte(1)).toBe(true);
@@ -45,7 +45,7 @@ describe('Simulator and Progression Pacing Seam', () => {
     expect(result.history.length).toBeGreaterThan(0);
   });
 
-  it('proves First Prestige Window is paced between 5 and 15 minutes of simulated time across all registered games', () => {
+  it('proves First Prestige Window is paced around 2 hours of optimal play with sawtooth wait cadence and m1 milestone guardrail', () => {
     const games = [dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame];
     for (const gameConfig of games) {
       let state = createInitialState(gameConfig);
@@ -55,15 +55,55 @@ describe('Simulator and Progression Pacing Seam', () => {
       const target = new BigNum(1e6);
       const result = simulator.run(state, policy, {
         stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-        maxSimulatedMs: 25 * 60 * 1000 // 25 minutes max
+        maxSimulatedMs: 3 * 60 * 60 * 1000 // 3 hours max
       });
 
       expect(result.state.layers.layer0.runTotalCurrency.gte(target)).toBe(true);
 
       const elapsedSeconds = result.simulatedMs / 1000;
-      // Optimal robot reaches 1e6 in 10 to 20 minutes (around 14.1 minutes), pacing medium active human play to ~30 minutes
-      expect(elapsedSeconds).toBeGreaterThanOrEqual(600);
-      expect(elapsedSeconds).toBeLessThanOrEqual(1200);
+      // Optimal play reaches 1e6 in ~2 hours (between 90 and 140 minutes; calibrated to ~110.2 minutes / 6614s)
+      expect(elapsedSeconds).toBeGreaterThanOrEqual(5400);
+      expect(elapsedSeconds).toBeLessThanOrEqual(8400);
+
+      // Milestone guardrail: gen1 unlocks m1 (25 bought) on Run 1, but stays below m2 (50 bought) without hellroad grinding
+      const gen1Bought = result.state.layers.layer0.generators.gen1.bought.toNumber();
+      expect(gen1Bought).toBeGreaterThanOrEqual(25);
+      expect(gen1Bought).toBeLessThan(50);
+
+      // Sawtooth wait-time cadence: verify presence of rapid (<30s), tactical (~45-90s), major (~180-300s), and epoch (~360-650s) waits
+      const waitsSec = result.history.map(h => (h.waitMs || 0) / 1000);
+      const rapidSteps = waitsSec.filter(w => w > 0 && w <= 35).length;
+      const tacticalSteps = waitsSec.filter(w => w > 35 && w <= 100).length;
+      const majorJumps = waitsSec.filter(w => w >= 150 && w <= 320).length;
+      const epochJumps = waitsSec.filter(w => w > 320).length;
+
+      expect(rapidSteps).toBeGreaterThanOrEqual(10);
+      expect(tacticalSteps).toBeGreaterThanOrEqual(5);
+      expect(majorJumps).toBeGreaterThanOrEqual(3);
+      expect(epochJumps).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('proves Semi-Optimal play (human hesitation and offline pauses) reaches First Prestige in ~3.5 to 4.5 hours', () => {
+    const games = [dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame];
+    for (const gameConfig of games) {
+      let state = createInitialState(gameConfig);
+      const simulator = new Simulator(gameConfig);
+      // Realistic human semi-optimal play: hesitation lag, occasional generator bias, and 3 offline breaks
+      const policy = new SemiOptimalPolicy();
+
+      const target = new BigNum(1e6);
+      const result = simulator.run(state, policy, {
+        stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
+        maxSimulatedMs: 6 * 60 * 60 * 1000 // 6 hours max
+      });
+
+      expect(result.state.layers.layer0.runTotalCurrency.gte(target)).toBe(true);
+
+      const elapsedHours = result.simulatedMs / (3600 * 1000);
+      // Calibrated to ~3.5 to 4.5 hours of semi-active human play
+      expect(elapsedHours).toBeGreaterThanOrEqual(3.0);
+      expect(elapsedHours).toBeLessThanOrEqual(4.8);
     }
   });
 
@@ -76,7 +116,7 @@ describe('Simulator and Progression Pacing Seam', () => {
     let state = createInitialState(defaultGameConfig);
     const run1 = simulator.run(state, policy, {
       stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-      maxSimulatedMs: 25 * 60 * 1000
+      maxSimulatedMs: 3 * 60 * 60 * 1000
     });
     const run1DurationMs = run1.simulatedMs;
 
@@ -90,7 +130,7 @@ describe('Simulator and Progression Pacing Seam', () => {
     // Run 2: from reset to 1e6 again
     const run2 = simulator.run(state, policy, {
       stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-      maxSimulatedMs: 25 * 60 * 1000
+      maxSimulatedMs: 3 * 60 * 60 * 1000
     });
     const run2DurationMs = run2.simulatedMs;
 

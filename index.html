@@ -21,7 +21,7 @@
       --bg: #090d16;
       --card-bg: #131c2e;
       --card-border: #23314a;
-      --text: #f1f5f9;
+      --text: #e2e8f0;
       --text-muted: #94a3b8;
       --primary: #38bdf8;
       --primary-hover: #0ea5e9;
@@ -42,11 +42,24 @@
       --banner-border: var(--card-border);
       --tag-case: uppercase;
       --tag-letter-spacing: 0.05em;
-      --badge-bg: rgba(56, 189, 248, 0.15);
+      --badge-bg: rgba(56, 189, 248, 0.12);
       --badge-color: var(--primary);
-      --btn-sec-bg: var(--secondary);
-      --btn-sec-color: #fff;
-      --btn-sec-border: transparent;
+      --btn-bg: rgba(0, 0, 0, 0.60);
+      --btn-bg-hover: rgba(0, 0, 0, 0.78);
+      --btn-bg-disabled: rgba(0, 0, 0, 0.45);
+      --btn-text: #ffffff;
+      --btn-text-disabled: rgba(255, 255, 255, 0.42);
+      --btn-primary-border: var(--primary);
+      --btn-primary-glow: inset 0 0 12px rgba(56, 189, 248, 0.18), 0 2px 8px rgba(0, 0, 0, 0.45);
+      --btn-sec-bg: rgba(0, 0, 0, 0.60);
+      --btn-sec-color: #ffffff;
+      --btn-sec-border: rgba(255, 255, 255, 0.24);
+      --upg-card-scrim: linear-gradient(135deg, rgba(4, 7, 14, 0.90) 0%, rgba(6, 10, 20, 0.80) 52%, rgba(8, 14, 26, 0.62) 100%);
+      --upg-card-scrim-hover: linear-gradient(135deg, rgba(4, 7, 14, 0.84) 0%, rgba(6, 10, 20, 0.72) 52%, rgba(8, 14, 26, 0.48) 100%);
+      --viewport-vignette: none;
+      --ambient-overlay: none;
+      --title-text-shadow: none;
+      --portrait-glow: 0 0 10px var(--primary);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
@@ -62,6 +75,7 @@
       flex-direction: column;
     }
     body {
+      position: relative;
       font-family: var(--font-body);
       background-color: var(--bg);
       background-image: var(--bg-pattern);
@@ -73,8 +87,23 @@
       line-height: 1.4;
       transition: background 0.3s ease, color 0.3s ease;
     }
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--viewport-vignette, none);
+      pointer-events: none;
+      z-index: 900;
+    }
+    body.fidelity-no-card-effects::after {
+      display: none;
+    }
     h1, h2, h3, h4, .panel-title, .currency-display {
       font-family: var(--font-display);
+      text-shadow: var(--title-text-shadow, none);
     }
     header {
       position: relative;
@@ -231,8 +260,8 @@
       height: 42px;
       border-radius: 50%;
       overflow: hidden;
-      border: 2px solid var(--primary);
-      box-shadow: 0 0 10px var(--primary);
+      border: 1.5px solid var(--btn-primary-border, var(--primary));
+      box-shadow: var(--portrait-glow, 0 0 8px rgba(0, 0, 0, 0.7));
       flex-shrink: 0;
       display: flex;
       align-items: center;
@@ -462,9 +491,10 @@
       letter-spacing: var(--tag-letter-spacing);
     }
     .mobile-tab-btn.active {
-      background: var(--primary);
-      color: #060a12;
+      background: var(--btn-bg, rgba(0, 0, 0, 0.60));
+      color: var(--btn-text, #ffffff);
       border-color: var(--primary);
+      box-shadow: var(--btn-primary-glow, inset 0 0 10px rgba(56, 189, 248, 0.2));
       font-weight: 700;
     }
 
@@ -675,7 +705,8 @@
     .card.locked { opacity: 0.5; border-style: dashed; }
     .card.maxed { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.02); }
 
-    /* Upgrade Cards - Art graphic spans the whole card */
+    /* Generator and Upgrade Cards - Art graphic spans the whole card */
+    .card.gen-card,
     .card.upg-card {
       position: relative;
       overflow: hidden;
@@ -688,21 +719,37 @@
       padding: 1.1rem;
       transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
     }
+    .card.gen-card::before,
     .card.upg-card::before {
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, rgba(6, 10, 18, 0.92) 0%, rgba(8, 14, 26, 0.86) 52%, rgba(10, 18, 32, 0.72) 100%);
+      background: var(--gen-card-scrim, var(--upg-card-scrim, linear-gradient(135deg, rgba(4, 7, 14, 0.90) 0%, rgba(6, 10, 20, 0.80) 52%, rgba(8, 14, 26, 0.62) 100%)));
       pointer-events: none;
       z-index: 0;
       transition: background 0.3s ease;
     }
+    .card.gen-card:hover::before,
     .card.upg-card:hover::before {
-      background: linear-gradient(135deg, rgba(6, 10, 18, 0.84) 0%, rgba(8, 14, 26, 0.74) 52%, rgba(10, 18, 32, 0.52) 100%);
+      background: var(--gen-card-scrim-hover, var(--upg-card-scrim-hover, linear-gradient(135deg, rgba(4, 7, 14, 0.84) 0%, rgba(6, 10, 20, 0.72) 52%, rgba(8, 14, 26, 0.48) 100%)));
     }
+    .card.gen-card > *,
     .card.upg-card > * {
       position: relative;
       z-index: 1;
+    }
+    .card.gen-card h3,
+    .card.gen-card .lore-text,
+    .card.gen-card .desc,
+    .card.gen-card .output-meta,
+    .card.upg-card h4,
+    .card.upg-card .lore-text,
+    .card.upg-card .desc {
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 12px rgba(0, 0, 0, 0.75);
+    }
+    .card.gen-card .desc,
+    .card.upg-card .desc {
+      color: var(--text);
     }
 
     .card-icon {
@@ -710,18 +757,18 @@
       height: 44px;
       border-radius: var(--border-radius-card);
       overflow: hidden;
-      border: 1.5px solid var(--primary);
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+      border: 1px solid var(--btn-primary-border, var(--primary));
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.5);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .card-icon:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 14px var(--primary);
+      box-shadow: 0 0 12px var(--primary);
     }
     .card-icon .gen-thumb-img,
     .card-icon .upg-thumb-img {
@@ -739,13 +786,13 @@
       height: 44px;
       border-radius: var(--border-radius-card);
       overflow: hidden;
-      border: 1.5px solid var(--primary);
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+      border: 1px solid var(--btn-primary-border, var(--primary));
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
       flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0, 0, 0, 0.5);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .card-thumb-art:hover {
@@ -877,50 +924,85 @@
     .btn {
       padding: 0.55rem 0.95rem;
       border-radius: var(--border-radius-btn);
-      border: 1px solid transparent;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: var(--btn-bg, rgba(0, 0, 0, 0.60));
+      color: var(--btn-text, #ffffff);
       font-family: var(--font-body);
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       letter-spacing: var(--tag-letter-spacing);
       text-transform: var(--tag-case);
-      transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
     }
     .btn:active { transform: translateY(1px); }
-    .btn.primary { background: var(--primary); color: #090d16; border-color: var(--primary); }
-    .btn.primary:hover { background: var(--primary-hover); }
-    .btn.secondary { background: var(--btn-sec-bg); color: var(--btn-sec-color); border-color: var(--btn-sec-border); }
-    .btn.secondary:hover { opacity: 0.9; }
-    .btn.danger { background: var(--danger); color: #fff; }
-    .btn.danger:hover { background: var(--danger-hover); }
-    .btn.disabled { background: #1e293b; color: #64748b; border-color: transparent; cursor: not-allowed; }
+    .btn.primary {
+      background: var(--btn-bg, rgba(0, 0, 0, 0.60));
+      color: var(--btn-text, #ffffff);
+      border-color: var(--btn-primary-border, var(--primary));
+      box-shadow: var(--btn-primary-glow, inset 0 0 12px rgba(56, 189, 248, 0.18), 0 2px 8px rgba(0, 0, 0, 0.45));
+    }
+    .btn.primary:hover:not(:disabled) {
+      background: var(--btn-bg-hover, rgba(0, 0, 0, 0.78));
+      border-color: var(--primary-hover, var(--primary));
+      box-shadow: inset 0 0 16px rgba(255, 255, 255, 0.12), 0 0 12px var(--primary);
+    }
+    .btn.secondary {
+      background: var(--btn-sec-bg, rgba(0, 0, 0, 0.60));
+      color: var(--btn-sec-color, #ffffff);
+      border-color: var(--btn-sec-border, rgba(255, 255, 255, 0.24));
+    }
+    .btn.secondary:hover:not(:disabled) {
+      background: var(--btn-bg-hover, rgba(0, 0, 0, 0.78));
+      border-color: var(--primary);
+    }
+    .btn.danger {
+      background: rgba(0, 0, 0, 0.65);
+      color: #ffffff;
+      border-color: var(--danger);
+      box-shadow: inset 0 0 12px rgba(244, 63, 94, 0.22);
+    }
+    .btn.danger:hover:not(:disabled) {
+      background: rgba(244, 63, 94, 0.28);
+      border-color: var(--danger-hover);
+    }
+    .btn.disabled, .btn:disabled {
+      background: var(--btn-bg-disabled, rgba(0, 0, 0, 0.45));
+      color: var(--btn-text-disabled, rgba(255, 255, 255, 0.42));
+      border-color: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
 
-    /* Upgrade Buttons - Softer blended glassmorphic styling */
+    /* Upgrade Buttons - Smoked-Glass Scrim over full-bleed card artwork */
     .btn-upgrade {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--primary);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: var(--btn-bg, rgba(0, 0, 0, 0.60));
+      color: var(--btn-text, #ffffff);
+      border: 1px solid rgba(255, 255, 255, 0.22);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      box-shadow: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
       transition: all 0.2s ease;
     }
     .btn-upgrade.primary {
-      background: var(--btn-sec-bg, rgba(56, 189, 248, 0.12));
-      color: var(--primary);
-      border: 1px solid var(--btn-sec-border, rgba(56, 189, 248, 0.35));
-      box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.05);
+      background: var(--btn-bg, rgba(0, 0, 0, 0.60));
+      color: var(--btn-text, #ffffff);
+      border: 1px solid var(--btn-primary-border, var(--primary));
+      box-shadow: var(--btn-primary-glow, inset 0 0 12px rgba(56, 189, 248, 0.18), 0 2px 10px rgba(0, 0, 0, 0.55));
     }
     .btn-upgrade.primary:hover:not(:disabled) {
-      background: rgba(56, 189, 248, 0.22);
+      background: var(--btn-bg-hover, rgba(0, 0, 0, 0.78));
       border-color: var(--primary);
-      color: #fff;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+      color: #ffffff;
+      box-shadow: inset 0 0 16px rgba(255, 255, 255, 0.14), 0 0 14px var(--primary);
     }
     .btn-upgrade.disabled, .btn-upgrade:disabled {
-      background: rgba(255, 255, 255, 0.02);
-      color: #64748b;
-      border-color: rgba(255, 255, 255, 0.04);
+      background: var(--btn-bg-disabled, rgba(0, 0, 0, 0.48));
+      color: var(--btn-text-disabled, rgba(255, 255, 255, 0.42));
+      border-color: rgba(255, 255, 255, 0.10);
       cursor: not-allowed;
       box-shadow: none;
     }
@@ -1177,11 +1259,11 @@
         min-height: 36px;
       }
       .mobile-tab-btn.active {
-        background: var(--primary);
-        color: #060a12;
+        background: var(--btn-bg, rgba(0, 0, 0, 0.60));
+        color: var(--btn-text, #ffffff);
         border-color: var(--primary);
         font-weight: 700;
-        box-shadow: 0 0 10px var(--primary);
+        box-shadow: var(--btn-primary-glow, 0 0 10px var(--primary));
       }
       .spa-workspace {
         flex-direction: column !important;
@@ -1290,6 +1372,159 @@
         gap: 0.85rem;
       }
     }
+
+    /* Generator Progress Bar & Overdrive State */
+    @keyframes overdriveShimmer {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+    .gen-progress-track {
+      position: relative;
+      width: 100%;
+      height: 16px;
+      background: rgba(6, 10, 18, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.35rem 0 0.45rem 0;
+    }
+    .gen-progress-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.45) 0%, var(--primary) 100%);
+      transform-origin: left center;
+      transform: scaleX(0);
+      will-change: transform;
+    }
+    .gen-progress-track.overdrive {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.40), inset 0 0 8px rgba(245, 158, 11, 0.25);
+    }
+    .gen-progress-track.overdrive .gen-progress-fill {
+      transform: scaleX(1) !important;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 25%, #ffffff 50%, var(--accent) 75%, var(--primary) 100%);
+      background-size: 200% 100%;
+      animation: overdriveShimmer 1.4s linear infinite;
+      opacity: 0.90;
+    }
+    body.fidelity-no-overdrive-glow .gen-progress-track.overdrive {
+      box-shadow: none;
+    }
+    body.fidelity-no-overdrive-glow .gen-progress-track.overdrive .gen-progress-fill {
+      animation: none;
+    }
+    .gen-progress-label {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+      padding: 0 0.45rem;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #f8fafc;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+      pointer-events: none;
+    }
+
+    /* Milestone Rarity Tiers (m0..m4) & ETA Hints */
+    .milestone-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      margin-bottom: 0.35rem;
+      flex-wrap: wrap;
+    }
+    .milestone-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.66rem;
+      font-weight: 700;
+      padding: 0.12rem 0.42rem;
+      border-radius: 3px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.75);
+      color: #cbd5e1;
+    }
+    .milestone-badge.tier-m1 {
+      border-color: #10b981;
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.16);
+    }
+    .milestone-badge.tier-m2 {
+      border-color: #38bdf8;
+      color: #7dd3fc;
+      background: rgba(56, 189, 248, 0.16);
+    }
+    .milestone-badge.tier-m3 {
+      border-color: #c084fc;
+      color: #d8b4fe;
+      background: rgba(192, 132, 252, 0.18);
+    }
+    .milestone-badge.tier-m4 {
+      border-color: #f59e0b;
+      color: #fde68a;
+      background: rgba(245, 158, 11, 0.22);
+    }
+    body:not(.fidelity-no-card-effects) .card.tier-m1 {
+      border-color: rgba(16, 185, 129, 0.55);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+    }
+    body:not(.fidelity-no-card-effects) .card.tier-m2 {
+      border-color: rgba(56, 189, 248, 0.65);
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.18);
+    }
+    body:not(.fidelity-no-card-effects) .card.tier-m3 {
+      border-color: rgba(192, 132, 252, 0.7);
+      box-shadow: 0 0 16px rgba(192, 132, 252, 0.22);
+    }
+    body:not(.fidelity-no-card-effects) .card.tier-m4 {
+      border-color: rgba(245, 158, 11, 0.85);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.28);
+    }
+    .eta-hint {
+      font-size: 0.68rem;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    /* Fidelity Settings Modal */
+    .fidelity-preset-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
+      margin-bottom: 0.9rem;
+    }
+    .fidelity-option-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0.65rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      margin-bottom: 0.45rem;
+      gap: 0.75rem;
+    }
+    .fidelity-option-row label {
+      font-size: 0.82rem;
+      color: var(--text);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -1310,6 +1545,9 @@
           <span>New update!</span>
           <button id="btn-refresh-app" class="btn primary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;">Refresh</button>
         </div>
+        <button id="btn-fidelity-settings" class="btn secondary" style="padding: 0.25rem 0.55rem; font-size: 0.74rem;" title="Configure UI Fidelity & Performance">
+          ⚙ Fidelity: Full
+        </button>
         <label for="game-select" class="game-switcher-label">Game:</label>
         <select id="game-select" class="game-select" aria-label="Game World Selector"></select>
         <button id="btn-install-pwa" class="btn primary" style="display: none; align-items: center; gap: 0.35rem; padding: 0.25rem 0.6rem; font-size: 0.76rem;" title="Install as Progressive Web App">
@@ -1514,6 +1752,44 @@
       <button id="btn-close-lightbox" class="lightbox-close" aria-label="Close Fullscreen View">✕</button>
       <img id="lightbox-img" class="lightbox-image" src="" alt="Full Screen Artwork" />
       <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <!-- UI Fidelity & Performance Modal -->
+  <div id="fidelity-modal" class="modal-backdrop">
+    <div class="modal">
+      <h2 style="margin-bottom: 0.4rem; color: var(--primary);">UI Fidelity & Performance</h2>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+        Choose a rendering preset or customize individual visual settings. Progress calculations remain 100% deterministic regardless of UI frame rate.
+      </p>
+      <div class="fidelity-preset-row">
+        <button class="btn secondary fidelity-preset-btn" data-preset="full" id="btn-preset-full">Full (60 Hz)</button>
+        <button class="btn secondary fidelity-preset-btn" data-preset="eco" id="btn-preset-eco">Eco (10 Hz)</button>
+        <button class="btn secondary fidelity-preset-btn" data-preset="minimal" id="btn-preset-minimal">Minimal (Static)</button>
+      </div>
+      <div class="modal-content" style="margin-bottom: 1rem;">
+        <div class="fidelity-option-row">
+          <label for="fidelity-progress-mode">Generator Progress Bar</label>
+          <select id="fidelity-progress-mode" class="game-select" style="min-width: 145px;">
+            <option value="smooth">Smooth (60 Hz GPU)</option>
+            <option value="stepped">Stepped (10 Hz)</option>
+            <option value="off">Static (Disabled)</option>
+          </select>
+        </div>
+        <div class="fidelity-option-row">
+          <label for="fidelity-overdrive-glow">Overdrive Glow (&ge; 1 Hz)</label>
+          <input type="checkbox" id="fidelity-overdrive-glow" checked style="width: 18px; height: 18px; accent-color: var(--primary);" />
+        </div>
+        <div class="fidelity-option-row">
+          <label for="fidelity-particle-bursts">Purchase Particle Bursts</label>
+          <input type="checkbox" id="fidelity-particle-bursts" checked style="width: 18px; height: 18px; accent-color: var(--primary);" />
+        </div>
+        <div class="fidelity-option-row">
+          <label for="fidelity-card-effects">Card Pulse &amp; Rarity Glow</label>
+          <input type="checkbox" id="fidelity-card-effects" checked style="width: 18px; height: 18px; accent-color: var(--primary);" />
+        </div>
+      </div>
+      <button id="btn-close-fidelity-modal" class="btn primary" style="width: 100%;">Apply &amp; Close</button>
     </div>
   </div>
 

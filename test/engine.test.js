@@ -36,27 +36,27 @@ describe('Engine Core Seam', () => {
 
     // Advance 5 ticks
     state = advanceTicks(state, defaultGameConfig, new BigNum(5));
-    // Base output of gen1 is 1 per tick -> 5 currency
-    expect(state.layers.layer0.currency.toNumber()).toBe(5);
+    // Base output of gen1 is 6 per tick -> 30 currency
+    expect(state.layers.layer0.currency.toNumber()).toBe(30);
   });
 
   it('converts elapsed wall-clock milliseconds into cycles and ticks preserving remainder', () => {
     let state = createInitialState(defaultGameConfig);
     state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
 
-    // Base clock: 1000ms per cycle, 1 tick per cycle
-    // Advance 1500ms -> 1 cycle fired, 500ms remainder
-    const { nextState, report } = advanceTime(state, defaultGameConfig, 1500);
+    // Base clock: 6000ms per cycle, 1 tick per cycle (6 currency/tick)
+    // Advance 9000ms -> 1 cycle fired (6000ms), 3000ms remainder
+    const { nextState, report } = advanceTime(state, defaultGameConfig, 9000);
     expect(report.cyclesFired.toNumber()).toBe(1);
     expect(report.ticksEmitted.toNumber()).toBe(1);
-    expect(nextState.cycleRemainderMs).toBe(500);
-    expect(nextState.layers.layer0.currency.toNumber()).toBe(1);
+    expect(nextState.cycleRemainderMs).toBe(3000);
+    expect(nextState.layers.layer0.currency.toNumber()).toBe(6);
 
-    // Advance another 500ms -> total 1000ms with remainder -> 1 more cycle fired
-    const second = advanceTime(nextState, defaultGameConfig, 500);
+    // Advance another 3000ms -> total 6000ms with remainder -> 1 more cycle fired
+    const second = advanceTime(nextState, defaultGameConfig, 3000);
     expect(second.report.cyclesFired.toNumber()).toBe(1);
     expect(second.nextState.cycleRemainderMs).toBe(0);
-    expect(second.nextState.layers.layer0.currency.toNumber()).toBe(2);
+    expect(second.nextState.layers.layer0.currency.toNumber()).toBe(12);
   });
 
   it('supports Buy Max via closed-form geometric series', () => {
@@ -80,13 +80,13 @@ describe('Engine Core Seam', () => {
     state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
 
     // Give enough currency to buy upgrades
-    state.layers.layer0.currency = new BigNum(10000);
+    state.layers.layer0.currency = new BigNum(100000);
 
     // Buy Cycle Accelerator (increases cycle frequency)
     state = buyUpgrade(state, defaultGameConfig, 'layer0', 'upg_cycle_accel');
     const stats1 = getDerivedStats(state, defaultGameConfig);
     expect(stats1.cycleFrequencyMultiplier).toBeGreaterThan(1.0);
-    expect(stats1.effectiveCycleDurationMs).toBeLessThan(1000);
+    expect(stats1.effectiveCycleDurationMs).toBeLessThan(6000);
 
     // Buy Tick Amplifier (multiplies ticks per cycle)
     state = buyUpgrade(state, defaultGameConfig, 'layer0', 'upg_tick_amp');
@@ -128,10 +128,10 @@ describe('Engine Core Seam', () => {
     let state = createInitialState(defaultGameConfig);
     state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
 
-    // Advance 10 seconds with mode: 'chunked' and maxSlices: 5
-    const { nextState, report } = advanceTime(state, defaultGameConfig, 10000, { mode: 'chunked', maxSlices: 5 });
+    // Advance 60 seconds (10 cycles of 6000ms each) with mode: 'chunked' and maxSlices: 5
+    const { nextState, report } = advanceTime(state, defaultGameConfig, 60000, { mode: 'chunked', maxSlices: 5 });
     expect(report.cyclesFired.toNumber()).toBe(10);
-    expect(nextState.layers.layer0.currency.toNumber()).toBe(10);
+    expect(nextState.layers.layer0.currency.toNumber()).toBe(60);
     expect(nextState.layers.layer0.ticksInLayer.toNumber()).toBe(10);
   });
 
@@ -318,5 +318,96 @@ describe('Engine Core Seam', () => {
     // Layer 0 generators reset: Gen 1 is visible, Gen 2/3 are re-hidden until Gen 1 is bought again
     expect(stats4.visibility.generators.layer0.gen1).toBe('visible');
     expect(stats4.visibility.generators.layer0.gen2).toBe('hidden');
+  });
+
+  it('computes deterministic Cycle Phase, integer-Tick Batch Payouts, and 1 Hz Overdrive State', () => {
+    const periodConfig = {
+      id: 'test-period',
+      clock: { baseCycleDurationMs: 1000, baseTicksPerCycle: 1 },
+      layers: [
+        {
+          id: 'layer0',
+          currency: { id: 'energy', initialAmount: 10 },
+          generators: [
+            {
+              id: 'gen_slow',
+              image: './assets/gen-dyson-2.jpg',
+              baseCost: 10,
+              costGrowth: 1.4,
+              cyclePeriodTicks: 4,
+              batchPayout: true,
+              baseOutputPerTick: 5,
+              produces: 'currency'
+            }
+          ],
+          upgrades: [
+            {
+              id: 'upg_compress',
+              baseCost: 10,
+              costGrowth: 2,
+              maxLevel: 2,
+              effect: { target: 'generatorPeriod', targetId: 'all', operation: 'divide', value: 2.0 }
+            }
+          ]
+        }
+      ]
+    };
+
+    let state = createInitialState(periodConfig);
+    state = buyGenerator(state, periodConfig, 'layer0', 'gen_slow', 1);
+
+    // At 0 ticks, 500ms remainder -> 0.5 / 4 = 0.125 Cycle Phase, not in Overdrive (4000ms > 1000ms)
+    const { nextState: stHalf } = advanceTime(state, periodConfig, 500);
+    const statsHalf = getDerivedStats(stHalf, periodConfig);
+    expect(statsHalf.generatorPeriods.layer0.gen_slow).toBe(4);
+    expect(statsHalf.generatorOverdrive.layer0.gen_slow).toBe(false);
+    expect(Math.abs(statsHalf.generatorCyclePhase.layer0.gen_slow - 0.125)).toBeLessThan(1e-6);
+
+    // Batch Payout: Ticks 1, 2, 3 award 0 currency while bar fills; Tick 4 awards full batch (4 * 5 = 20)
+    let stTick = advanceTicks(state, periodConfig, new BigNum(1));
+    expect(stTick.layers.layer0.currency.toNumber()).toBe(0);
+    stTick = advanceTicks(stTick, periodConfig, new BigNum(1));
+    expect(stTick.layers.layer0.currency.toNumber()).toBe(0);
+    stTick = advanceTicks(stTick, periodConfig, new BigNum(1));
+    expect(stTick.layers.layer0.currency.toNumber()).toBe(0);
+    stTick = advanceTicks(stTick, periodConfig, new BigNum(1));
+    expect(stTick.layers.layer0.currency.toNumber()).toBe(20);
+
+    // Buying 2 levels of Period Compression divides period by 4 (4 -> 1 Tick = 1000ms <= 1000ms -> Overdrive!)
+    stTick.layers.layer0.currency = new BigNum(100);
+    stTick = buyUpgrade(stTick, periodConfig, 'layer0', 'upg_compress');
+    stTick = buyUpgrade(stTick, periodConfig, 'layer0', 'upg_compress');
+    const statsOd = getDerivedStats(stTick, periodConfig);
+    expect(statsOd.generatorPeriods.layer0.gen_slow).toBe(1);
+    expect(statsOd.generatorOverdrive.layer0.gen_slow).toBe(true);
+    expect(statsOd.generatorCyclePhase.layer0.gen_slow).toBe(1.0);
+  });
+
+  it('tracks Milestone Tiers (m0..m4), asset naming conventions, and anticipatory upgrade archetypes', () => {
+    let state = createInitialState(defaultGameConfig);
+    const stats0 = getDerivedStats(state, defaultGameConfig);
+    const ms0 = stats0.generatorMilestones.layer0.gen1;
+    expect(ms0.tierId).toBe('m0');
+    expect(ms0.tierName).toBe('Common');
+    expect(ms0.multiplier).toBe(1);
+    expect(ms0.assetPath).toBe('./assets/gen-dyson-1-m0.jpg');
+
+    // Reaching 25 bought upgrades gen1 to m1 (Uncommon, 2x multiplier) and updates asset path to -m1.jpg
+    state.layers.layer0.generators.gen1.bought = new BigNum(25);
+    state.layers.layer0.generators.gen1.owned = new BigNum(25);
+    const statsM1 = getDerivedStats(state, defaultGameConfig);
+    const ms1 = statsM1.generatorMilestones.layer0.gen1;
+    expect(ms1.tierId).toBe('m1');
+    expect(ms1.tierName).toBe('Uncommon');
+    expect(ms1.multiplier).toBe(2);
+    expect(ms1.assetPath).toBe('./assets/gen-dyson-1-m1.jpg');
+    expect(statsM1.characterMilestone.tierId).toBe('m1');
+
+    // Reaching 50 bought upgrades gen1 to m2 (Rare, 4x), 100 -> m3 (Epic, 12x), 250 -> m4 (Legendary, 50x)
+    state.layers.layer0.generators.gen1.bought = new BigNum(250);
+    const statsM4 = getDerivedStats(state, defaultGameConfig);
+    expect(statsM4.generatorMilestones.layer0.gen1.tierId).toBe('m4');
+    expect(statsM4.generatorMilestones.layer0.gen1.multiplier).toBe(50);
+    expect(statsM4.generatorMilestones.layer0.gen1.assetPath).toBe('./assets/gen-dyson-1-m4.jpg');
   });
 });

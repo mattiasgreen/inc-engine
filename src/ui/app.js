@@ -16,12 +16,186 @@ let simulator;
 const generatorUI = {};
 const upgradeUI = {};
 
+const FIDELITY_STORAGE_KEY = 'inc_engine_fidelity_settings';
+export const FIDELITY_PRESETS = {
+  full: {
+    preset: 'full',
+    progressBarMode: 'smooth',
+    overdriveGlow: true,
+    particleBursts: true,
+    cardRarityEffects: true
+  },
+  eco: {
+    preset: 'eco',
+    progressBarMode: 'stepped',
+    overdriveGlow: true,
+    particleBursts: false,
+    cardRarityEffects: true
+  },
+  minimal: {
+    preset: 'minimal',
+    progressBarMode: 'off',
+    overdriveGlow: false,
+    particleBursts: false,
+    cardRarityEffects: false
+  }
+};
+
+let fidelitySettings = loadFidelitySettings();
+let rafId = null;
+let cachedRenderStats = null;
+
+function loadFidelitySettings() {
+  try {
+    const raw = localStorage.getItem(FIDELITY_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { ...FIDELITY_PRESETS.full, ...parsed };
+    }
+  } catch {
+    // Fallback to default
+  }
+  const prefersReduced = typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return prefersReduced ? { ...FIDELITY_PRESETS.eco } : { ...FIDELITY_PRESETS.full };
+}
+
+function saveFidelitySettings() {
+  try {
+    localStorage.setItem(FIDELITY_STORAGE_KEY, JSON.stringify(fidelitySettings));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function detectPresetName(settings) {
+  for (const [key, preset] of Object.entries(FIDELITY_PRESETS)) {
+    if (
+      settings.progressBarMode === preset.progressBarMode &&
+      Boolean(settings.overdriveGlow) === preset.overdriveGlow &&
+      Boolean(settings.particleBursts) === preset.particleBursts &&
+      Boolean(settings.cardRarityEffects) === preset.cardRarityEffects
+    ) {
+      return key;
+    }
+  }
+  return 'custom';
+}
+
+function applyFidelitySettings() {
+  fidelitySettings.preset = detectPresetName(fidelitySettings);
+  saveFidelitySettings();
+
+  document.body.classList.toggle('fidelity-no-overdrive-glow', !fidelitySettings.overdriveGlow);
+  document.body.classList.toggle('fidelity-no-card-effects', !fidelitySettings.cardRarityEffects);
+
+  const labelMap = { full: 'Full', eco: 'Eco', minimal: 'Minimal', custom: 'Custom' };
+  const headerBtn = document.getElementById('btn-fidelity-settings');
+  if (headerBtn) {
+    headerBtn.textContent = `⚙ Fidelity: ${labelMap[fidelitySettings.preset] || 'Custom'}`;
+  }
+
+  // Sync modal controls if present
+  const modeSelect = document.getElementById('fidelity-progress-mode');
+  if (modeSelect) modeSelect.value = fidelitySettings.progressBarMode;
+  const odCheck = document.getElementById('fidelity-overdrive-glow');
+  if (odCheck) odCheck.checked = Boolean(fidelitySettings.overdriveGlow);
+  const burstCheck = document.getElementById('fidelity-particle-bursts');
+  if (burstCheck) burstCheck.checked = Boolean(fidelitySettings.particleBursts);
+  const cardCheck = document.getElementById('fidelity-card-effects');
+  if (cardCheck) cardCheck.checked = Boolean(fidelitySettings.cardRarityEffects);
+
+  document.querySelectorAll('.fidelity-preset-btn').forEach(btn => {
+    const isMatch = btn.dataset.preset === fidelitySettings.preset;
+    btn.className = `btn fidelity-preset-btn ${isMatch ? 'primary' : 'secondary'}`;
+  });
+
+  // Start or stop smooth 60Hz GPU progress bar loop
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+  if (fidelitySettings.progressBarMode === 'smooth') {
+    rafId = requestAnimationFrame(updateSmoothProgressBars);
+  }
+}
+
+function updateSmoothProgressBars() {
+  if (fidelitySettings.progressBarMode !== 'smooth') {
+    rafId = null;
+    return;
+  }
+  try {
+    if (session && cachedRenderStats && activeConfig) {
+      const state = session.getState();
+      const now = session.clock.nowMs();
+      const elapsedSinceTick = Math.max(0, now - (session.lastTickAtMs || now));
+      const effCycleMs = cachedRenderStats.effectiveCycleDurationMs || 1000;
+      const totalCycleMs = (state.cycleRemainderMs || 0) + elapsedSinceTick;
+      const extraCycles = Math.floor(totalCycleMs / effCycleMs);
+      const remMs = totalCycleMs % effCycleMs;
+      const cyclePhase = Math.min(1, Math.max(0, remMs / effCycleMs));
+      const tickYieldNum = cachedRenderStats.tickYieldPerCycle?.toNumber() || 1;
+      const baseTicksNum = (state.totalTicks?.toNumber() || 0) + extraCycles * tickYieldNum;
+
+      const l0Gens = activeConfig.layers[0]?.generators || [];
+      for (const gen of l0Gens) {
+        const ui = generatorUI.layer0?.[gen.id];
+        if (!ui || !ui.progressFill) continue;
+        const genState = state.layers.layer0?.generators?.[gen.id];
+        const owned = genState?.owned;
+        if (!owned || owned.lte(0)) {
+          ui.progressFill.style.transform = 'scaleX(0)';
+          continue;
+        }
+
+        const isOverdrive = cachedRenderStats.generatorOverdrive?.layer0?.[gen.id];
+        if (isOverdrive) {
+          ui.progressFill.style.transform = 'scaleX(1)';
+          continue;
+        }
+
+        const periodTicks = cachedRenderStats.generatorPeriods?.layer0?.[gen.id] || 1;
+        const startTick = genState.startTick || 0;
+        const ticksSinceStart = Math.max(0, baseTicksNum - startTick);
+        const tickOffset = ticksSinceStart % periodTicks;
+        const fracTicks = Math.min(1, cyclePhase * tickYieldNum);
+        const phase = Math.min(1, Math.max(0, (tickOffset + fracTicks) / periodTicks));
+        ui.progressFill.style.transform = `scaleX(${phase.toFixed(4)})`;
+
+        const effPeriodMs = cachedRenderStats.generatorEffectivePeriodMs?.layer0?.[gen.id] || 1000;
+        if (ui.phaseText && effPeriodMs >= 15000) {
+          const pct = Math.min(99, Math.floor(phase * 100));
+          ui.phaseText.textContent = `${pct}%`;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Smooth progress bar update error:', err);
+  } finally {
+    rafId = requestAnimationFrame(updateSmoothProgressBars);
+  }
+}
+
+function formatEtaSeconds(sec) {
+  if (!isFinite(sec) || sec <= 0) return '';
+  if (sec < 60) return `ETA: ~${Math.max(1, Math.ceil(sec))}s`;
+  const mins = Math.floor(sec / 60);
+  const remSec = Math.round(sec % 60);
+  if (mins < 60) return remSec > 0 ? `ETA: ~${mins}m ${remSec}s` : `ETA: ~${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return `ETA: ~${hrs}h ${remMins}m`;
+}
+
 function triggerUpgradeAnimation(btn, card, label = '+UPGRADE!') {
-  if (btn) {
+  if (btn && fidelitySettings.cardRarityEffects) {
     btn.classList.remove('anim-upgrade-btn');
     void btn.offsetWidth; // Trigger reflow
     btn.classList.add('anim-upgrade-btn');
-
+  }
+  if (btn && fidelitySettings.particleBursts) {
     // Spawn floating particle burst relative to viewport
     const rect = btn.getBoundingClientRect();
     const burst = document.createElement('div');
@@ -35,7 +209,7 @@ function triggerUpgradeAnimation(btn, card, label = '+UPGRADE!') {
       burst.remove();
     }, 750);
   }
-  if (card) {
+  if (card && fidelitySettings.cardRarityEffects) {
     card.classList.remove('anim-card-pulse');
     void card.offsetWidth; // Trigger reflow
     card.classList.add('anim-card-pulse');
@@ -61,6 +235,7 @@ function handleAppResume() {
 }
 
 function init() {
+  applyFidelitySettings();
   initGame(activeGameId);
   renderVersion();
 
@@ -341,7 +516,10 @@ function mountUI() {
 
   for (const gen of l0Config.generators) {
     const card = document.createElement('div');
-    card.className = 'card';
+    card.className = 'card gen-card';
+    if (gen.image) {
+      card.style.backgroundImage = `url(${gen.image})`;
+    }
 
     const genIconHtml = gen.image
       ? `<img src="${gen.image}" alt="${gen.name}" class="gen-thumb-img" />`
@@ -371,6 +549,17 @@ function mountUI() {
             <span class="badge bought-badge" style="background: rgba(129, 140, 248, 0.15); color: var(--secondary);">0 bought</span>
           </div>
         </div>
+        <div class="milestone-row">
+          <span class="milestone-badge tier-m0">Common (m0) · 0/25 to Uncommon (2x)</span>
+          <span class="eta-hint"></span>
+        </div>
+        <div class="gen-progress-track">
+          <div class="gen-progress-fill"></div>
+          <div class="gen-progress-label">
+            <span class="gen-period-text">1 Tick (1.0s)</span>
+            <span class="gen-phase-text">0%</span>
+          </div>
+        </div>
         <p class="meta output-meta">Output: 0 ${l0Config.currency.symbol}/tick | 0 ${l0Config.currency.symbol}/s</p>
         <div class="actions">
           <button class="btn primary btn-buy-1">Buy 1 (10 ${l0Config.currency.symbol})</button>
@@ -383,6 +572,12 @@ function mountUI() {
     const mainView = card.querySelector('.main-view');
     const ownedBadge = card.querySelector('.owned-badge');
     const boughtBadge = card.querySelector('.bought-badge');
+    const milestoneBadge = card.querySelector('.milestone-badge');
+    const etaHint = card.querySelector('.eta-hint');
+    const progressTrack = card.querySelector('.gen-progress-track');
+    const progressFill = card.querySelector('.gen-progress-fill');
+    const periodText = card.querySelector('.gen-period-text');
+    const phaseText = card.querySelector('.gen-phase-text');
     const outputMeta = card.querySelector('.output-meta');
     const buy1Btn = card.querySelector('.btn-buy-1');
     const buyMaxBtn = card.querySelector('.btn-buy-max');
@@ -404,14 +599,16 @@ function mountUI() {
       genIcon.title = `Click to view ${gen.name} Lore Card`;
       genIcon.addEventListener('click', (e) => {
         e.stopPropagation();
+        const ms = cachedRenderStats?.generatorMilestones?.layer0?.[gen.id];
+        const tierLabel = ms ? ` [${ms.tierName} · ${ms.tierId}]` : '';
         openLoreModal({
-          title: gen.name,
-          subtitle: `${l0Config.name} Generator`,
+          title: `${gen.name}${tierLabel}`,
+          subtitle: `${l0Config.name} Generator · Asset: ${ms?.assetPath || gen.image}`,
           image: gen.image,
           svg: gen.svg,
           quote: gen.lore,
           backstory: gen.backstory || gen.lore,
-          effect: `Base yield: ${gen.baseOutputPerTick} ${typeof gen.produces === 'string' ? l0Config.currency.symbol : 'units'}/tick`
+          effect: `Base yield: ${gen.baseOutputPerTick} ${typeof gen.produces === 'string' ? l0Config.currency.symbol : 'units'}/tick · Cycle Period: ${gen.cyclePeriodTicks || 1} Ticks`
         });
       });
     });
@@ -424,6 +621,12 @@ function mountUI() {
       mainView,
       ownedBadge,
       boughtBadge,
+      milestoneBadge,
+      etaHint,
+      progressTrack,
+      progressFill,
+      periodText,
+      phaseText,
       outputMeta,
       buy1Btn,
       buyMaxBtn
@@ -473,6 +676,10 @@ function mountUI() {
           </div>
           <span class="badge lvl-badge">Lvl 0/${upg.maxLevel || '∞'}</span>
         </div>
+        <div class="milestone-row">
+          <span class="milestone-badge upg-tier-badge tier-m0">Common (m0)</span>
+          <span class="eta-hint upg-eta-hint"></span>
+        </div>
         <p class="desc">${upg.description}</p>
         <div class="actions">
           <button class="btn primary btn-upgrade">Upgrade</button>
@@ -483,6 +690,8 @@ function mountUI() {
     const lockView = card.querySelector('.lock-view');
     const mainView = card.querySelector('.main-view');
     const lvlBadge = card.querySelector('.lvl-badge');
+    const tierBadge = card.querySelector('.upg-tier-badge');
+    const etaHint = card.querySelector('.upg-eta-hint');
     const btn = card.querySelector('.btn-upgrade');
 
     btn.addEventListener('click', () => {
@@ -515,6 +724,8 @@ function mountUI() {
       lockView,
       mainView,
       lvlBadge,
+      tierBadge,
+      etaHint,
       btn
     };
   }
@@ -643,8 +854,13 @@ function showOfflineModal(report) {
 function render() {
   const state = session.getState();
   const stats = session.getDerivedStats();
+  cachedRenderStats = stats;
   const l0Config = activeConfig.layers[0];
   const l1Config = activeConfig.layers[1];
+
+  if (fidelitySettings.progressBarMode === 'smooth' && !rafId) {
+    rafId = requestAnimationFrame(updateSmoothProgressBars);
+  }
 
   // Telemetry Header
   const cycleFreq = (1000 / stats.effectiveCycleDurationMs).toFixed(2);
@@ -654,7 +870,13 @@ function render() {
   document.getElementById('telemetry-total-ticks').textContent = state.totalTicks.format();
   document.getElementById('telemetry-total-cycles').textContent = state.totalCycles.format();
 
-  // Progressive Character Dialogue updates
+  // Character Milestone metadata + Progressive Character Dialogue updates
+  const charBanner = document.getElementById('character-banner');
+  if (charBanner && stats.characterMilestone) {
+    charBanner.dataset.milestoneTier = stats.characterMilestone.tierId;
+    charBanner.dataset.milestoneAsset = stats.characterMilestone.assetPath;
+  }
+
   const charQuote = document.getElementById('character-quote');
   if (charQuote && activeConfig.character?.dialogue) {
     const l1 = activeConfig.layers[1]?.id;
@@ -682,6 +904,7 @@ function render() {
 
   const netOutputPerTick = stats.layerProductionPerTick.layer0 || new BigNum(0);
   const netOutputPerSec = netOutputPerTick.mul(stats.effectiveTicksPerSec);
+  const netOutputPerSecNum = netOutputPerSec.toNumber();
   document.getElementById('layer0-output-sec').textContent = `${netOutputPerSec.format()} ${l0Config.currency.symbol}/s`;
 
   // Update Layer 0 Generators
@@ -706,7 +929,6 @@ function render() {
 
     ui.lockView.style.display = 'none';
     ui.mainView.style.display = 'block';
-    ui.card.className = 'card';
 
     const bought = layer0.generators[gen.id].bought || layer0.generators[gen.id].owned;
     const owned = layer0.generators[gen.id].owned;
@@ -714,6 +936,75 @@ function render() {
     const cost1 = stats.generatorCosts.layer0[gen.id];
     const maxInfo = stats.maxAffordable.layer0[gen.id];
     const canAfford1 = layer0.currency.gte(cost1);
+
+    // Milestone Tier & Asset metadata
+    const msInfo = stats.generatorMilestones?.layer0?.[gen.id];
+    const tierId = msInfo?.tierId || 'm0';
+    ui.card.className = `card gen-card tier-${tierId}`;
+    ui.card.dataset.milestoneTier = tierId;
+    if (msInfo?.assetPath) {
+      ui.card.dataset.milestoneAsset = msInfo.assetPath;
+    }
+
+    if (ui.milestoneBadge && msInfo) {
+      ui.milestoneBadge.className = `milestone-badge tier-${tierId}`;
+      const multStr = msInfo.multiplier > 1 ? ` · ${msInfo.multiplier.toFixed(1).replace(/\.0$/, '')}x` : '';
+      const boughtCountDisplay = Math.floor(msInfo.boughtCount);
+      const nextStr = msInfo.nextThreshold
+        ? ` · ${boughtCountDisplay}/${msInfo.nextThreshold} to ${msInfo.nextTierName} (${msInfo.nextMultiplier.toFixed(1).replace(/\.0$/, '')}x)`
+        : ' · MAX TIER';
+      ui.milestoneBadge.textContent = `${msInfo.tierName} (${tierId}${multStr})${nextStr}`;
+    }
+
+    if (ui.etaHint) {
+      if (!canAfford1 && netOutputPerSecNum > 0) {
+        const deficit = cost1.sub(layer0.currency).toNumber();
+        ui.etaHint.textContent = formatEtaSeconds(deficit / netOutputPerSecNum);
+      } else {
+        ui.etaHint.textContent = '';
+      }
+    }
+
+    // Generator Progress Bar & Overdrive State
+    const periodTicks = stats.generatorPeriods?.layer0?.[gen.id] || 1;
+    const effPeriodMs = stats.generatorEffectivePeriodMs?.layer0?.[gen.id] || 1000;
+    const isOverdrive = stats.generatorOverdrive?.layer0?.[gen.id] || false;
+    const phase = stats.generatorCyclePhase?.layer0?.[gen.id] || 0;
+
+    if (ui.progressTrack && ui.progressFill) {
+      const showOverdrive = owned.gt(0) && isOverdrive;
+      ui.progressTrack.classList.toggle('overdrive', showOverdrive);
+      if (fidelitySettings.progressBarMode === 'off') {
+        ui.progressFill.style.transform = owned.gt(0) ? 'scaleX(1)' : 'scaleX(0)';
+      } else if (showOverdrive) {
+        ui.progressFill.style.transform = 'scaleX(1)';
+      } else if (owned.lte(0)) {
+        ui.progressFill.style.transform = 'scaleX(0)';
+      } else {
+        ui.progressFill.style.transform = `scaleX(${phase.toFixed(4)})`;
+      }
+
+      if (ui.periodText && ui.phaseText) {
+        if (owned.lte(0)) {
+          ui.periodText.textContent = `${periodTicks} ${periodTicks === 1 ? 'Tick' : 'Ticks'} (${(effPeriodMs / 1000).toFixed(1)}s)`;
+          ui.phaseText.textContent = 'Standby';
+        } else if (showOverdrive) {
+          const hz = (1000 / effPeriodMs).toFixed(2);
+          ui.periodText.textContent = `OVERDRIVE · ${hz} Hz`;
+          ui.phaseText.textContent = 'FLOWING';
+        } else {
+          ui.periodText.textContent = `${periodTicks} ${periodTicks === 1 ? 'Tick' : 'Ticks'} (${(effPeriodMs / 1000).toFixed(1)}s/cycle)`;
+          if (fidelitySettings.progressBarMode === 'off') {
+            ui.phaseText.textContent = 'Active';
+          } else if (effPeriodMs < 15000) {
+            ui.phaseText.textContent = '';
+          } else {
+            const pct = Math.min(99, Math.floor(phase * 100));
+            ui.phaseText.textContent = `${pct}%`;
+          }
+        }
+      }
+    }
 
     ui.ownedBadge.textContent = `Owned: ${owned.format()}`;
     ui.boughtBadge.textContent = `${bought.format()} bought`;
@@ -753,7 +1044,7 @@ function render() {
     if (isLocked) {
       ui.lockView.style.display = 'block';
       ui.mainView.style.display = 'none';
-      ui.card.className = 'card locked';
+      ui.card.className = 'card upg-card locked';
       continue;
     }
 
@@ -765,7 +1056,26 @@ function render() {
     const cost = stats.upgradeCosts.layer0[upg.id];
     const canAfford = cost && layer0.currency.gte(cost);
 
-    ui.card.className = `card ${isMax ? 'maxed' : ''}`;
+    const upgMs = stats.upgradeMilestones?.layer0?.[upg.id];
+    const upgTierId = upgMs?.tierId || 'm0';
+    ui.card.className = `card upg-card tier-${upgTierId} ${isMax ? 'maxed' : ''}`;
+    ui.card.dataset.milestoneTier = upgTierId;
+    if (upgMs?.assetPath) {
+      ui.card.dataset.milestoneAsset = upgMs.assetPath;
+    }
+    if (ui.tierBadge && upgMs) {
+      ui.tierBadge.className = `milestone-badge upg-tier-badge tier-${upgTierId}`;
+      ui.tierBadge.textContent = `${upgMs.tierName} (${upgTierId})`;
+    }
+    if (ui.etaHint) {
+      if (!isMax && cost && !canAfford && netOutputPerSecNum > 0) {
+        const deficit = cost.sub(layer0.currency).toNumber();
+        ui.etaHint.textContent = formatEtaSeconds(deficit / netOutputPerSecNum);
+      } else {
+        ui.etaHint.textContent = '';
+      }
+    }
+
     ui.lvlBadge.textContent = isMax ? 'MAX' : `Lvl ${level}/${upg.maxLevel}`;
 
     if (isMax) {
@@ -891,10 +1201,64 @@ function setupStaticEventListeners() {
     const target = activeConfig.layers[1].prestige.thresholdCurrency;
     const result = simulator.run(current, policy, {
       stopCondition: st => st.layers.layer0.runTotalCurrency.gte(target),
-      maxSimulatedMs: 15 * 60 * 1000
+      maxSimulatedMs: 3 * 60 * 60 * 1000
     });
     session.syncFromSimulation(result.state);
     alert(`Simulation finished! Ran ${(result.simulatedMs / 1000).toFixed(1)}s of active play across ${result.steps} decisions.`);
+    render();
+  });
+
+  // Fidelity Settings Modal & Controls
+  const fidelityModal = document.getElementById('fidelity-modal');
+  document.getElementById('btn-fidelity-settings')?.addEventListener('click', () => {
+    applyFidelitySettings();
+    if (fidelityModal) fidelityModal.style.display = 'flex';
+  });
+
+  document.getElementById('btn-close-fidelity-modal')?.addEventListener('click', () => {
+    if (fidelityModal) fidelityModal.style.display = 'none';
+  });
+
+  if (fidelityModal) {
+    fidelityModal.addEventListener('click', (e) => {
+      if (e.target === fidelityModal) {
+        fidelityModal.style.display = 'none';
+      }
+    });
+  }
+
+  document.querySelectorAll('.fidelity-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pName = btn.dataset.preset;
+      if (FIDELITY_PRESETS[pName]) {
+        fidelitySettings = { ...FIDELITY_PRESETS[pName] };
+        applyFidelitySettings();
+        render();
+      }
+    });
+  });
+
+  document.getElementById('fidelity-progress-mode')?.addEventListener('change', (e) => {
+    fidelitySettings.progressBarMode = e.target.value;
+    applyFidelitySettings();
+    render();
+  });
+
+  document.getElementById('fidelity-overdrive-glow')?.addEventListener('change', (e) => {
+    fidelitySettings.overdriveGlow = Boolean(e.target.checked);
+    applyFidelitySettings();
+    render();
+  });
+
+  document.getElementById('fidelity-particle-bursts')?.addEventListener('change', (e) => {
+    fidelitySettings.particleBursts = Boolean(e.target.checked);
+    applyFidelitySettings();
+    render();
+  });
+
+  document.getElementById('fidelity-card-effects')?.addEventListener('change', (e) => {
+    fidelitySettings.cardRarityEffects = Boolean(e.target.checked);
+    applyFidelitySettings();
     render();
   });
 

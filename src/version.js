@@ -1,6 +1,6 @@
 // src/version.js
 // Auto-generated build version metadata from git
 export const BUILD_INFO = {
-  commit: '7a9aba6',
-  date: '2026-10-31 13:10'
+  commit: '3f18a9a',
+  date: '2026-11-01 07:28'
 };

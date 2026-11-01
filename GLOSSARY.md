@@ -14,6 +14,10 @@ _Avoid_: Frame, Heartbeat, Step, Real-time tick
 The fundamental unit of in-game progression emitted each time a Cycle fires. Each Cycle yields a configurable number of Ticks (Tick Yield, which can also be modified by Upgrades), and all Generator production is calculated per Tick.
 _Avoid_: Game frame, Update, Point
 
+**Cycle Phase**:
+The normalized progress fraction within a Generator's integer-Tick production period. It drives progress animations deterministically from engine time without coupling to browser frame rates.
+_Avoid_: Animation timer, Frame counter, Bar percent
+
 ### Domain Model
 
 **GameConfig**:
@@ -44,6 +48,26 @@ _Avoid_: Skill tree, Talent tree, Tech tree, Perk grid
 The progressive-disclosure status of a Layer, Generator, or Upgrade (`hidden`, `locked`, or `visible`) derived by the engine from declarative conditions in the GameConfig.
 _Avoid_: UI toggle, Show flag, Spoiler flag
 
+**Milestone Tier**:
+A discrete rarity and efficiency rank (`m0` Common, `m1` Uncommon, `m2` Rare, `m3` Epic, `m4` Legendary) unlocked when an entity reaches specific threshold counts or levels, multiplying output and advancing its visual tier.
+_Avoid_: Rank, Star level, Mastery, Evolution
+
+**Overdrive State**:
+The continuous-flow presentation mode a Generator enters when its effective production cycle runs at or faster than 1 Hz, replacing discrete progress bar filling with a continuous energy shimmer animation and FLOWING status.
+_Avoid_: Fast mode, Flicker guard, Max speed bar, Frozen bar
+
+**Fidelity Mode**:
+The user-configurable rendering profile (`Full`, `Eco`, `Minimal`, plus individual animation toggles) that governs visual effects and frame rate independently of engine simulation speed.
+_Avoid_: Graphics quality, Performance hack, Low-res mode
+
+**Smoked-Glass Scrim**:
+A dark translucent surface (`rgba(0, 0, 0, 0.60)` with crisp white `#ffffff` text and subtle blur) that guarantees contrast-independent legibility for interactive controls and typography placed over arbitrary full-bleed artwork or dark card surfaces.
+_Avoid_: Solid button fill, Neon block button, Transparent overlay
+
+**Atmospheric Profile**:
+The set of declarative presentation tokens in a `GameConfig.palette` (surface luminance ratios, accent saturation bounds, edge vignettes, ambient filters, and typographic texture) that evoke a genre's mood through generic CSS custom properties without game-specific UI code.
+_Avoid_: Hardcoded theme CSS, Game-specific stylesheet, High-contrast neon skin
+
 ### Simulation and Persistence
 
 **Reducible Transition**:
@@ -57,6 +81,10 @@ _Avoid_: Slow mode, Step loop
 **Policy**:
 A pluggable decision-making strategy used by the Simulator to decide when to buy Generators, purchase Upgrades, or trigger a Layer reset during a simulated run.
 _Avoid_: Bot, AI, Script, Auto-buyer
+
+**Semi-Optimal Policy**:
+A decision strategy modeling realistic human behavior, combining value-based upgrade selection with decision hesitation, occasional bulk generator purchases, and offline breaks.
+_Avoid_: Dumb bot, Random agent, Sloppy policy
 
 **Simulator**:
 The subsystem that advances the engine forward, either passively over elapsed time or actively using a Policy, to jump to future states and verify progression pacing.

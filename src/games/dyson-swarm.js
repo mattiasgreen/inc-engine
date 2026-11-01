@@ -10,10 +10,12 @@ export const dysonSwarmGame = {
   prestigeTitle: 'Quantum Singularity Compression Core',
   palette: {
     '--bg': '#060a12',
-    '--card-bg': '#0c1322',
-    '--card-border': '#1e2d48',
+    '--card-bg': '#0b1220',
+    '--card-border': 'rgba(56, 189, 248, 0.22)',
+    '--text': '#dbe7f4',
+    '--text-muted': '#849bb8',
     '--primary': '#38bdf8',
-    '--primary-hover': '#0ea5e9',
+    '--primary-hover': '#7dd3fc',
     '--secondary': '#818cf8',
     '--danger': '#f43f5e',
     '--danger-hover': '#e11d48',
@@ -21,25 +23,36 @@ export const dysonSwarmGame = {
     '--accent': '#f59e0b',
     '--font-display': "'Orbitron', 'Space Grotesk', system-ui, sans-serif",
     '--font-body': "'Share Tech Mono', 'Courier New', monospace",
-    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(6, 10, 18, 0.25) 0%, rgba(6, 10, 18, 0.75) 100%), url("./assets/bg-dyson-swarm.jpg")',
+    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(6, 10, 18, 0.25) 0%, rgba(6, 10, 18, 0.78) 100%), url("./assets/bg-dyson-swarm.jpg")',
     '--panel-l0-bg': 'url("./assets/panel-dyson-swarm.jpg")',
     '--panel-l1-bg': 'url("./assets/panel-dyson-swarm.jpg")',
-    '--panel-overlay-l0': 'linear-gradient(135deg, rgba(12, 19, 34, 0.82) 0%, rgba(6, 10, 18, 0.93) 100%)',
-    '--panel-overlay-l1': 'linear-gradient(135deg, rgba(12, 19, 34, 0.82) 0%, rgba(6, 10, 18, 0.93) 100%)',
-    '--card-glow': '0 0 16px rgba(56, 189, 248, 0.12), inset 0 1px 0 rgba(56, 189, 248, 0.2)',
-    '--card-bg-gradient': 'linear-gradient(180deg, rgba(14, 23, 42, 0.88) 0%, rgba(10, 16, 30, 0.95) 100%)',
+    '--panel-overlay-l0': 'linear-gradient(135deg, rgba(10, 17, 30, 0.85) 0%, rgba(5, 9, 16, 0.94) 100%)',
+    '--panel-overlay-l1': 'linear-gradient(135deg, rgba(10, 17, 30, 0.85) 0%, rgba(5, 9, 16, 0.94) 100%)',
+    '--card-glow': '0 0 18px rgba(56, 189, 248, 0.10), inset 0 1px 0 rgba(56, 189, 248, 0.14)',
+    '--card-bg-gradient': 'linear-gradient(180deg, rgba(12, 20, 36, 0.90) 0%, rgba(8, 13, 25, 0.96) 100%)',
     '--border-radius-panel': '6px',
     '--border-radius-card': '4px',
     '--border-radius-btn': '3px',
-    '--banner-bg': 'linear-gradient(90deg, rgba(15, 23, 42, 0.95) 0%, rgba(20, 32, 58, 0.8) 100%)',
-    '--banner-border': '#38bdf866',
+    '--banner-bg': 'linear-gradient(90deg, rgba(12, 19, 34, 0.96) 0%, rgba(16, 26, 48, 0.84) 100%)',
+    '--banner-border': 'rgba(56, 189, 248, 0.28)',
     '--tag-case': 'uppercase',
     '--tag-letter-spacing': '0.06em',
     '--badge-bg': 'rgba(56, 189, 248, 0.12)',
-    '--badge-color': '#38bdf8',
-    '--btn-sec-bg': '#1e293b',
-    '--btn-sec-color': '#e2e8f0',
-    '--btn-sec-border': '#334155'
+    '--badge-color': '#7dd3fc',
+    '--btn-bg': 'rgba(0, 0, 0, 0.60)',
+    '--btn-bg-hover': 'rgba(0, 0, 0, 0.78)',
+    '--btn-bg-disabled': 'rgba(0, 0, 0, 0.45)',
+    '--btn-text': '#ffffff',
+    '--btn-text-disabled': 'rgba(255, 255, 255, 0.40)',
+    '--btn-primary-border': 'rgba(56, 189, 248, 0.72)',
+    '--btn-primary-glow': 'inset 0 0 12px rgba(56, 189, 248, 0.18), 0 2px 8px rgba(0, 0, 0, 0.5)',
+    '--btn-sec-bg': 'rgba(0, 0, 0, 0.60)',
+    '--btn-sec-color': '#ffffff',
+    '--btn-sec-border': 'rgba(148, 163, 184, 0.32)',
+    '--upg-card-scrim': 'linear-gradient(135deg, rgba(4, 8, 16, 0.90) 0%, rgba(6, 12, 22, 0.80) 52%, rgba(8, 16, 30, 0.62) 100%)',
+    '--upg-card-scrim-hover': 'linear-gradient(135deg, rgba(4, 8, 16, 0.82) 0%, rgba(6, 12, 22, 0.70) 52%, rgba(8, 16, 30, 0.48) 100%)',
+    '--viewport-vignette': 'radial-gradient(circle at 50% 45%, transparent 55%, rgba(2, 5, 10, 0.55) 100%)',
+    '--title-text-shadow': '0 0 12px rgba(56, 189, 248, 0.22)'
   },
   scenery: `<img src="./assets/bg-dyson-swarm.jpg" alt="Dyson Swarm Orbital Panorama" class="scenery-img" />`,
   character: {
@@ -73,14 +86,14 @@ export const dysonSwarmGame = {
     }
   },
   clock: {
-    baseCycleDurationMs: 1000,
+    baseCycleDurationMs: 6000,
     baseTicksPerCycle: 1
   },
   layers: [
     {
       id: 'layer0',
       name: 'Photovoltaic Array',
-      boughtSynergyMultiplier: 1.02,
+      boughtSynergyMultiplier: 1.00,
       image: './assets/icon-dyson-l0.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="5" />
@@ -110,8 +123,9 @@ export const dysonSwarmGame = {
             <polygon points="12 2 19 21 12 17 5 21 12 2" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.28,
-          baseOutputPerTick: 1,
+          costGrowth: 1.35,
+          cyclePeriodTicks: 1,
+          baseOutputPerTick: 6,
           produces: 'currency'
         },
         {
@@ -127,15 +141,16 @@ export const dysonSwarmGame = {
             <path d="M3 9h18" />
             <path d="M3 15h18" />
           </svg>`,
-          baseCost: 525,
-          costGrowth: 1.33,
-          baseOutputPerTick: 0.05,
+          baseCost: 1800,
+          costGrowth: 1.40,
+          cyclePeriodTicks: 4,
+          baseOutputPerTick: 0.00018,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 350
+          unlockThreshold: 900
         },
         {
           id: 'gen3',
@@ -148,35 +163,81 @@ export const dysonSwarmGame = {
             <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
             <path d="M2 12h20" />
           </svg>`,
-          baseCost: 16250,
-          costGrowth: 1.40,
-          baseOutputPerTick: 0.01,
+          baseCost: 26000,
+          costGrowth: 1.45,
+          cyclePeriodTicks: 10,
+          baseOutputPerTick: 0.00008,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 8000
+          unlockThreshold: 12000
         }
       ],
       upgrades: [
         {
           id: 'upg_cycle_accel',
           name: 'Telemetry Overclock',
-          description: 'Increases telemetry Cycle frequency by 10%',
+          description: 'Increases telemetry Cycle frequency by 4%',
           lore: 'Upgrades inter-satellite communications to sub-picosecond microwave relays.',
-          backstory: 'By synchronizing orbital microwave transmitters through optical atomic clocks, telemetry latency across 1.4 million kilometers of space is eliminated. Autonomous swarm clusters react to solar coronal mass ejections instantaneously, accelerating processing cycles by 10%.',
+          backstory: 'By synchronizing orbital microwave transmitters through optical atomic clocks, telemetry latency across 1.4 million kilometers of space is eliminated. Autonomous swarm clusters react to solar coronal mass ejections instantaneously, accelerating processing cycles by 4%.',
           image: './assets/upg-telemetry.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>`,
           baseCost: 250,
-          costGrowth: 2.5,
+          costGrowth: 2.35,
           maxLevel: 10,
           effect: {
             target: 'cycleFrequency',
             operation: 'multiply',
-            value: 1.10
+            value: 1.04
+          }
+        },
+        {
+          id: 'upg_gen1_overdrive',
+          name: 'Reflective Coating',
+          description: 'Increases Solar Drone output by 1.07x per level',
+          lore: 'Applies metamaterial dielectric mirrors to drone capture surfaces.',
+          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 7% per upgrade rank.',
+          image: './assets/upg-coating.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 3v18" />
+            <path d="M12 8l4 4-4 4" />
+          </svg>`,
+          baseCost: 420,
+          costGrowth: 2.45,
+          maxLevel: 10,
+          effect: {
+            target: 'generator',
+            targetId: 'gen1',
+            operation: 'multiply',
+            value: 1.07
+          }
+        },
+        {
+          id: 'upg_period_compress',
+          name: 'Harmonic Thruster Cadence',
+          description: 'Halves Generator Tick Periods across the orbital array',
+          lore: 'Synchronizes assembly bays with orbital perihelion harmonics.',
+          backstory: 'By firing ion thrusters at orbital resonance nodes, Orbital Fabricators and Stellar Harvesters complete their production cycles in half the required Ticks, pushing heavy assembly lines toward continuous Overdrive.',
+          image: './assets/upg-superconductivity.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 7 12 12 15 15" />
+          </svg>`,
+          baseCost: 3800,
+          costGrowth: 4.5,
+          maxLevel: 2,
+          milestoneRank: 2,
+          unlockThreshold: 1800,
+          effect: {
+            target: 'generatorPeriod',
+            targetId: 'all',
+            operation: 'divide',
+            value: 2.0
           }
         },
         {
@@ -189,8 +250,8 @@ export const dysonSwarmGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 12h5l3-9 4 18 3-9h5" />
           </svg>`,
-          baseCost: 3500,
-          costGrowth: 4.5,
+          baseCost: 82000,
+          costGrowth: 8.0,
           maxLevel: 5,
           effect: {
             target: 'tickYield',
@@ -199,25 +260,75 @@ export const dysonSwarmGame = {
           }
         },
         {
-          id: 'upg_gen1_overdrive',
-          name: 'Reflective Coating',
-          description: 'Increases Solar Drone output by 1.35x per level',
-          lore: 'Applies metamaterial dielectric mirrors to drone capture surfaces.',
-          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 35% per upgrade rank.',
-          image: './assets/upg-coating.jpg',
+          id: 'upg_cross_synergy',
+          name: 'Swarm Mesh Interlink',
+          description: 'Boosts all Layer 0 output by +0.25% per total Generator bought',
+          lore: 'Every commissioned unit acts as a relay amplifier for the entire array.',
+          backstory: 'Links every Solar Drone, Fabricator, and Harvester into a unified phased-array antenna. Each newly purchased construct sharpens beam collimation across the entire orbital fleet.',
+          image: './assets/upg-nanites.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 3v18" />
-            <path d="M12 8l4 4-4 4" />
+            <circle cx="6" cy="6" r="3" />
+            <circle cx="18" cy="6" r="3" />
+            <circle cx="12" cy="18" r="3" />
+            <line x1="8.5" y1="7.5" x2="15.5" y2="7.5" />
+            <line x1="7.5" y1="8.5" x2="10.5" y2="15.5" />
+            <line x1="16.5" y1="8.5" x2="13.5" y2="15.5" />
           </svg>`,
-          baseCost: 400,
-          costGrowth: 3.2,
-          maxLevel: 10,
+          baseCost: 14000,
+          costGrowth: 3.5,
+          maxLevel: 4,
+          milestoneRank: 3,
+          unlockThreshold: 7000,
           effect: {
-            target: 'generator',
-            targetId: 'gen1',
+            target: 'crossGeneratorSynergy',
+            targetId: 'layer0',
+            operation: 'add',
+            value: 0.0025
+          }
+        },
+        {
+          id: 'upg_milestone_resonance',
+          name: 'Ascendant Chassis Matrix',
+          description: 'Multiplies all Uncommon (m1+) Milestone Tier bonuses by 1.15x',
+          lore: 'Unlocks overcharged coronal shielding once a swarm wing reaches 25 units.',
+          backstory: 'Reconfigures standard 25-unit drone squadrons into high-density diamond formations, amplifying the multiplicative power surge granted at every Milestone Tier.',
+          image: './assets/upg-coating.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
+          </svg>`,
+          baseCost: 34000,
+          costGrowth: 4.0,
+          maxLevel: 2,
+          milestoneRank: 3,
+          unlockThreshold: 17000,
+          effect: {
+            target: 'milestoneMultiplier',
+            targetId: 'layer0',
             operation: 'multiply',
-            value: 1.35
+            value: 1.15
+          }
+        },
+        {
+          id: 'upg_log_momentum',
+          name: 'Coronal Flux Feedback',
+          description: 'Scales all Layer 0 output by log10(Run Megawatts)^0.08',
+          lore: 'Redirects excess grid energy to magnetically pinch solar plasma.',
+          backstory: 'Channels accumulated megawatts back into solar magnetic containment fields, creating a self-reinforcing feedback loop that accelerates production as total run energy climbs toward the Quantum Compression threshold.',
+          image: './assets/upg-quantum-link.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2v20M2 12h20" />
+            <circle cx="12" cy="12" r="7" />
+          </svg>`,
+          baseCost: 118000,
+          costGrowth: 1,
+          maxLevel: 1,
+          milestoneRank: 4,
+          unlockThreshold: 60000,
+          effect: {
+            target: 'logMomentum',
+            targetId: 'layer0',
+            operation: 'add',
+            value: 0.08
           }
         }
       ]

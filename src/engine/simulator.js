@@ -43,6 +43,7 @@ export class Simulator {
     const stopCondition = options.stopCondition || null;
 
     let simulatedMs = 0;
+    let lastActionMs = 0;
     let steps = 0;
     const history = [];
 
@@ -69,13 +70,21 @@ export class Simulator {
 
       if (action.type === 'resetLayer') {
         state = executeAction(state, this.config, action);
-        history.push({ simulatedMs, action });
+        history.push({ simulatedMs, waitMs: simulatedMs - lastActionMs, action });
+        lastActionMs = simulatedMs;
         continue;
+      }
+
+      if (action.delayMs > 0) {
+        const { nextState } = advanceTime(state, this.config, action.delayMs);
+        state = nextState;
+        simulatedMs += action.delayMs;
       }
 
       if (layerState && layerState.currency.gte(action.cost)) {
         state = executeAction(state, this.config, action);
-        history.push({ simulatedMs, action });
+        history.push({ simulatedMs, waitMs: simulatedMs - lastActionMs, action });
+        lastActionMs = simulatedMs;
         continue;
       }
 
@@ -95,11 +104,20 @@ export class Simulator {
         break;
       }
 
+      // Check if any metagenerators are owned (growing production rate over time)
+      const layerConfig = this.config.layers.find(l => l.id === action.layerId);
+      const hasActiveMetagenerator = (layerConfig?.generators || []).some(
+        g => g.produces && g.produces.type === 'generator' && layerState.generators[g.id]?.owned.gt(0)
+      );
+
       // Compute cycles needed using BigNum division and ceiling
       const deficit = action.cost.sub(layerState.currency);
       const cyclesNeededBig = deficit.div(prodPerCycle).ceil();
       const cyclesNeededNum = cyclesNeededBig.toNumber();
-      const safeCycles = Math.max(1, Math.min(cyclesNeededNum, 1e9));
+      let safeCycles = Math.max(1, Math.min(cyclesNeededNum, 1e9));
+      if (hasActiveMetagenerator && safeCycles > 20) {
+        safeCycles = Math.max(10, Math.ceil(safeCycles * 0.35));
+      }
       let jumpMs = safeCycles * cycleDuration;
 
       const remainingMs = maxSimulatedMs - simulatedMs;
@@ -119,7 +137,8 @@ export class Simulator {
       const currentLayer = state.layers[action.layerId];
       if (currentLayer && currentLayer.currency.gte(action.cost)) {
         state = executeAction(state, this.config, action);
-        history.push({ simulatedMs, action });
+        history.push({ simulatedMs, waitMs: simulatedMs - lastActionMs, action });
+        lastActionMs = simulatedMs;
       }
     }
 

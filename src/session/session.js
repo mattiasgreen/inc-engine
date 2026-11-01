@@ -94,7 +94,17 @@ export class GameSession {
   }
 
   buyGenerator(layerId, genId, countOrMax = 1) {
+    let totalOwnedBefore = 0;
+    for (const layer of this.config.layers) {
+      for (const gen of layer.generators || []) {
+        totalOwnedBefore += this.state.layers[layer.id]?.generators[gen.id]?.owned.toNumber() || 0;
+      }
+    }
     this.state = buyGenerator(this.state, this.config, layerId, genId, countOrMax);
+    if (totalOwnedBefore === 0) {
+      this.lastTickAtMs = this.clock.nowMs();
+      this.state.cycleRemainderMs = 0;
+    }
   }
 
   buyUpgrade(layerId, upgId) {
@@ -129,7 +139,8 @@ export class GameSession {
       for (const [genId, gen] of Object.entries(layerState.generators)) {
         serializedLayer.generators[genId] = {
           bought: (gen.bought || gen.owned).toJSON(),
-          owned: gen.owned.toJSON()
+          owned: gen.owned.toJSON(),
+          startTick: gen.startTick || 0
         };
       }
 
@@ -170,7 +181,8 @@ export class GameSession {
         const bought = savedGen?.bought ? BigNum.fromJSON(savedGen.bought) : new BigNum(owned);
         layerState.generators[gen.id] = {
           bought,
-          owned
+          owned,
+          startTick: savedGen?.startTick || 0
         };
       }
 

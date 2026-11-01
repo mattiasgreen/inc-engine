@@ -22,6 +22,10 @@ describe('Multi-Game Definitions and Presentation Seam', () => {
       expect(typeof config.subtitle).toBe('string');
       expect(Boolean(config.palette)).toBe(true);
       expect(typeof config.palette['--primary']).toBe('string');
+      expect(typeof config.palette['--btn-bg']).toBe('string');
+      expect(config.palette['--btn-text']).toBe('#ffffff');
+      expect(typeof config.palette['--upg-card-scrim']).toBe('string');
+      expect(typeof config.palette['--viewport-vignette']).toBe('string');
 
       // Character guide and dialogue
       expect(Boolean(config.character)).toBe(true);

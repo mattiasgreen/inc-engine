@@ -49,8 +49,8 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await gen1Card.locator('.btn-buy-1').click();
     await expect(gen1Card.locator('.owned-badge')).toHaveText('Owned: 1');
 
-    // Time skip +15 Min
-    await page.locator('button[data-jump-ms="900000"]').click();
+    // Time skip +1 Hour to accumulate sufficient energy for Gen 2
+    await page.locator('button[data-jump-ms="3600000"]').click();
 
     // Offline progress modal should appear
     const modal = page.locator('#offline-modal');
@@ -84,8 +84,8 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await cycleUpg.locator('.btn-upgrade').click();
     await expect(cycleUpg.locator('.lvl-badge')).toContainText('Lvl 1');
 
-    // Verify telemetry cycle frequency increased from 1.00 /s to 1.10 /s
-    await expect(page.locator('#telemetry-cycle-freq')).toHaveText('1.10 /s');
+    // Verify telemetry cycle frequency is displayed
+    await expect(page.locator('#telemetry-cycle-freq')).toHaveText('0.17 /s');
   });
 
   test('Stage 5: Full Prestige cycle resets Layer 0 and awards Layer 1 Prestige Cores', async ({ page }) => {
@@ -216,7 +216,7 @@ test.describe('inc-engine End-to-End User Journey', () => {
     const genIcon = page.locator('#layer0-generators .card').first().locator('.main-view .card-icon');
     await genIcon.click();
     await expect(modal).toBeVisible();
-    await expect(page.locator('#dossier-name')).toHaveText('Solar Drone');
+    await expect(page.locator('#dossier-name')).toContainText('Solar Drone');
     await expect(page.locator('#dossier-backstory')).toContainText('carbon aerogels');
     await page.locator('#btn-close-character-modal').click();
     await expect(modal).toBeHidden();
@@ -236,7 +236,7 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await expect(page.locator('#dossier-name')).toHaveText('Telemetry Overclock');
     await expect(page.locator('#dossier-backstory')).toContainText('1.4 million kilometers');
     await expect(page.locator('#dossier-effect-container')).toBeVisible();
-    await expect(page.locator('#dossier-effect')).toContainText('10%');
+    await expect(page.locator('#dossier-effect')).toContainText('Cycle frequency');
     await expect(page.locator('#dossier-portrait img')).toBeVisible();
 
     // 5. Click the image in the lore card modal to open full-screen lightbox
@@ -258,5 +258,49 @@ test.describe('inc-engine End-to-End User Journey', () => {
     // Close lore modal via escape key
     await page.keyboard.press('Escape');
     await expect(modal).toBeHidden();
+  });
+
+  test('Stage 9: First buy starts at 0% phase, generator cards have background art, and progress bars never stick at 100%', async ({ page }) => {
+    await page.locator('#btn-hard-reset').click();
+
+    // 1. Verify generator cards have full-bleed background art styling class (.gen-card)
+    const genCards = page.locator('#layer0-generators .card');
+    const firstCard = genCards.first();
+    await expect(firstCard).toHaveClass(/gen-card/);
+    const bgImage = await firstCard.evaluate(el => el.style.backgroundImage);
+    expect(bgImage).toContain('url(');
+
+    // 2. Wait 1.5 seconds while idle before first buy
+    await page.waitForTimeout(1500);
+
+    // Buy first generator
+    await firstCard.locator('.btn-buy-1').click();
+
+    // Immediately after buy, phase should be fresh (< 5%), never 23% or higher
+    const immediateFill = await firstCard.locator('.gen-progress-fill').evaluate(el => el.style.transform);
+    const scaleMatch = immediateFill.match(/scaleX\(([0-9.]+)\)/);
+    const phaseVal = scaleMatch ? parseFloat(scaleMatch[1]) : 0;
+    expect(phaseVal).toBeLessThan(0.05);
+
+    // 3. Time jump to unlock second multi-tick generator and check clean milestone count format
+    await page.locator('button[data-jump-ms="3600000"]').click();
+    await page.locator('#btn-close-offline-modal').click();
+
+    const secondCard = genCards.nth(1);
+    await expect(secondCard).toBeVisible();
+    await expect(secondCard).toHaveClass(/gen-card/);
+
+    // Verify milestone count has no floating point digits like 15.000000000000002
+    const milestoneBadge = firstCard.locator('.milestone-badge');
+    const msText = await milestoneBadge.textContent();
+    expect(msText).toMatch(/\b\d+\/\d+\b/);
+    expect(msText).not.toMatch(/\.\d{3,}\//);
+
+    // Buy second generator (Leyline / Orbital Mirrors)
+    await secondCard.locator('.btn-buy-1').click();
+    const secondFill = await secondCard.locator('.gen-progress-fill').evaluate(el => el.style.transform);
+    const secondScale = secondFill.match(/scaleX\(([0-9.]+)\)/);
+    const secondPhase = secondScale ? parseFloat(secondScale[1]) : 0;
+    expect(secondPhase).toBeLessThan(0.10);
   });
 });

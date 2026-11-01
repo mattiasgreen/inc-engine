@@ -9,37 +9,50 @@ export const sunkenObservatoryGame = {
   prestigeImage: './assets/prestige-sunken.jpg',
   prestigeTitle: 'Cosmic Void Transcendence',
   palette: {
-    '--bg': '#020608',
-    '--card-bg': '#051217',
-    '--card-border': '#0e3442',
-    '--primary': '#2dd4bf',
-    '--primary-hover': '#14b8a6',
-    '--secondary': '#a78bfa',
-    '--danger': '#f43f5e',
-    '--danger-hover': '#e11d48',
-    '--success': '#10b981',
-    '--accent': '#f472b6',
+    '--bg': '#020506',
+    '--card-bg': '#050d10',
+    '--card-border': 'rgba(78, 168, 154, 0.20)',
+    '--text': '#bfc9c5',
+    '--text-muted': '#748c86',
+    '--primary': '#4ea89a',
+    '--primary-hover': '#68bfb0',
+    '--secondary': '#8474a1',
+    '--danger': '#9e3a4b',
+    '--danger-hover': '#b84659',
+    '--success': '#3e8e72',
+    '--accent': '#b56586',
     '--font-display': "'Courier Prime', 'Special Elite', 'IM Fell English', monospace",
     '--font-body': "'Courier New', 'Courier', monospace",
-    '--bg-pattern': 'radial-gradient(circle at 50% 0%, rgba(2, 6, 8, 0.25) 0%, rgba(2, 6, 8, 0.75) 100%), url("./assets/bg-sunken-observatory.jpg")',
+    '--bg-pattern': 'radial-gradient(circle at 50% 15%, rgba(3, 10, 12, 0.45) 0%, rgba(1, 4, 5, 0.90) 100%), url("./assets/bg-sunken-observatory.jpg")',
     '--panel-l0-bg': 'url("./assets/panel-sunken-observatory.jpg")',
     '--panel-l1-bg': 'url("./assets/panel-sunken-observatory.jpg")',
-    '--panel-overlay-l0': 'linear-gradient(135deg, rgba(6, 20, 26, 0.82) 0%, rgba(3, 10, 14, 0.93) 100%)',
-    '--panel-overlay-l1': 'linear-gradient(135deg, rgba(6, 20, 26, 0.82) 0%, rgba(3, 10, 14, 0.93) 100%)',
-    '--card-glow': '0 0 24px rgba(45, 212, 191, 0.14), inset 0 0 16px rgba(167, 139, 250, 0.08)',
-    '--card-bg-gradient': 'linear-gradient(180deg, rgba(8, 26, 34, 0.88) 0%, rgba(4, 14, 18, 0.95) 100%)',
+    '--panel-overlay-l0': 'linear-gradient(135deg, rgba(4, 14, 17, 0.88) 0%, rgba(2, 7, 9, 0.96) 100%)',
+    '--panel-overlay-l1': 'linear-gradient(135deg, rgba(4, 14, 17, 0.88) 0%, rgba(2, 7, 9, 0.96) 100%)',
+    '--card-glow': '0 0 28px rgba(0, 0, 0, 0.85), inset 0 0 18px rgba(78, 168, 154, 0.06)',
+    '--card-bg-gradient': 'linear-gradient(180deg, rgba(6, 17, 21, 0.92) 0%, rgba(3, 9, 12, 0.97) 100%)',
     '--border-radius-panel': '2px',
     '--border-radius-card': '2px',
     '--border-radius-btn': '1px',
-    '--banner-bg': 'linear-gradient(90deg, rgba(7, 24, 31, 0.98) 0%, rgba(4, 15, 20, 0.9) 100%)',
-    '--banner-border': '#2dd4bf66',
+    '--banner-bg': 'linear-gradient(90deg, rgba(4, 14, 18, 0.98) 0%, rgba(2, 9, 12, 0.92) 100%)',
+    '--banner-border': 'rgba(78, 168, 154, 0.24)',
     '--tag-case': 'uppercase',
     '--tag-letter-spacing': '0.12em',
-    '--badge-bg': 'rgba(45, 212, 191, 0.12)',
-    '--badge-color': '#5eead4',
-    '--btn-sec-bg': 'rgba(167, 139, 250, 0.12)',
-    '--btn-sec-color': '#ddd6fe',
-    '--btn-sec-border': 'rgba(167, 139, 250, 0.35)'
+    '--badge-bg': 'rgba(78, 168, 154, 0.10)',
+    '--badge-color': '#8fc7bd',
+    '--btn-bg': 'rgba(0, 0, 0, 0.65)',
+    '--btn-bg-hover': 'rgba(0, 0, 0, 0.82)',
+    '--btn-bg-disabled': 'rgba(0, 0, 0, 0.48)',
+    '--btn-text': '#ffffff',
+    '--btn-text-disabled': 'rgba(191, 201, 197, 0.38)',
+    '--btn-primary-border': 'rgba(78, 168, 154, 0.62)',
+    '--btn-primary-glow': 'inset 0 0 14px rgba(78, 168, 154, 0.16), 0 2px 10px rgba(0, 0, 0, 0.65)',
+    '--btn-sec-bg': 'rgba(0, 0, 0, 0.65)',
+    '--btn-sec-color': '#ffffff',
+    '--btn-sec-border': 'rgba(132, 116, 161, 0.35)',
+    '--upg-card-scrim': 'linear-gradient(135deg, rgba(2, 6, 8, 0.92) 0%, rgba(4, 11, 14, 0.84) 52%, rgba(5, 15, 19, 0.66) 100%)',
+    '--upg-card-scrim-hover': 'linear-gradient(135deg, rgba(2, 6, 8, 0.85) 0%, rgba(4, 11, 14, 0.74) 52%, rgba(5, 15, 19, 0.52) 100%)',
+    '--viewport-vignette': 'radial-gradient(circle at 50% 42%, transparent 32%, rgba(1, 5, 6, 0.58) 72%, rgba(0, 2, 3, 0.88) 100%)',
+    '--title-text-shadow': '0 0 14px rgba(78, 168, 154, 0.28), 0 2px 4px rgba(0, 0, 0, 0.95)'
   },
   scenery: `<img src="./assets/bg-sunken-observatory.jpg" alt="Sunken Observatory Abyssal Trench Panorama" class="scenery-img" />`,
   character: {
@@ -64,14 +77,14 @@ export const sunkenObservatoryGame = {
     }
   },
   clock: {
-    baseCycleDurationMs: 1000,
+    baseCycleDurationMs: 6000,
     baseTicksPerCycle: 1
   },
   layers: [
     {
       id: 'layer0',
       name: 'The Abyssal Archive',
-      boughtSynergyMultiplier: 1.02,
+      boughtSynergyMultiplier: 1.00,
       image: './assets/icon-horror-l0.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
@@ -95,8 +108,9 @@ export const sunkenObservatoryGame = {
             <circle cx="12" cy="7" r="4" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.28,
-          baseOutputPerTick: 1.0,
+          costGrowth: 1.35,
+          cyclePeriodTicks: 1,
+          baseOutputPerTick: 6.0,
           produces: 'currency'
         },
         {
@@ -108,15 +122,16 @@ export const sunkenObservatoryGame = {
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-monolith">
             <path d="M8 21h8l-2-18h-4z" />
           </svg>`,
-          baseCost: 540,
-          costGrowth: 1.33,
-          baseOutputPerTick: 0.05,
+          baseCost: 1820,
+          costGrowth: 1.40,
+          cyclePeriodTicks: 4,
+          baseOutputPerTick: 0.00018,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 350
+          unlockThreshold: 900
         },
         {
           id: 'gen3',
@@ -129,36 +144,81 @@ export const sunkenObservatoryGame = {
             <line x1="12" y1="3" x2="12" y2="21" />
             <line x1="3" y1="12" x2="21" y2="12" />
           </svg>`,
-          baseCost: 16500,
-          costGrowth: 1.40,
-          baseOutputPerTick: 0.01,
+          baseCost: 26200,
+          costGrowth: 1.45,
+          cyclePeriodTicks: 10,
+          baseOutputPerTick: 0.00008,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 8000
+          unlockThreshold: 12000
         }
       ],
       upgrades: [
         {
           id: 'upg_cycle_accel',
           name: 'Fever Dreams',
-          description: 'Speeds research Cycle frequency by 10%',
+          description: 'Speeds research Cycle frequency by 4%',
           lore: 'Hallucinogenic deep-sea flora eliminate the necessity for mundane slumber.',
-          backstory: 'Distilled from phosphorescent kelp harvested along hydrothermal vents. Consuming the bitter brew liberates the scholar intellect from the constraint of physical sleep, allowing relentless analysis of submerged star-matrices and accelerating research frequency by 10%.',
+          backstory: 'Distilled from phosphorescent kelp harvested along hydrothermal vents. Consuming the bitter brew liberates the scholar intellect from the constraint of physical sleep, allowing relentless analysis of submerged star-matrices and accelerating research frequency by 4%.',
           image: './assets/upg-astrolabe.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
             <line x1="12" y1="2" x2="12" y2="12" />
           </svg>`,
           baseCost: 250,
-          costGrowth: 2.5,
+          costGrowth: 2.35,
           maxLevel: 10,
           effect: {
             target: 'cycleFrequency',
             operation: 'multiply',
-            value: 1.10
+            value: 1.04
+          }
+        },
+        {
+          id: 'upg_gen1_overdrive',
+          name: 'Black Ink Inscription',
+          description: 'Increases Cult Acolyte output by 1.07x per level',
+          lore: 'Binding glyphs penned in cephalopod bioluminescent ichor.',
+          backstory: 'Drawn from abyssal giant cephalopods that feed upon thermal plumes. This viscous black ink remains warm to the touch and glows faintly in absolute darkness. Texts copied with this ink crawl across the page, compelling acolytes to furious transcriptive output.',
+          image: './assets/upg-black-ink.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 19l7-7 3 3-7 7-3-3z" />
+            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+          </svg>`,
+          baseCost: 420,
+          costGrowth: 2.45,
+          maxLevel: 10,
+          effect: {
+            target: 'generator',
+            targetId: 'gen1',
+            operation: 'multiply',
+            value: 1.07
+          }
+        },
+        {
+          id: 'upg_period_compress',
+          name: 'Infrasonic Tidal Pulse',
+          description: 'Halves Generator Tick Periods across the Abyssal Archive',
+          lore: 'Synchronizes obelisk vibrations with deep-trench seismic currents.',
+          backstory: 'By tuning the basalt monoliths to the resonant frequency of the Mariana Trench, psychic transmissions and rift excavations complete in half the required Ticks, driving the archive toward abyssal Overdrive.',
+          image: './assets/upg-hysteria.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" />
+            <polyline points="12 7 12 12 15 15" />
+          </svg>`,
+          baseCost: 3800,
+          costGrowth: 4.5,
+          maxLevel: 2,
+          milestoneRank: 2,
+          unlockThreshold: 1800,
+          effect: {
+            target: 'generatorPeriod',
+            targetId: 'all',
+            operation: 'divide',
+            value: 2.0
           }
         },
         {
@@ -172,8 +232,8 @@ export const sunkenObservatoryGame = {
             <circle cx="12" cy="12" r="10" />
             <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" />
           </svg>`,
-          baseCost: 3500,
-          costGrowth: 4.5,
+          baseCost: 82000,
+          costGrowth: 8.0,
           maxLevel: 5,
           effect: {
             target: 'tickYield',
@@ -182,24 +242,71 @@ export const sunkenObservatoryGame = {
           }
         },
         {
-          id: 'upg_gen1_overdrive',
-          name: 'Black Ink Inscription',
-          description: 'Increases Cult Acolyte output by 1.35x per level',
-          lore: 'Binding glyphs penned in cephalopod bioluminescent ichor.',
-          backstory: 'Drawn from abyssal giant cephalopods that feed upon thermal plumes. This viscous black ink remains warm to the touch and glows faintly in absolute darkness. Texts copied with this ink crawl across the page, compelling acolytes to furious transcriptive output.',
-          image: './assets/upg-black-ink.jpg',
+          id: 'upg_cross_synergy',
+          name: 'Gestalt Chorus',
+          description: 'Boosts all Layer 0 output by +0.25% per total Generator bought',
+          lore: 'Every acolyte and obelisk joins the submerged telepathic choir.',
+          backstory: 'Intertwines the minds of all acolytes with the acoustic hum of every monolith and rift dredge, magnifying total insight yield with every new unit commissioned.',
+          image: './assets/upg-geometries.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 19l7-7 3 3-7 7-3-3z" />
-            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+            <circle cx="12" cy="12" r="9" />
+            <circle cx="12" cy="12" r="4" />
           </svg>`,
-          baseCost: 400,
-          costGrowth: 3.2,
-          maxLevel: 10,
+          baseCost: 14000,
+          costGrowth: 3.5,
+          maxLevel: 4,
+          milestoneRank: 3,
+          unlockThreshold: 7000,
           effect: {
-            target: 'generator',
-            targetId: 'gen1',
+            target: 'crossGeneratorSynergy',
+            targetId: 'layer0',
+            operation: 'add',
+            value: 0.0025
+          }
+        },
+        {
+          id: 'upg_milestone_resonance',
+          name: 'Eldritch Ordination',
+          description: 'Multiplies all Uncommon (m1+) Milestone Tier bonuses by 1.15x',
+          lore: 'Bestows deep-sea eyes upon orders of 25 or more initiates.',
+          backstory: 'Once an order of scribes or monoliths reaches 25 units, they undergo the Rite of the Drowned Star, amplifying the multiplicative surge granted at every Milestone Tier.',
+          image: './assets/upg-black-ink.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
+          </svg>`,
+          baseCost: 34000,
+          costGrowth: 4.0,
+          maxLevel: 2,
+          milestoneRank: 3,
+          unlockThreshold: 17000,
+          effect: {
+            target: 'milestoneMultiplier',
+            targetId: 'layer0',
             operation: 'multiply',
-            value: 1.35
+            value: 1.15
+          }
+        },
+        {
+          id: 'upg_log_momentum',
+          name: 'Trench Gravity Collapse',
+          description: 'Scales all Layer 0 output by log10(Run Insight)^0.08',
+          lore: 'Accumulated forbidden knowledge bends the local spacetime metric.',
+          backstory: 'As the archive fills with translated star-charts, the sheer weight of forbidden insight warps reality inside the dome, accelerating transcription rates logarithmically.',
+          image: './assets/upg-void-gaze.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2v20M2 12h20" />
+            <circle cx="12" cy="12" r="7" />
+          </svg>`,
+          baseCost: 118000,
+          costGrowth: 1,
+          maxLevel: 1,
+          milestoneRank: 4,
+          unlockThreshold: 60000,
+          effect: {
+            target: 'logMomentum',
+            targetId: 'layer0',
+            operation: 'add',
+            value: 0.08
           }
         }
       ]

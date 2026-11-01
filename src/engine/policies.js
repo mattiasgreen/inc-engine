@@ -61,77 +61,159 @@ export class GreedyPolicy {
 }
 
 export class OptimalRoiPolicy {
+  _estimateTotalCurrencyPowerPerSec(state, config, stats) {
+    const layer0 = state.layers.layer0;
+    const l0Config = config.layers[0];
+    const ticksPerSec = stats.effectiveTicksPerSec;
+
+    // Map each generator's effective currency value per unit per tick over a 180-tick strategic horizon
+    const horizonTicks = 180;
+    const unitCurrencyPerTick = {};
+
+    // Pass 1: direct currency generators
+    for (const gen of l0Config.generators || []) {
+      const producesCurrency = !gen.produces || gen.produces === 'currency' || gen.produces.type === 'currency';
+      if (producesCurrency) {
+        unitCurrencyPerTick[gen.id] = stats.generatorOutputs.layer0[gen.id].toNumber();
+      }
+    }
+
+    // Pass 2 & 3: metagenerators (up to 3 tiers deep)
+    for (let pass = 0; pass < 3; pass++) {
+      for (const gen of l0Config.generators || []) {
+        if (gen.produces && gen.produces.type === 'generator') {
+          const targetId = gen.produces.targetId;
+          const targetVal = unitCurrencyPerTick[targetId] || 0;
+          const rate = stats.generatorOutputs.layer0[gen.id].toNumber();
+          unitCurrencyPerTick[gen.id] = rate * targetVal * (horizonTicks * 0.35);
+        }
+      }
+    }
+
+    let totalPowerPerSec = 0;
+    for (const gen of l0Config.generators || []) {
+      const owned = layer0.generators[gen.id]?.owned?.toNumber() || 0;
+      const bought = layer0.generators[gen.id]?.bought?.toNumber() || 0;
+      const effectiveUnits = Math.max(owned, bought);
+      const periodDiv = Math.max(1, stats.generatorPeriods?.layer0?.[gen.id] || 1);
+      const speedBonus = 1 + (1 / periodDiv) * 0.15;
+      totalPowerPerSec += effectiveUnits * (unitCurrencyPerTick[gen.id] || 0) * ticksPerSec * speedBonus;
+    }
+
+    return { totalPowerPerSec, unitCurrencyPerTick };
+  }
+
   decideAction(state, config) {
     const stats = getDerivedStats(state, config);
     const layer0 = state.layers.layer0;
+    const l0Config = config.layers[0];
     let bestAction = null;
-    let bestRoi = null; // BigNum: deltaOutputPerSec / cost
+    let bestScore = -1;
 
     const currentProdPerTick = stats.layerProductionPerTick.layer0 || new BigNum(0);
-    const currentProdPerSec = currentProdPerTick.mul(stats.effectiveTicksPerSec);
+    const currentProdPerSec = Math.max(0.1, currentProdPerTick.mul(stats.effectiveTicksPerSec).toNumber());
+    const currentCurrency = layer0.currency.toNumber();
+    const { totalPowerPerSec, unitCurrencyPerTick } = this._estimateTotalCurrencyPowerPerSec(state, config, stats);
+
+    const evaluateCandidate = (action, costBig, deltaPowerPerSec) => {
+      const costNum = costBig.toNumber();
+      if (costNum <= 0 || deltaPowerPerSec <= 0) return;
+
+      const deficit = Math.max(0, costNum - currentCurrency);
+      const waitSec = deficit / currentProdPerSec;
+      const paybackSec = costNum / deltaPowerPerSec;
+
+      // Avoid saving for >9 minutes if faster stepping stones exist
+      const waitPenalty = waitSec > 500 ? waitSec * 4.0 : waitSec * 1.35;
+      const effectiveTimeCost = Math.max(0.01, waitPenalty + paybackSec);
+      const score = 1 / effectiveTimeCost;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestAction = action;
+      }
+    };
 
     // Check generators in Layer 0
-    for (const gen of config.layers[0].generators || []) {
+    for (const gen of l0Config.generators || []) {
       if (gen.unlockThreshold && layer0.runTotalCurrency.lt(gen.unlockThreshold)) {
         continue;
       }
 
       const cost = stats.generatorCosts.layer0[gen.id];
-      const rate = stats.generatorOutputs.layer0[gen.id];
-      const deltaProdPerSec = rate.mul(stats.effectiveTicksPerSec);
-      const roi = cost.gt(0) ? deltaProdPerSec.div(cost) : new BigNum(1e9);
+      if (!cost) continue;
 
-      if (!bestRoi || roi.gt(bestRoi)) {
-        bestRoi = roi;
-        bestAction = { type: 'buyGenerator', layerId: 'layer0', id: gen.id, cost };
+      const genState = layer0.generators[gen.id];
+      const ownedNum = genState?.owned?.toNumber() || 0;
+      const boughtNum = genState?.bought?.toNumber() || 0;
+      const unitValPerSec = (unitCurrencyPerTick[gen.id] || stats.generatorOutputs.layer0[gen.id].toNumber()) * stats.effectiveTicksPerSec;
+
+      // 1. Direct new unit + bought synergy boost on existing owned units
+      const baseSynergy = gen.boughtSynergyMultiplier || l0Config.boughtSynergyMultiplier || 1.0;
+      const synergyGain = Math.max(0, baseSynergy - 1) * ownedNum * unitValPerSec;
+      let deltaPower = unitValPerSec + synergyGain;
+
+      // 2. Milestone proximity look-ahead (e.g. approaching 25 bought for m1 Uncommon)
+      const msInfo = stats.generatorMilestones?.layer0?.[gen.id];
+      if (msInfo && msInfo.nextThreshold) {
+        const remainingToMilestone = msInfo.nextThreshold - boughtNum;
+        if (remainingToMilestone > 0 && remainingToMilestone <= 8) {
+          const multRatio = Math.max(1, (msInfo.nextMultiplier || 3) / (msInfo.multiplier || 1));
+          const futureUnits = Math.max(ownedNum + remainingToMilestone, msInfo.nextThreshold);
+          const milestonePayoff = futureUnits * unitValPerSec * (multRatio - 1);
+          deltaPower += milestonePayoff / remainingToMilestone;
+        }
       }
+
+      // First purchase of a newly unlocked generator gets an exploration priority boost
+      if (boughtNum === 0) {
+        deltaPower *= 2.5;
+      }
+
+      evaluateCandidate(
+        { type: 'buyGenerator', layerId: 'layer0', id: gen.id, cost },
+        cost,
+        deltaPower
+      );
     }
 
-    // Check upgrades in Layer 0
-    for (const upg of config.layers[0].upgrades || []) {
+    // Check upgrades in Layer 0 by simulating level + 1 on state
+    for (const upg of l0Config.upgrades || []) {
       if (upg.unlockThreshold && layer0.runTotalCurrency.lt(upg.unlockThreshold)) {
         continue;
       }
       const cost = stats.upgradeCosts.layer0[upg.id];
-      if (!cost) continue; // maxed or locked
+      if (!cost) continue;
 
-      let estimatedDeltaSec = new BigNum(0.01);
-      if (upg.effect.target === 'cycleFrequency') {
-        const newFreq = stats.cycleFrequencyMultiplier * upg.effect.value;
-        const newEffectiveDuration = config.clock.baseCycleDurationMs / newFreq;
-        const newTicksPerSec = (1000 / newEffectiveDuration) * stats.tickYieldPerCycle.toNumber();
-        const newProdSec = currentProdPerTick.mul(newTicksPerSec);
-        if (newProdSec.gt(currentProdPerSec)) {
-          estimatedDeltaSec = newProdSec.sub(currentProdPerSec);
+      const currentLevel = layer0.upgrades[upg.id]?.level || 0;
+      const hypoState = {
+        ...state,
+        layers: {
+          ...state.layers,
+          layer0: {
+            ...layer0,
+            upgrades: {
+              ...layer0.upgrades,
+              [upg.id]: { level: currentLevel + 1 }
+            }
+          }
         }
-      } else if (upg.effect.target === 'tickYield') {
-        let newTickYield = stats.tickYieldPerCycle;
-        if (upg.effect.operation === 'multiply') {
-          newTickYield = newTickYield.mul(upg.effect.value);
-        } else if (upg.effect.operation === 'add') {
-          newTickYield = newTickYield.add(upg.effect.value);
-        }
-        const newTicksPerSec = (1000 / stats.effectiveCycleDurationMs) * newTickYield.toNumber();
-        const newProdSec = currentProdPerTick.mul(newTicksPerSec);
-        if (newProdSec.gt(currentProdPerSec)) {
-          estimatedDeltaSec = newProdSec.sub(currentProdPerSec);
-        }
-      } else if (upg.effect.target === 'generator') {
-        const genId = upg.effect.targetId;
-        const owned = layer0.generators[genId].owned;
-        if (owned.gt(0)) {
-          const currentGenOut = stats.generatorOutputs.layer0[genId];
-          const newGenOut = currentGenOut.mul(upg.effect.value);
-          const deltaOut = newGenOut.sub(currentGenOut);
-          estimatedDeltaSec = owned.mul(deltaOut).mul(stats.effectiveTicksPerSec);
-        }
+      };
+
+      const hypoStats = getDerivedStats(hypoState, config);
+      const { totalPowerPerSec: nextPowerPerSec } = this._estimateTotalCurrencyPowerPerSec(hypoState, config, hypoStats);
+      let deltaPower = Math.max(0.01, nextPowerPerSec - totalPowerPerSec);
+
+      // Handle costScaling upgrades which reduce future generator purchase costs
+      if (upg.effect?.target === 'costScaling') {
+        deltaPower = Math.max(deltaPower, totalPowerPerSec * 0.45);
       }
 
-      const roi = cost.gt(0) ? estimatedDeltaSec.div(cost) : new BigNum(0);
-      if (!bestRoi || roi.gt(bestRoi)) {
-        bestRoi = roi;
-        bestAction = { type: 'buyUpgrade', layerId: 'layer0', id: upg.id, cost };
-      }
+      evaluateCandidate(
+        { type: 'buyUpgrade', layerId: 'layer0', id: upg.id, cost },
+        cost,
+        deltaPower
+      );
     }
 
     return bestAction;
@@ -152,5 +234,53 @@ export class AutoPrestigePolicy extends OptimalRoiPolicy {
       return { type: 'resetLayer', layerId: this.prestigeLayerId, cost: new BigNum(0) };
     }
     return super.decideAction(state, config);
+  }
+}
+
+export class SemiOptimalPolicy extends OptimalRoiPolicy {
+  constructor(options = {}) {
+    super();
+    this.reactionLagMs = options.reactionLagMs ?? 45000;
+    this.offlineBreaksTaken = 0;
+    this.maxOfflineBreaks = options.maxOfflineBreaks ?? 3;
+    this.offlineBreakDurationMs = options.offlineBreakDurationMs ?? 45 * 60 * 1000;
+    this.actionCount = 0;
+  }
+
+  decideAction(state, config) {
+    this.actionCount++;
+    const stats = getDerivedStats(state, config);
+    const l0 = state.layers.layer0;
+
+    // Simulate human player occasionally preferring visible generator purchases over math-optimal upgrades
+    if (this.actionCount % 3 === 0) {
+      for (const gen of config.layers[0].generators) {
+        const cost = stats.generatorCosts.layer0[gen.id];
+        if (cost && l0.currency.gte(cost) && (!gen.unlockThreshold || l0.runTotalCurrency.gte(gen.unlockThreshold))) {
+          return { type: 'buyGenerator', layerId: 'layer0', id: gen.id, cost, delayMs: this.reactionLagMs };
+        }
+      }
+    }
+
+    const action = super.decideAction(state, config);
+    if (!action) return null;
+
+    let delayMs = this.reactionLagMs;
+    const runTotal = l0?.runTotalCurrency?.toNumber() || 0;
+    if (this.offlineBreaksTaken === 0 && runTotal >= 25000 && this.maxOfflineBreaks >= 1) {
+      this.offlineBreaksTaken++;
+      delayMs += this.offlineBreakDurationMs;
+    } else if (this.offlineBreaksTaken === 1 && runTotal >= 150000 && this.maxOfflineBreaks >= 2) {
+      this.offlineBreaksTaken++;
+      delayMs += this.offlineBreakDurationMs;
+    } else if (this.offlineBreaksTaken === 2 && runTotal >= 450000 && this.maxOfflineBreaks >= 3) {
+      this.offlineBreaksTaken++;
+      delayMs += this.offlineBreakDurationMs;
+    }
+
+    return {
+      ...action,
+      delayMs
+    };
   }
 }

@@ -29,11 +29,11 @@ describe('Session and Persistence Seam', () => {
     session.buyGenerator('layer0', 'gen1', 1);
     expect(session.getState().layers.layer0.generators.gen1.owned.toNumber()).toBe(1);
 
-    // Advance 5 seconds on clock and tickToNow()
-    clock.advanceMs(5000);
+    // Advance 6 seconds (1 cycle) on clock and tickToNow()
+    clock.advanceMs(6000);
     session.tickToNow();
 
-    expect(session.getState().layers.layer0.currency.toNumber()).toBe(5);
+    expect(session.getState().layers.layer0.currency.toNumber()).toBe(6);
   });
 
   it('produces an accurate OfflineReport when loading a save after elapsed time', () => {
@@ -44,7 +44,7 @@ describe('Session and Persistence Seam', () => {
     session1.buyGenerator('layer0', 'gen1', 1);
     session1.save();
 
-    // Advance clock by 1 hour (3,600,000ms = 3,600 cycles)
+    // Advance clock by 1 hour (3,600,000ms = 600 cycles of 6000ms each)
     clock.advanceMs(3600000);
 
     // New session loads from storage
@@ -53,8 +53,8 @@ describe('Session and Persistence Seam', () => {
 
     expect(report).toBeTruthy();
     expect(report.elapsedMs).toBe(3600000);
-    expect(report.cyclesFired.toNumber()).toBe(3600);
-    expect(report.ticksEmitted.toNumber()).toBe(3600);
+    expect(report.cyclesFired.toNumber()).toBe(600);
+    expect(report.ticksEmitted.toNumber()).toBe(600);
     expect(report.currencyDeltas.layer0.toNumber()).toBe(3600);
 
     expect(session2.getState().layers.layer0.currency.toNumber()).toBe(3600);
@@ -73,14 +73,14 @@ describe('Session and Persistence Seam', () => {
     sessionA2.load();
     const currencyA = sessionA2.getState().layers.layer0.currency;
 
-    // Branch B: 3600 1-second steps
+    // Branch B: 600 six-second steps
     const clockB = new ManualClock(1000000);
     const storageB = new MemoryStorage();
     const sessionB = new GameSession({ config: defaultGameConfig, clock: clockB, storage: storageB });
     sessionB.buyGenerator('layer0', 'gen1', 1);
 
-    for (let i = 0; i < 3600; i++) {
-      clockB.advanceMs(1000);
+    for (let i = 0; i < 600; i++) {
+      clockB.advanceMs(6000);
       sessionB.tickToNow();
     }
     const currencyB = sessionB.getState().layers.layer0.currency;
@@ -94,7 +94,7 @@ describe('Session and Persistence Seam', () => {
     const session = new GameSession({ config: defaultGameConfig, clock, storage });
 
     session.buyGenerator('layer0', 'gen1', 1);
-    session.jumpTime(10000); // 10s -> 10 currency
+    session.jumpTime(12000); // 12s -> 2 cycles * 6 = 12 currency
 
     const exported = session.exportSave();
     expect(typeof exported).toBe('string');
@@ -103,7 +103,7 @@ describe('Session and Persistence Seam', () => {
     const newSession = new GameSession({ config: defaultGameConfig, clock, storage: new MemoryStorage() });
     newSession.importSave(exported);
 
-    expect(newSession.getState().layers.layer0.currency.toNumber()).toBe(10);
+    expect(newSession.getState().layers.layer0.currency.toNumber()).toBe(12);
     expect(newSession.getState().layers.layer0.generators.gen1.owned.toNumber()).toBe(1);
   });
 
@@ -115,7 +115,7 @@ describe('Session and Persistence Seam', () => {
     session.buyGenerator('layer0', 'gen1', 1);
     session.tickToNow();
 
-    // Advance clock by 10 minutes (600,000ms) simulating backgrounded Android app
+    // Advance clock by 10 minutes (600,000ms = 100 cycles) simulating backgrounded Android app
     clock.advanceMs(600000);
 
     // resumeOfflineProgress() is called on visibilitychange / focus
@@ -123,7 +123,7 @@ describe('Session and Persistence Seam', () => {
 
     expect(report).toBeTruthy();
     expect(report.elapsedMs).toBe(600000);
-    expect(report.cyclesFired.toNumber()).toBe(600);
+    expect(report.cyclesFired.toNumber()).toBe(100);
     expect(report.currencyDeltas.layer0.toNumber()).toBe(600);
     expect(session.getState().layers.layer0.currency.toNumber()).toBe(600);
   });
@@ -145,7 +145,7 @@ describe('Session and Persistence Seam', () => {
     const twentyFourHoursMs = 24 * 60 * 60 * 1000;
     expect(report).toBeTruthy();
     expect(report.elapsedMs).toBe(twentyFourHoursMs);
-    expect(report.cyclesFired.toNumber()).toBe(86400);
+    expect(report.cyclesFired.toNumber()).toBe(14400);
     expect(report.currencyDeltas.layer0.toNumber()).toBe(86400);
   });
 });
