@@ -4,6 +4,7 @@ import { gamesList, getGameConfig } from '../src/games/index.js';
 import { createInitialState, getDerivedStats } from '../src/engine/core.js';
 import { Simulator } from '../src/engine/simulator.js';
 import { OptimalRoiPolicy } from '../src/engine/policies.js';
+import { BigNum } from '../src/engine/bignum.js';
 import { BUILD_INFO } from '../src/version.js';
 
 describe('Multi-Game Definitions and Presentation Seam', () => {
@@ -75,8 +76,45 @@ describe('Multi-Game Definitions and Presentation Seam', () => {
   });
 
   it('verifies distinct mechanical tuning and progression across all 3 games', () => {
+    const expectedClocks = {
+      'dyson-swarm': 6000,
+      'aetherforge': 4000,
+      'sunken-observatory': 7500
+    };
+    const expectedM1 = {
+      'dyson-swarm': 25,
+      'aetherforge': 22,
+      'sunken-observatory': 25
+    };
+
     for (const item of gamesList) {
       const config = getGameConfig(item.id);
+      const l0 = config.layers[0];
+      expect(config.clock.baseCycleDurationMs).toBe(expectedClocks[item.id]);
+      expect(Boolean(l0.capacitor)).toBe(true);
+      expect(Array.isArray(l0.stances) && l0.stances.length).toBe(3);
+      expect(Boolean(l0.bayCapacity)).toBe(true);
+
+      // 9 Layer 0 upgrades with mutually exclusive Doctrine fork
+      expect(l0.upgrades.length).toBe(9);
+      const surgeDoc = l0.upgrades.find(u => u.id === 'upg_doctrine_surge');
+      const cascadeDoc = l0.upgrades.find(u => u.id === 'upg_doctrine_cascade');
+      expect(Boolean(surgeDoc) && surgeDoc.exclusiveWith.includes('upg_doctrine_cascade')).toBe(true);
+      expect(Boolean(cascadeDoc) && cascadeDoc.exclusiveWith.includes('upg_doctrine_surge')).toBe(true);
+
+      // Distinct m1 milestone (22 on aetherforge vs 25 on dyson/sunken) & Sunken double Surge ticks
+      const testState = createInitialState(config);
+      testState.layers.layer0.generators.gen1.bought = new BigNum(22);
+      const statsAt22 = getDerivedStats(testState, config);
+      expect(statsAt22.generatorMilestones.layer0.gen1.tierId).toBe(expectedM1[item.id] === 22 ? 'm1' : 'm0');
+      testState.layers.layer0.generators.gen1.bought = new BigNum(expectedM1[item.id]);
+      const statsAtM1 = getDerivedStats(testState, config);
+      expect(statsAtM1.generatorMilestones.layer0.gen1.tierId).toBe('m1');
+      expect(statsAtM1.generatorMilestones.layer0.gen1.multiplier).toBe(2);
+      if (item.id === 'sunken-observatory') {
+        expect(l0.capacitor.surgeTickMult).toBe(2);
+      }
+
       const simulator = new Simulator(config);
       const policy = new OptimalRoiPolicy();
       const state = createInitialState(config);

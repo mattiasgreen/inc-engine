@@ -2,22 +2,26 @@
 // Progressive Web App Service Worker for inc-engine
 // Provides offline capability, asset caching, and standalone PWA installation
 
-const CACHE_NAME = 'inc-engine-15def97';
+const CACHE_NAME = 'inc-engine-shell-v3';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './src/version.js',
   './src/ui/app.js',
   './src/games/index.js',
+  './src/games/blueprint.js',
   './src/games/dyson-swarm.js',
   './src/games/aetherforge.js',
   './src/games/sunken-observatory.js',
   './src/engine/bignum.js',
+  './src/engine/config.js',
   './src/engine/core.js',
-  './src/engine/formulas.js',
+  './src/engine/view-model.js',
   './src/engine/policies.js',
   './src/engine/simulator.js',
+  './src/session/ports.js',
   './src/session/session.js',
   './assets/icon-192.png',
   './assets/icon-512.png',

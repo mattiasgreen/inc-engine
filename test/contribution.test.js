@@ -66,8 +66,8 @@ describe('Meaningful Contribution Specification and Harness Seam', () => {
     }
   });
 
-  it('guarantees all 7 Layer 0 upgrades are viable and purchased during the run to First Prestige', () => {
-    const expectedUpgradeIds = [
+  it('guarantees all 8 available Layer 0 upgrades are viable and purchased across both Doctrine branches to First Prestige', () => {
+    const sharedUpgradeIds = [
       'upg_cycle_accel',
       'upg_gen1_overdrive',
       'upg_period_compress',
@@ -77,38 +77,42 @@ describe('Meaningful Contribution Specification and Harness Seam', () => {
       'upg_log_momentum'
     ];
 
-    for (const { name, config } of games) {
-      const state = createInitialState(config);
-      const simulator = new Simulator(config);
-      const policy = new OptimalRoiPolicy();
-      const target = new BigNum(1e6);
+    for (const { config } of games) {
+      for (const doctrine of ['surge', 'cascade']) {
+        const chosenDoctrineId = doctrine === 'surge' ? 'upg_doctrine_surge' : 'upg_doctrine_cascade';
+        const excludedDoctrineId = doctrine === 'surge' ? 'upg_doctrine_cascade' : 'upg_doctrine_surge';
+        const expectedIds = [...sharedUpgradeIds, chosenDoctrineId];
 
-      const result = simulator.run(state, policy, {
-        stopCondition: st => st.layers.layer0.runTotalCurrency.gte(target),
-        maxSimulatedMs: 3 * 60 * 60 * 1000
-      });
+        const state = createInitialState(config);
+        const simulator = new Simulator(config);
+        const policy = new OptimalRoiPolicy({ preferredDoctrine: doctrine });
+        const target = new BigNum(1e6);
 
-      const purchasedUpgradeCounts = {};
-      for (const h of result.history) {
-        if (h.action.type === 'buyUpgrade') {
-          purchasedUpgradeCounts[h.action.id] = (purchasedUpgradeCounts[h.action.id] || 0) + 1;
+        const result = simulator.run(state, policy, {
+          stopCondition: st => st.layers.layer0.runTotalCurrency.gte(target),
+          maxSimulatedMs: 3 * 60 * 60 * 1000
+        });
+
+        const purchasedUpgradeCounts = {};
+        for (const h of result.history) {
+          if (h.action.type === 'buyUpgrade') {
+            purchasedUpgradeCounts[h.action.id] = (purchasedUpgradeCounts[h.action.id] || 0) + 1;
+          }
         }
-      }
 
-      // Every single Layer 0 upgrade must have been purchased at least once
-      for (const upgId of expectedUpgradeIds) {
-        const count = purchasedUpgradeCounts[upgId] || 0;
-        expect(count).toBeGreaterThanOrEqual(1);
-      }
+        for (const upgId of expectedIds) {
+          expect(purchasedUpgradeCounts[upgId] || 0).toBeGreaterThanOrEqual(1);
+        }
+        expect(purchasedUpgradeCounts[excludedDoctrineId] || 0).toBe(0);
 
-      // Exact count of distinct upgrades purchased must be 7 out of 7
-      const distinctCount = Object.keys(purchasedUpgradeCounts).filter(id => expectedUpgradeIds.includes(id)).length;
-      expect(distinctCount).toBe(7);
+        const distinctCount = Object.keys(purchasedUpgradeCounts).filter(id => expectedIds.includes(id)).length;
+        expect(distinctCount).toBe(8);
+      }
     }
   });
 
-  it('proves progression pacing stays bounded between 1.5h-2.2h optimal and 3.0h-4.8h semi-optimal', () => {
-    for (const { name, config } of games) {
+  it('proves progression pacing stays bounded between 38m-65m optimal and 1.2h-3.5h hybrid desk', () => {
+    for (const { config } of games) {
       // 1. Optimal play run
       const optState = createInitialState(config);
       const optSim = new Simulator(config);
@@ -121,22 +125,22 @@ describe('Meaningful Contribution Specification and Harness Seam', () => {
       });
 
       const optElapsedSec = optRes.simulatedMs / 1000;
-      expect(optElapsedSec).toBeGreaterThanOrEqual(5400); // >= 90 min
-      expect(optElapsedSec).toBeLessThanOrEqual(8400);    // <= 140 min
+      expect(optElapsedSec).toBeGreaterThanOrEqual(2280); // >= 38 min
+      expect(optElapsedSec).toBeLessThanOrEqual(3900);    // <= 65 min
 
-      // 2. Semi-optimal play run
+      // 2. Hybrid Desk / Semi-optimal play run
       const semiState = createInitialState(config);
       const semiSim = new Simulator(config);
       const semiPolicy = new SemiOptimalPolicy();
 
       const semiRes = semiSim.run(semiState, semiPolicy, {
         stopCondition: st => st.layers.layer0.runTotalCurrency.gte(target),
-        maxSimulatedMs: 6 * 60 * 60 * 1000
+        maxSimulatedMs: 5 * 60 * 60 * 1000
       });
 
       const semiElapsedHours = semiRes.simulatedMs / 3600000;
-      expect(semiElapsedHours).toBeGreaterThanOrEqual(3.0);
-      expect(semiElapsedHours).toBeLessThanOrEqual(4.8);
+      expect(semiElapsedHours).toBeGreaterThanOrEqual(1.2);
+      expect(semiElapsedHours).toBeLessThanOrEqual(3.5);
     }
   });
 });

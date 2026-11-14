@@ -85,7 +85,7 @@ test.describe('inc-engine End-to-End User Journey', () => {
     await expect(cycleUpg.locator('.lvl-badge')).toContainText('Lvl 1');
 
     // Verify telemetry cycle frequency is displayed
-    await expect(page.locator('#telemetry-cycle-freq')).toHaveText('0.17 /s');
+    await expect(page.locator('#telemetry-cycle-freq')).toHaveText('0.18 /s');
   });
 
   test('Stage 5: Full Prestige cycle resets Layer 0 and awards Layer 1 Prestige Cores', async ({ page }) => {
@@ -332,5 +332,52 @@ test.describe('inc-engine End-to-End User Journey', () => {
     const s2 = parseFloat(fill2.match(/scaleX\(([0-9.]+)\)/)[1]);
     const s3 = parseFloat(fill3.match(/scaleX\(([0-9.]+)\)/)[1]);
     expect([s1, s2, s3].every(v => v < 1.0)).toBe(true);
+  });
+
+  test('Stage 11: Layer 0 Command Deck supports Pulse, Stance switching, and Capacitor Surge discharge', async ({ page }) => {
+    await page.locator('#btn-hard-reset').click();
+
+    const deck = page.locator('#layer0-command-deck');
+    const stanceSection = page.locator('#layer0-stance-section');
+    const pulseBtn = page.locator('#btn-trigger-pulse');
+    const dischargeBtn = page.locator('#btn-discharge-capacitor');
+    const capStatus = page.locator('#capacitor-status-text');
+
+    await expect(deck).toBeVisible();
+    await expect(stanceSection).toBeHidden();
+    await expect(pulseBtn).toBeEnabled();
+    await expect(dischargeBtn).toBeDisabled();
+
+    // 1. Trigger Pulse before buying gen1: grants +4 MW, charges Capacitor > 0%, enters cooldown
+    await pulseBtn.click();
+    await expect(page.locator('#layer0-currency')).toHaveText(/14/);
+    await expect(pulseBtn).toBeDisabled();
+    await expect(capStatus).not.toContainText('0% charged');
+
+    // 2. Buy first Solar Drone -> reveals Operational Stance selector with 3 stances
+    await page.locator('#layer0-generators .card').first().locator('.btn-buy-1').click();
+    await expect(stanceSection).toBeVisible();
+    const stanceBtns = stanceSection.locator('.btn-stance');
+    await expect(stanceBtns).toHaveCount(3);
+    const rateBalanced = await page.locator('#layer0-output-sec').textContent();
+
+    // 3. Switch to Beam Extraction stance -> active styling & higher direct MW/s output
+    const extractionBtn = stanceSection.locator('[data-stance-id="extraction"]');
+    await extractionBtn.click();
+    await expect(extractionBtn).toHaveClass(/active/);
+    await expect(page.locator('#layer0-output-sec')).not.toHaveText(rateBalanced);
+
+    // 4. Jump +15 Min to charge Solar Capacitor Bank past 40% threshold
+    await page.locator('button[data-jump-ms="900000"]').click();
+    const offlineModal = page.locator('#offline-modal');
+    await expect(offlineModal).toBeVisible();
+    await expect(page.locator('#offline-capacitor-gain')).toBeVisible();
+    await page.locator('#btn-close-offline-modal').click();
+
+    // 5. Discharge Capacitor to ignite Coronal Surge
+    await expect(dischargeBtn).toBeEnabled();
+    await dischargeBtn.click();
+    await expect(deck).toHaveClass(/surge-active/);
+    await expect(capStatus).toContainText('Coronal Surge');
   });
 });

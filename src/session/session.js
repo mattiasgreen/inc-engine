@@ -8,6 +8,9 @@ import {
   advanceTime,
   buyGenerator,
   buyUpgrade,
+  setStance,
+  triggerPulse,
+  dischargeCapacitor,
   resetLayer,
   enforceProgressionInvariant
 } from '../engine/core.js';
@@ -111,6 +114,29 @@ export class GameSession {
     this.state = buyUpgrade(this.state, this.config, layerId, upgId);
   }
 
+  setStance(layerId, stanceId) {
+    this.state = setStance(this.state, this.config, layerId, stanceId);
+  }
+
+  triggerPulse(layerId = 'layer0') {
+    const beforeLayer = this.state.layers[layerId];
+    const next = triggerPulse(this.state, this.config, layerId);
+    if (next === this.state) return null;
+    this.state = next;
+    const afterLayer = this.state.layers[layerId];
+    return {
+      currencyGained: afterLayer.currency.sub(beforeLayer.currency),
+      chargeGained: (afterLayer.capacitorCharge || 0) - (beforeLayer.capacitorCharge || 0)
+    };
+  }
+
+  dischargeCapacitor(layerId = 'layer0') {
+    const next = dischargeCapacitor(this.state, this.config, layerId);
+    if (next === this.state) return 0;
+    this.state = next;
+    return this.state.layers[layerId].surgeTicksRemaining || 0;
+  }
+
   resetLayer(layerId) {
     this.state = resetLayer(this.state, this.config, layerId);
     this.save();
@@ -118,7 +144,7 @@ export class GameSession {
 
   serializeState() {
     const serialized = {
-      version: 1,
+      version: 2,
       savedAtMs: this.clock.nowMs(),
       cycleRemainderMs: this.state.cycleRemainderMs,
       totalCycles: this.state.totalCycles.toJSON(),
@@ -132,6 +158,10 @@ export class GameSession {
         runTotalCurrency: layerState.runTotalCurrency.toJSON(),
         totalLifetimeCurrency: layerState.totalLifetimeCurrency.toJSON(),
         ticksInLayer: (layerState.ticksInLayer || new BigNum(0)).toJSON(),
+        stanceId: layerState.stanceId || 'balanced',
+        capacitorCharge: layerState.capacitorCharge || 0,
+        surgeTicksRemaining: layerState.surgeTicksRemaining || 0,
+        pulseCooldownMs: layerState.pulseCooldownMs || 0,
         generators: {},
         upgrades: {}
       };
@@ -171,6 +201,10 @@ export class GameSession {
         runTotalCurrency: savedLayer ? BigNum.fromJSON(savedLayer.runTotalCurrency) : new BigNum(layer.currency.initialAmount || 0),
         totalLifetimeCurrency: savedLayer ? BigNum.fromJSON(savedLayer.totalLifetimeCurrency) : new BigNum(layer.currency.initialAmount || 0),
         ticksInLayer: savedLayer?.ticksInLayer ? BigNum.fromJSON(savedLayer.ticksInLayer) : new BigNum(0),
+        stanceId: savedLayer?.stanceId || layer.defaultStanceId || 'balanced',
+        capacitorCharge: typeof savedLayer?.capacitorCharge === 'number' ? savedLayer.capacitorCharge : 0,
+        surgeTicksRemaining: typeof savedLayer?.surgeTicksRemaining === 'number' ? savedLayer.surgeTicksRemaining : 0,
+        pulseCooldownMs: typeof savedLayer?.pulseCooldownMs === 'number' ? savedLayer.pulseCooldownMs : 0,
         generators: {},
         upgrades: {}
       };

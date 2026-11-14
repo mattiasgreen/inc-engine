@@ -68,6 +68,30 @@ _Avoid_: Solid button fill, Neon block button, Transparent overlay
 The set of declarative presentation tokens in a `GameConfig.palette` (surface luminance ratios, accent saturation bounds, edge vignettes, ambient filters, and typographic texture) that evoke a genre's mood through generic CSS custom properties without game-specific UI code.
 _Avoid_: Hardcoded theme CSS, Game-specific stylesheet, High-contrast neon skin
 
+**Pulse**:
+An active manual action on a Layer with a bounded cooldown that grants immediate currency scaled to current production plus Charge toward the Layer's Capacitor.
+_Avoid_: Click spam, Tapper, Manual autoclick
+
+**Capacitor**:
+A Layer-level energy or essence reservoir (`0.0` to `1.0` Charge) filled passively per Tick, actively via Pulse, and through Bay Capacity overflow, which can be discharged to trigger a Surge Window.
+_Avoid_: Mana bar, Boost meter, Rage gauge
+
+**Surge Window**:
+A temporary, Tick-bounded state (`surgeTicksRemaining`) triggered by discharging a Capacitor that multiplies Layer output, Cycle frequency, or Tick Yield for its duration.
+_Avoid_: Frenzy, Buff timer, Fever mode
+
+**Operational Stance**:
+A player-selected routing mode on a Layer (`balanced`, `extraction`, `cascade`) that trades off direct currency output, Metagenerator cascade rate, Cycle frequency, and Capacitor charge rate.
+_Avoid_: Class, Posture, Spec, Alignment
+
+**Bay Capacity**:
+The soft-cap threshold (`bayBase + bayPerBought * bought`, scaled by Upgrades) on free Metagenerator-spawned units (`owned - bought`). Free units above Bay Capacity compress via a sublinear power curve (`0.42`) while diverting excess overflow into faster Capacitor charging.
+_Avoid_: Hard cap, Unit limit, Housing cap
+
+**Doctrine Branch**:
+A mutually exclusive Upgrade choice within Layer 0 (`upg_doctrine_surge` vs `upg_doctrine_cascade`) that specializes a single run toward active Surge windows or deep Metagenerator cascades, resetting on Prestige.
+_Avoid_: Permanent class, Talent tree, Ascension perk
+
 ### Simulation and Persistence
 
 **Reducible Transition**:
@@ -85,6 +109,14 @@ _Avoid_: Bot, AI, Script, Auto-buyer
 **Semi-Optimal Policy**:
 A decision strategy modeling realistic human behavior, combining value-based upgrade selection with decision hesitation, occasional bulk generator purchases, and offline breaks.
 _Avoid_: Dumb bot, Random agent, Sloppy policy
+
+**Hybrid Desk Policy**:
+A simulation Policy modeling realistic semi-active play at a desk: bursts of rapid purchases, Operational Stance switching, and Capacitor discharges interspersed with attention-driven offline breaks whenever purchase wait times exceed a human patience threshold.
+_Avoid_: AFK bot, Lazy script
+
+**Sessioned Offline Schedule**:
+A multi-session simulation profile alternating bounded active check-in windows with extended offline intervals (such as 60 to 90 minutes away) to evaluate mixed online/offline progression pacing and Bay Capacity soft-saturation.
+_Avoid_: Cron test, Sleep loop
 
 **Simulator**:
 The subsystem that advances the engine forward, either passively over elapsed time or actively using a Policy, to jump to future states and verify progression pacing.

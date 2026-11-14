@@ -2,6 +2,7 @@
 import { test, expect } from '@playwright/test';
 
 test('take desktop and mobile screenshots of all 3 games with animations & scenery', async ({ page }) => {
+  test.setTimeout(60000);
   // Desktop 1280x900
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/');
@@ -50,6 +51,9 @@ test('take desktop and mobile screenshots of all 3 games with animations & scene
   await page.setViewportSize({ width: 412, height: 915 });
   await page.locator('#game-select').selectOption('sunken-observatory');
   await page.waitForTimeout(200);
+  if (await page.locator('#btn-close-offline-modal').isVisible()) {
+    await page.locator('#btn-close-offline-modal').click();
+  }
   await page.screenshot({ path: 'test-results/android-sunken-upgrades.png' });
 
   // Character Lore Dossier Modal
@@ -69,5 +73,8 @@ test('take desktop and mobile screenshots of all 3 games with animations & scene
   // Android Aetherforge with Arcane Diffusion Upgrade Art
   await page.locator('#game-select').selectOption('aetherforge');
   await page.waitForTimeout(200);
+  if (await page.locator('#btn-close-offline-modal').isVisible()) {
+    await page.locator('#btn-close-offline-modal').click();
+  }
   await page.screenshot({ path: 'test-results/android-aetherforge-upgrades.png' });
 });

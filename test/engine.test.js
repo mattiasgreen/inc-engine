@@ -2,13 +2,18 @@
 import { describe, it, expect } from './runner.js';
 import { defaultGameConfig } from '../src/engine/config.js';
 import {
+  BAY_SOFT_CAP_EXPONENT,
+  computeBayEffectiveOwned,
   createInitialState,
   getDerivedStats,
   advanceTime,
   advanceTicks,
   buyGenerator,
   buyUpgrade,
-  resetLayer
+  resetLayer,
+  setStance,
+  triggerPulse,
+  dischargeCapacitor
 } from '../src/engine/core.js';
 import { BigNum } from '../src/engine/bignum.js';
 
@@ -79,8 +84,9 @@ describe('Engine Core Seam', () => {
     let state = createInitialState(defaultGameConfig);
     state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
 
-    // Give enough currency to buy upgrades
-    state.layers.layer0.currency = new BigNum(100000);
+    // Give enough currency and runTotal to unlock and buy upgrade chain
+    state.layers.layer0.currency = new BigNum(1e6);
+    state.layers.layer0.runTotalCurrency = new BigNum(1e6);
 
     // Buy Cycle Accelerator (increases cycle frequency)
     state = buyUpgrade(state, defaultGameConfig, 'layer0', 'upg_cycle_accel');
@@ -88,14 +94,22 @@ describe('Engine Core Seam', () => {
     expect(stats1.cycleFrequencyMultiplier).toBeGreaterThan(1.0);
     expect(stats1.effectiveCycleDurationMs).toBeLessThan(6000);
 
-    // Buy Tick Amplifier (multiplies ticks per cycle)
+    // Buy Gen 1 Overdrive (increases generator output)
+    state = buyUpgrade(state, defaultGameConfig, 'layer0', 'upg_gen1_overdrive');
+    const statsGen = getDerivedStats(state, defaultGameConfig);
+    expect(statsGen.generatorOutputs.layer0.gen1.gt(6)).toBe(true);
+
+    // Unlock prerequisite chain and buy Tick Amplifier (1.5x ticks per cycle)
+    state = buyUpgrade(state, defaultGameConfig, 'layer0', 'upg_period_compress');
+    state = buyUpgrade(state, defaultGameConfig, 'layer0', 'upg_doctrine_surge');
+    state = buyUpgrade(state, defaultGameConfig, 'layer0', 'upg_cross_synergy');
     state = buyUpgrade(state, defaultGameConfig, 'layer0', 'upg_tick_amp');
     const stats2 = getDerivedStats(state, defaultGameConfig);
-    expect(stats2.tickYieldPerCycle.toNumber()).toBe(2);
+    expect(stats2.tickYieldPerCycle.toNumber()).toBe(1.5);
 
-    // Advancing 1 full cycle now emits 2 ticks
-    const { nextState } = advanceTime(state, defaultGameConfig, stats2.effectiveCycleDurationMs);
-    expect(nextState.totalTicks.toNumber()).toBe(2);
+    // Advancing 2 full cycles emits 3 ticks (1.5 * 2 = 3)
+    const { nextState } = advanceTime(state, defaultGameConfig, stats2.effectiveCycleDurationMs * 2);
+    expect(nextState.totalTicks.toNumber()).toBe(3);
   });
 
   it('locks Layer 1 prestige until threshold and awards prestige currency with multipliers', () => {
@@ -409,5 +423,167 @@ describe('Engine Core Seam', () => {
     expect(statsM4.generatorMilestones.layer0.gen1.tierId).toBe('m4');
     expect(statsM4.generatorMilestones.layer0.gen1.multiplier).toBe(50);
     expect(statsM4.generatorMilestones.layer0.gen1.assetPath).toBe('./assets/gen-dyson-1-m4.jpg');
+  });
+
+  it('scales output under Period Compression and activates real Overdrive multiplier at <=1s', () => {
+    const compressConfig = {
+      clock: { baseCycleDurationMs: 2000, baseTicksPerCycle: 1 },
+      layers: [
+        {
+          id: 'layer0',
+          overdriveMultiplier: 1.22,
+          currency: { id: 'c', name: 'C', symbol: 'C', initialAmount: 1000 },
+          generators: [
+            {
+              id: 'gen2',
+              baseCost: 10,
+              costGrowth: 1.5,
+              cyclePeriodTicks: 4,
+              baseOutputPerTick: 2,
+              produces: 'currency'
+            }
+          ],
+          upgrades: [
+            {
+              id: 'upg_period_compress',
+              baseCost: 10,
+              costGrowth: 2,
+              maxLevel: 2,
+              effect: { target: 'generatorPeriod', targetId: 'all', operation: 'divide', value: 2 }
+            }
+          ]
+        }
+      ]
+    };
+
+    let state = createInitialState(compressConfig);
+    state = buyGenerator(state, compressConfig, 'layer0', 'gen2', 1);
+    const s0 = getDerivedStats(state, compressConfig);
+    expect(s0.generatorPeriods.layer0.gen2).toBe(4);
+    expect(s0.generatorOverdrive.layer0.gen2).toBe(false);
+    expect(s0.generatorOverdriveMultipliers.layer0.gen2).toBe(1);
+    expect(s0.generatorOutputs.layer0.gen2.toNumber()).toBe(2);
+
+    // 1 level: period 4 -> 2 ticks (4000ms), per-tick equivalent output doubles to 4
+    state = buyUpgrade(state, compressConfig, 'layer0', 'upg_period_compress');
+    const s1 = getDerivedStats(state, compressConfig);
+    expect(s1.generatorPeriods.layer0.gen2).toBe(2);
+    expect(s1.generatorOverdrive.layer0.gen2).toBe(false);
+    expect(s1.generatorOutputs.layer0.gen2.toNumber()).toBe(4);
+
+    // 2 levels: period 2 -> 1 tick (2000ms). With 2x cycleFrequency or 1000ms base, enters Overdrive.
+    compressConfig.clock.baseCycleDurationMs = 1000;
+    state = buyUpgrade(state, compressConfig, 'layer0', 'upg_period_compress');
+    const s2 = getDerivedStats(state, compressConfig);
+    expect(s2.generatorPeriods.layer0.gen2).toBe(1);
+    expect(s2.generatorOverdrive.layer0.gen2).toBe(true);
+    expect(s2.generatorOverdriveMultipliers.layer0.gen2).toBe(1.22);
+    // 2 * (4 / 1) * 1.22 = 9.76
+    expect(Math.abs(s2.generatorOutputs.layer0.gen2.toNumber() - 9.76)).toBeLessThan(1e-6);
+  });
+
+  it('executes triggerPulse, Capacitor discharge, and piecewise Surge with single-jump vs step equivalence', () => {
+    let state = createInitialState(defaultGameConfig);
+    state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
+
+    // Pulse grants currency and Capacitor charge, and sets cooldown
+    const currBefore = state.layers.layer0.currency.toNumber();
+    const pulsed = triggerPulse(state, defaultGameConfig, 'layer0');
+    expect(pulsed.layers.layer0.currency.toNumber()).toBeGreaterThan(currBefore);
+    expect(pulsed.layers.layer0.capacitorCharge).toBeGreaterThan(0);
+    expect(pulsed.layers.layer0.pulseCooldownMs).toBeGreaterThan(0);
+
+    // Calling pulse while on cooldown is a no-op
+    expect(triggerPulse(pulsed, defaultGameConfig, 'layer0')).toBe(pulsed);
+
+    // Charge Capacitor >= 0.40 and discharge into Surge
+    const chargedState = {
+      ...pulsed,
+      layers: {
+        ...pulsed.layers,
+        layer0: { ...pulsed.layers.layer0, capacitorCharge: 0.50 }
+      }
+    };
+    const surged = dischargeCapacitor(chargedState, defaultGameConfig, 'layer0');
+    expect(surged.layers.layer0.capacitorCharge).toBe(0);
+    expect(surged.layers.layer0.surgeTicksRemaining).toBeGreaterThan(0);
+
+    // Branch A: single 5-minute jump crossing Surge expiry cleanly
+    const { nextState: jumpState } = advanceTime(surged, defaultGameConfig, 300000);
+
+    // Branch B: 300 x 1-second steps
+    let stepState = surged;
+    for (let i = 0; i < 300; i++) {
+      stepState = advanceTime(stepState, defaultGameConfig, 1000).nextState;
+    }
+
+    expect(jumpState.layers.layer0.surgeTicksRemaining).toBe(0);
+    expect(stepState.layers.layer0.surgeTicksRemaining).toBe(0);
+    expect(jumpState.totalTicks.eq(stepState.totalTicks)).toBe(true);
+    const relErr = Math.abs(jumpState.layers.layer0.currency.sub(stepState.layers.layer0.currency).toNumber())
+      / Math.max(1, stepState.layers.layer0.currency.toNumber());
+    expect(relErr).toBeLessThan(1e-6);
+  });
+
+  it('switches Operational Stances and resets Stance/Capacitor/Surge on Layer 1 prestige', () => {
+    let state = createInitialState(defaultGameConfig);
+    state = buyGenerator(state, defaultGameConfig, 'layer0', 'gen1', 1);
+
+    const balancedStats = getDerivedStats(state, defaultGameConfig);
+    expect(balancedStats.activeStances.layer0.id).toBe('balanced');
+
+    const extracted = setStance(state, defaultGameConfig, 'layer0', 'extraction');
+    const extractStats = getDerivedStats(extracted, defaultGameConfig);
+    expect(extractStats.activeStances.layer0.id).toBe('extraction');
+    expect(extractStats.generatorOutputs.layer0.gen1.gt(balancedStats.generatorOutputs.layer0.gen1)).toBe(true);
+
+    const cascaded = setStance(extracted, defaultGameConfig, 'layer0', 'cascade');
+    const cascadeStats = getDerivedStats(cascaded, defaultGameConfig);
+    expect(cascadeStats.activeStances.layer0.metaMult).toBeGreaterThan(1.0);
+    expect(cascadeStats.generatorOutputs.layer0.gen2.gt(balancedStats.generatorOutputs.layer0.gen2)).toBe(true);
+
+    // Prepare Layer 1 prestige reset and trigger Surge + Pulse cooldown
+    let prePrestige = triggerPulse(cascaded, defaultGameConfig, 'layer0');
+    prePrestige.layers.layer0.runTotalCurrency = new BigNum(1e6);
+    prePrestige.layers.layer0.capacitorCharge = 0.65;
+    prePrestige = dischargeCapacitor(prePrestige, defaultGameConfig, 'layer0');
+
+    const afterPrestige = resetLayer(prePrestige, defaultGameConfig, 'layer1');
+    expect(afterPrestige.layers.layer0.stanceId).toBe('balanced');
+    expect(afterPrestige.layers.layer0.capacitorCharge).toBe(0);
+    expect(afterPrestige.layers.layer0.surgeTicksRemaining).toBe(0);
+    expect(afterPrestige.layers.layer0.pulseCooldownMs).toBe(0);
+  });
+
+  it('soft-caps free units above Bay Capacity without penalizing bought units and boosts Capacitor charge on overflow', () => {
+    expect(BAY_SOFT_CAP_EXPONENT).toBe(0.42);
+    // Bought units never attenuated when owned === bought
+    const noFree = computeBayEffectiveOwned(new BigNum(10), new BigNum(10), 10);
+    expect(noFree.toNumber()).toBe(10);
+
+    // Free units within bayCap count 1:1
+    const withinCap = computeBayEffectiveOwned(new BigNum(5), new BigNum(12), 8);
+    expect(withinCap.toNumber()).toBe(12);
+
+    // Free units above bayCap follow bought + bayCap * (1 + excess / bayCap)^0.42
+    const overflow = computeBayEffectiveOwned(new BigNum(5), new BigNum(25), 10);
+    const expected = 5 + 10 * Math.pow(1 + (20 - 10) / 10, BAY_SOFT_CAP_EXPONENT);
+    expect(Math.abs(overflow.toNumber() - expected)).toBeLessThan(1e-9);
+    expect(overflow.toNumber()).toBeLessThan(25);
+
+    // Verify overflow boosts Capacitor passive charge rate in stats
+    let baseState = createInitialState(defaultGameConfig);
+    baseState.layers.layer0.generators.gen1.bought = new BigNum(1);
+    baseState.layers.layer0.generators.gen1.owned = new BigNum(1);
+    const cleanStats = getDerivedStats(baseState, defaultGameConfig);
+
+    const overflowState = createInitialState(defaultGameConfig);
+    overflowState.layers.layer0.generators.gen1.bought = new BigNum(1);
+    overflowState.layers.layer0.generators.gen1.owned = new BigNum(40);
+    const overflowStats = getDerivedStats(overflowState, defaultGameConfig);
+
+    expect(overflowStats.bayOverflowRatios.layer0.gen1).toBeGreaterThan(1);
+    expect(overflowStats.capacitorStats.layer0.effectiveChargePerTick)
+      .toBeGreaterThan(cleanStats.capacitorStats.layer0.effectiveChargePerTick);
   });
 });

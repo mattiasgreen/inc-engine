@@ -1,7 +1,7 @@
 // src/games/aetherforge.js
 // Fantasy / Arcane World GameConfig with presentation metadata, lore, and SVG assets
 
-import { compileGameConfig } from './blueprint.js';
+import { compileGameConfig, GEN2_MILESTONE_TIERS, GEN3_MILESTONE_TIERS } from './blueprint.js';
 
 export const aetherforgeGame = compileGameConfig({
   id: 'aetherforge',
@@ -86,14 +86,66 @@ export const aetherforgeGame = compileGameConfig({
     }
   },
   clock: {
-    baseCycleDurationMs: 6000,
+    baseCycleDurationMs: 4000,
     baseTicksPerCycle: 1
   },
   layers: [
     {
       id: 'layer0',
       name: 'The Aetherial Weave',
-      boughtSynergyMultiplier: 1.00,
+      boughtSynergyMultiplier: 1.016,
+      overdriveMultiplier: 1.16,
+      bayCapacity: {
+        gen1: { base: 6, perBought: 0.80 },
+        gen2: { base: 4, perBought: 0.8 },
+        gen3: { base: 3, perBought: 0.8 }
+      },
+      capacitor: {
+        name: 'Astral Crucible',
+        pulseLabel: 'Invoke Chant',
+        dischargeLabel: 'Unleash Leyflare',
+        surgeName: 'Astral Leyflare',
+        pulseCooldownMs: 15000,
+        pulseBaseCurrency: 4,
+        pulseRateSec: 1.1,
+        pulseCharge: 0.045,
+        passiveChargePerTick: 0.003,
+        minDischargeCharge: 0.40,
+        surgeMultiplier: 1.70,
+        surgeCycleFreqMult: 1.12,
+        surgeTickMult: 1,
+        maxSurgeTicks: 22
+      },
+      defaultStanceId: 'balanced',
+      stances: [
+        {
+          id: 'balanced',
+          name: 'Harmonic Weave',
+          description: 'Balanced 1.0x mana harvest, summoning speed, and crucible charge.',
+          currencyMult: 1.0,
+          metaMult: 1.0,
+          chargeMult: 1.0,
+          cycleFreqMult: 1.0
+        },
+        {
+          id: 'extraction',
+          name: 'Channeled Harvest',
+          description: '+20% mana harvest, +8% chant tempo, -35% summoning rate.',
+          currencyMult: 1.20,
+          metaMult: 0.65,
+          chargeMult: 0.90,
+          cycleFreqMult: 1.08
+        },
+        {
+          id: 'cascade',
+          name: 'Planar Conjuration',
+          description: '+55% conduit/citadel summoning, +75% crucible charge, -32% direct MP.',
+          currencyMult: 0.68,
+          metaMult: 1.55,
+          chargeMult: 1.75,
+          cycleFreqMult: 1.0
+        }
+      ],
       image: './assets/icon-aether-l0.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -117,10 +169,17 @@ export const aetherforgeGame = compileGameConfig({
             <circle cx="15" cy="11" r="1" fill="#c084fc" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.405,
+          costGrowth: 1.388,
           cyclePeriodTicks: 1,
-          baseOutputPerTick: 6.0,
-          produces: 'currency'
+          baseOutputPerTick: 3.15,
+          produces: 'currency',
+          milestones: [
+            { id: 'm0', rank: 0, name: 'Common', minBought: 0, multiplier: 1 },
+            { id: 'm1', rank: 1, name: 'Uncommon', minBought: 22, multiplier: 2 },
+            { id: 'm2', rank: 2, name: 'Rare', minBought: 48, multiplier: 4 },
+            { id: 'm3', rank: 3, name: 'Epic', minBought: 100, multiplier: 12 },
+            { id: 'm4', rank: 4, name: 'Legendary', minBought: 240, multiplier: 50 }
+          ]
         },
         {
           id: 'gen2',
@@ -133,16 +192,17 @@ export const aetherforgeGame = compileGameConfig({
             <circle cx="12" cy="7" r="3" />
             <circle cx="12" cy="17" r="3" />
           </svg>`,
-          baseCost: 1850,
-          costGrowth: 1.44,
-          cyclePeriodTicks: 4,
-          baseOutputPerTick: 0.016,
+          baseCost: 1280,
+          costGrowth: 1.43,
+          cyclePeriodTicks: 3,
+          baseOutputPerTick: 0.0038,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 650
+          unlockThreshold: 520,
+          milestones: GEN2_MILESTONE_TIERS
         },
         {
           id: 'gen3',
@@ -153,75 +213,77 @@ export const aetherforgeGame = compileGameConfig({
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-citadel">
             <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
           </svg>`,
-          baseCost: 20000,
-          costGrowth: 1.48,
-          cyclePeriodTicks: 8,
-          baseOutputPerTick: 0.009,
+          baseCost: 13000,
+          costGrowth: 1.46,
+          cyclePeriodTicks: 6,
+          baseOutputPerTick: 0.0031,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 8500
+          unlockThreshold: 5500,
+          milestones: GEN3_MILESTONE_TIERS
         }
       ],
       upgrades: [
         {
           id: 'upg_cycle_accel',
           name: 'Chrono-Incantation',
-          description: 'Speeds weave frequency by 4%',
+          description: 'Speeds weave frequency by 5.5%',
           lore: 'Compresses casting syllables through harmonic vocal resonances.',
-          backstory: 'An ancient polyphonic casting technique perfected by the First Chantry. By overlapping vocal cadences across three tonal registers simultaneously, complex spell formulas collapse into pure musical chords, quickening weave cycles by 4%.',
+          backstory: 'An ancient polyphonic casting technique perfected by the First Chantry. By overlapping vocal cadences across three tonal registers simultaneously, complex spell formulas collapse into pure musical chords, quickening weave cycles by 5.5%.',
           image: './assets/upg-leyline.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 8 14" />
           </svg>`,
-          baseCost: 250,
-          costGrowth: 2.6,
-          maxLevel: 10,
+          baseCost: 210,
+          costGrowth: 2.60,
+          maxLevel: 6,
           effect: {
             target: 'cycleFrequency',
             operation: 'multiply',
-            value: 1.04
+            value: 1.055
           }
         },
         {
           id: 'upg_gen1_overdrive',
           name: 'Ethereal Bond',
-          description: 'Boosts Runic Familiar mana harvest by 1.07x per level',
+          description: 'Boosts Runic Familiar mana harvest by 1.10x per level',
           lore: 'Tethers spirits directly to the caster spiritual reservoir.',
-          backstory: 'A sacred blood-and-mana pact inscribed onto the familiar spirits astral essence. By opening an unbroken psychic channel to the archmage, the spirits draw upon bottomless reservoirs of will, boosting each familiar mana yield by 7% per rank.',
+          backstory: 'A sacred blood-and-mana pact inscribed onto the familiar spirits astral essence. By opening an unbroken psychic channel to the archmage, the spirits draw upon bottomless reservoirs of will, boosting each familiar mana yield by 10% per rank.',
           image: './assets/upg-bond.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>`,
-          baseCost: 550,
-          costGrowth: 2.75,
-          maxLevel: 10,
+          baseCost: 410,
+          costGrowth: 2.65,
+          maxLevel: 6,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.07
+            value: 1.10
           }
         },
         {
           id: 'upg_period_compress',
           name: 'Quickened Invocation',
-          description: 'Halves Generator Tick Periods across the Aetherial Weave',
+          description: 'Halves Generator Tick Periods across the Aetherial Weave (+16% Overdrive at <=1s)',
           lore: 'Inscribes haste glyphs directly into obsidian leyline pillars.',
-          backstory: 'By weaving temporal haste runes into the foundation of every Leyline Conduit and Astral Citadel, ritual conjurations complete in half the required Ticks, driving arcane constructs toward luminous Overdrive.',
+          backstory: 'By weaving temporal haste runes into the foundation of every Leyline Conduit and Astral Citadel, ritual conjurations complete in half the required Ticks, driving arcane constructs toward 1.16x Overdrive.',
           image: './assets/upg-spirits.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 4400,
-          costGrowth: 5.4,
+          baseCost: 2700,
+          costGrowth: 4.3,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 2200,
+          unlockThreshold: 1300,
+          prerequisites: [{ id: 'upg_cycle_accel', minLevel: 1 }],
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
@@ -230,28 +292,76 @@ export const aetherforgeGame = compileGameConfig({
           }
         },
         {
-          id: 'upg_tick_amp',
-          name: 'Prismatic Loom',
-          description: 'Doubles Ticks emitted per Cycle',
-          lore: 'Splits each strand of mana into dual resonant frequencies.',
-          backstory: 'Carved from a fallen celestial prism discovered in the crater of Mount Vael. The loom splits unformed ether into golden dawn and violet dusk harmonic spectra, allowing the spellcaster to harvest twice as many discrete mana pulses during every weave resonance.',
-          image: './assets/upg-prism.jpg',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="12 2 2 22 22 22 12 2" />
+          id: 'upg_doctrine_surge',
+          name: 'Doctrine: Solar Leyflare',
+          description: 'Branch Choice: +20% all Layer 0 mana and +22% Astral Leyflare Surge (locks Endless Summoning)',
+          lore: 'Attunes the Astral Crucible to violent stellar flare eruptions.',
+          backstory: 'Channels celestial fire directly through crystallized crucible sigils, transforming every Astral Leyflare into an overwhelming flood of condensed ether.',
+          image: './assets/upg-astral-amp.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
           </svg>`,
-          baseCost: 92000,
-          costGrowth: 8.0,
-          maxLevel: 5,
+          baseCost: 8400,
+          costGrowth: 1,
+          maxLevel: 1,
+          milestoneRank: 2,
+          unlockThreshold: 4000,
+          prerequisites: [{ id: 'upg_period_compress', minLevel: 1 }],
+          exclusiveWith: ['upg_doctrine_cascade'],
           effect: {
-            target: 'tickYield',
+            target: 'layerGenerators',
+            targetId: 'layer0',
             operation: 'multiply',
-            value: 2.0
-          }
+            value: 1.20
+          },
+          effects: [
+            {
+              target: 'surgeMultiplier',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.22
+            }
+          ]
+        },
+        {
+          id: 'upg_doctrine_cascade',
+          name: 'Doctrine: Endless Summoning',
+          description: 'Branch Choice: +32% Conduit/Citadel summoning rate and +75% Bay Capacity (locks Solar Leyflare)',
+          lore: 'Unbinds planar summoning circles to hold vast cohorts of familiars.',
+          backstory: 'Expands the geometric chalk perimeter of every summoning hall, letting summoned familiars and conduits weave without magical congestion.',
+          image: './assets/upg-spirits.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>`,
+          baseCost: 8400,
+          costGrowth: 1,
+          maxLevel: 1,
+          milestoneRank: 2,
+          unlockThreshold: 4000,
+          prerequisites: [{ id: 'upg_period_compress', minLevel: 1 }],
+          exclusiveWith: ['upg_doctrine_surge'],
+          effect: {
+            target: 'cascadeMeta',
+            targetId: 'layer0',
+            operation: 'multiply',
+            value: 1.32
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.75
+            }
+          ]
         },
         {
           id: 'upg_cross_synergy',
           name: 'Covenant of the Circle',
-          description: 'Boosts all Layer 0 output by +0.25% per total Generator bought',
+          description: 'Boosts all Layer 0 output by +0.30% per total Generator bought',
           lore: 'Every summoned familiar and spire harmonizes with the grand chantry.',
           backstory: 'Links every Runic Familiar, Conduit, and Citadel into a sympathetic arcane chorus where each newly bound construct amplifies the potency of the entire weave.',
           image: './assets/upg-planetary-siphon.jpg',
@@ -259,44 +369,79 @@ export const aetherforgeGame = compileGameConfig({
             <circle cx="12" cy="12" r="9" />
             <polygon points="12 4 19 18 5 18 12 4" />
           </svg>`,
-          baseCost: 17000,
-          costGrowth: 3.9,
-          maxLevel: 4,
+          baseCost: 14000,
+          costGrowth: 3.7,
+          maxLevel: 3,
           milestoneRank: 3,
-          unlockThreshold: 8500,
+          unlockThreshold: 7000,
+          requireMode: 'any',
+          prerequisites: [
+            { id: 'upg_doctrine_surge', minLevel: 1 },
+            { id: 'upg_doctrine_cascade', minLevel: 1 }
+          ],
           effect: {
             target: 'crossGeneratorSynergy',
             targetId: 'layer0',
             operation: 'add',
-            value: 0.0025
+            value: 0.0030
           }
         },
         {
           id: 'upg_milestone_resonance',
           name: 'Runic Sanctification',
-          description: 'Multiplies all Uncommon (m1+) Milestone Tier bonuses by 1.15x',
-          lore: 'Consecrates familiar covens once a circle reaches 25 bound spirits.',
-          backstory: 'When 25 constructs of a single order are gathered, high artificers anoint them in liquid starlight, magnifying the multiplicative surge granted at every Milestone Tier.',
+          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.25x per level',
+          lore: 'Consecrates familiar covens once a circle reaches 22 bound spirits.',
+          backstory: 'When 22 constructs of a single order are gathered, high artificers anoint them in liquid starlight, magnifying every Milestone Tier and expanding sanctuary space.',
           image: './assets/upg-bond.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
           </svg>`,
-          baseCost: 40000,
-          costGrowth: 4.6,
+          baseCost: 30000,
+          costGrowth: 4.3,
           maxLevel: 2,
           milestoneRank: 3,
-          unlockThreshold: 20000,
+          unlockThreshold: 15000,
+          prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
           effect: {
             target: 'milestoneMultiplier',
             targetId: 'layer0',
             operation: 'multiply',
-            value: 1.15
+            value: 1.18
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.25
+            }
+          ]
+        },
+        {
+          id: 'upg_tick_amp',
+          name: 'Prismatic Loom',
+          description: 'Multiplies Ticks emitted per Cycle by 1.5x per level',
+          lore: 'Splits each strand of mana into dual resonant frequencies.',
+          backstory: 'Carved from a fallen celestial prism discovered in the crater of Mount Vael. The loom splits unformed ether into golden dawn and violet dusk harmonic spectra, allowing the spellcaster to harvest more discrete mana pulses during every weave resonance.',
+          image: './assets/upg-prism.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12 2 2 22 22 22 12 2" />
+          </svg>`,
+          baseCost: 58000,
+          costGrowth: 7.0,
+          maxLevel: 3,
+          unlockThreshold: 29000,
+          prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
+          effect: {
+            target: 'tickYield',
+            operation: 'multiply',
+            value: 1.5
           }
         },
         {
           id: 'upg_log_momentum',
           name: 'Aetherial Vortex Cascade',
-          description: 'Scales all Layer 0 output by log10(Run Mana)^0.08',
+          description: 'Scales all Layer 0 output by log10(Run Mana)^0.14',
           lore: 'Accumulated mana bends local gravity into an arcane whirlpool.',
           backstory: 'As the sanctum reservoir swells with gathered mana, its metaphysical density warps the surrounding ether, drawing ambient magic inward at an accelerating logarithmic rate.',
           image: './assets/upg-astral-amp.jpg',
@@ -304,16 +449,17 @@ export const aetherforgeGame = compileGameConfig({
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 130000,
+          baseCost: 72000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 70000,
+          unlockThreshold: 36000,
+          prerequisites: [{ id: 'upg_milestone_resonance', minLevel: 1 }],
           effect: {
             target: 'logMomentum',
             targetId: 'layer0',
             operation: 'add',
-            value: 0.08
+            value: 0.14
           }
         }
       ]

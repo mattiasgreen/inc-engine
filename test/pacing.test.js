@@ -2,9 +2,17 @@
 import { describe, it, expect } from './runner.js';
 import { defaultGameConfig } from '../src/engine/config.js';
 import { dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame } from '../src/games/index.js';
-import { createInitialState } from '../src/engine/core.js';
+import { createInitialState, advanceTime } from '../src/engine/core.js';
 import { Simulator } from '../src/engine/simulator.js';
-import { GreedyPolicy, OptimalRoiPolicy, SemiOptimalPolicy, PassivePolicy, AutoPrestigePolicy } from '../src/engine/policies.js';
+import {
+  GreedyPolicy,
+  OptimalRoiPolicy,
+  HybridDeskPolicy,
+  SessionedPlayPolicy,
+  DEFAULT_SESSION_SCHEDULE,
+  PassivePolicy,
+  AutoPrestigePolicy
+} from '../src/engine/policies.js';
 import { BigNum } from '../src/engine/bignum.js';
 
 describe('Simulator and Progression Pacing Seam', () => {
@@ -45,7 +53,7 @@ describe('Simulator and Progression Pacing Seam', () => {
     expect(result.history.length).toBeGreaterThan(0);
   });
 
-  it('proves First Prestige Window is paced around 2 hours of optimal play with sawtooth wait cadence and m1 milestone guardrail', () => {
+  it('proves First Prestige Window is paced around 40-60 minutes of optimal play with <=270s waits and m1 milestone guardrail', () => {
     const games = [dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame];
     for (const gameConfig of games) {
       let state = createInitialState(gameConfig);
@@ -55,55 +63,101 @@ describe('Simulator and Progression Pacing Seam', () => {
       const target = new BigNum(1e6);
       const result = simulator.run(state, policy, {
         stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-        maxSimulatedMs: 3 * 60 * 60 * 1000 // 3 hours max
+        maxSimulatedMs: 3 * 60 * 60 * 1000
       });
 
       expect(result.state.layers.layer0.runTotalCurrency.gte(target)).toBe(true);
 
       const elapsedSeconds = result.simulatedMs / 1000;
-      // Optimal play reaches 1e6 in ~2 hours (between 90 and 140 minutes; calibrated to ~110.2 minutes / 6614s)
-      expect(elapsedSeconds).toBeGreaterThanOrEqual(5400);
-      expect(elapsedSeconds).toBeLessThanOrEqual(8400);
+      expect(elapsedSeconds).toBeGreaterThanOrEqual(2280);
+      expect(elapsedSeconds).toBeLessThanOrEqual(3900);
 
-      // Milestone guardrail: gen1 unlocks m1 (25 bought) on Run 1, but stays below m2 (50 bought) without hellroad grinding
+      // Milestone guardrail: gen1 unlocks configured m1 on Run 1 without reaching 50 bought
+      const m1Threshold = gameConfig.layers[0].generators.find(g => g.id === 'gen1')?.milestones?.[1]?.minBought ?? 25;
       const gen1Bought = result.state.layers.layer0.generators.gen1.bought.toNumber();
-      expect(gen1Bought).toBeGreaterThanOrEqual(25);
+      expect(gen1Bought).toBeGreaterThanOrEqual(m1Threshold);
       expect(gen1Bought).toBeLessThan(50);
 
-      // Sawtooth wait-time cadence: verify presence of rapid (<30s), tactical (~45-90s), major (~180-300s), and epoch (~360-650s) waits
-      const waitsSec = result.history.map(h => (h.waitMs || 0) / 1000);
-      const rapidSteps = waitsSec.filter(w => w > 0 && w <= 35).length;
-      const tacticalSteps = waitsSec.filter(w => w > 35 && w <= 100).length;
-      const majorJumps = waitsSec.filter(w => w >= 150 && w <= 320).length;
-      const epochJumps = waitsSec.filter(w => w > 320).length;
+      // Sawtooth wait cadence with zero dead waits > 270s
+      const buyWaitsSec = result.history
+        .filter(h => h.action.type === 'buyGenerator' || h.action.type === 'buyUpgrade')
+        .map(h => (h.waitMs || 0) / 1000);
+      const maxWaitSec = buyWaitsSec.length ? Math.max(...buyWaitsSec) : 0;
+      const shortWaitsCount = buyWaitsSec.filter(w => w > 0 && w <= 45).length;
+      const mediumWaitsCount = buyWaitsSec.filter(w => w >= 90 && w <= 270).length;
 
-      expect(rapidSteps).toBeGreaterThanOrEqual(10);
-      expect(tacticalSteps).toBeGreaterThanOrEqual(5);
-      expect(majorJumps).toBeGreaterThanOrEqual(3);
-      expect(epochJumps).toBeGreaterThanOrEqual(2);
+      expect(maxWaitSec).toBeLessThanOrEqual(270);
+      expect(shortWaitsCount).toBeGreaterThanOrEqual(10);
+      expect(mediumWaitsCount).toBeGreaterThanOrEqual(3);
     }
   });
 
-  it('proves Semi-Optimal play (human hesitation and offline pauses) reaches First Prestige in ~3.5 to 4.5 hours', () => {
+  it('proves Hybrid Desk play reaches First Prestige in 1.2-3.5 hours across all games', () => {
     const games = [dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame];
     for (const gameConfig of games) {
       let state = createInitialState(gameConfig);
       const simulator = new Simulator(gameConfig);
-      // Realistic human semi-optimal play: hesitation lag, occasional generator bias, and 3 offline breaks
-      const policy = new SemiOptimalPolicy();
+      const policy = new HybridDeskPolicy();
 
       const target = new BigNum(1e6);
       const result = simulator.run(state, policy, {
         stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target),
-        maxSimulatedMs: 6 * 60 * 60 * 1000 // 6 hours max
+        maxSimulatedMs: 5 * 60 * 60 * 1000
       });
 
       expect(result.state.layers.layer0.runTotalCurrency.gte(target)).toBe(true);
 
       const elapsedHours = result.simulatedMs / (3600 * 1000);
-      // Calibrated to ~3.5 to 4.5 hours of semi-active human play
-      expect(elapsedHours).toBeGreaterThanOrEqual(3.0);
-      expect(elapsedHours).toBeLessThanOrEqual(4.8);
+      expect(elapsedHours).toBeGreaterThanOrEqual(1.2);
+      expect(elapsedHours).toBeLessThanOrEqual(3.5);
+    }
+  });
+
+  it('proves Sessioned schedule finishes in 2.0-3.8h wall time while 10m->8h pure offline stays <1e6', () => {
+    const games = [dysonSwarmGame, aetherforgeGame, sunkenObservatoryGame];
+    const target = new BigNum(1e6);
+
+    for (const gameConfig of games) {
+      // 1. Sessioned offline/online schedule
+      const simulator = new Simulator(gameConfig);
+      const schedRes = simulator.runSchedule(
+        createInitialState(gameConfig),
+        new SessionedPlayPolicy(),
+        DEFAULT_SESSION_SCHEDULE,
+        { stopCondition: (st) => st.layers.layer0.runTotalCurrency.gte(target) }
+      );
+
+      expect(schedRes.reachedTarget).toBe(true);
+      expect(schedRes.state.layers.layer0.runTotalCurrency.gte(target)).toBe(true);
+      const wallHours = schedRes.totalWallMs / 3600000;
+      const activeMin = schedRes.activeMs / 60000;
+      expect(wallHours).toBeGreaterThanOrEqual(2.0);
+      expect(wallHours).toBeLessThanOrEqual(3.8);
+      expect(activeMin).toBeLessThanOrEqual(25);
+      const onlineSessions = schedRes.sessions.filter(s => s.type === 'online');
+      expect(onlineSessions.length).toBeGreaterThanOrEqual(2);
+      for (const s of onlineSessions) {
+        expect(s.purchases).toBeGreaterThanOrEqual(4);
+      }
+
+      // 2. 10m active setup + 8h pure offline anti-cheese bound via Bay Capacity
+      const optPolicy = new OptimalRoiPolicy();
+      const setupRes = simulator.run(
+        createInitialState(gameConfig),
+        optPolicy,
+        { maxSimulatedMs: 10 * 60 * 1000 }
+      );
+      let preOfflineState = setupRes.state;
+      const prep = optPolicy.prepareForOffline(preOfflineState, gameConfig);
+      if (prep) {
+        preOfflineState = simulator.run(
+          preOfflineState,
+          { decideAction: () => prep },
+          { maxSimulatedMs: 1000, maxSteps: 1 }
+        ).state;
+      }
+      const after8h = advanceTime(preOfflineState, gameConfig, 8 * 3600 * 1000).nextState;
+      expect(after8h.layers.layer0.runTotalCurrency.lt(target)).toBe(true);
     }
   });
 

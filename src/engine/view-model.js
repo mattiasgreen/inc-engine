@@ -85,7 +85,24 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
       const periodTicks = stats.generatorPeriods?.[layer.id]?.[gen.id] || 1;
       const effPeriodMs = Math.round(stats.generatorEffectivePeriodMs?.[layer.id]?.[gen.id] || 1000);
       const isOverdrive = stats.generatorOverdrive?.[layer.id]?.[gen.id] || false;
+      const overdriveMult = stats.generatorOverdriveMultipliers?.[layer.id]?.[gen.id] || 1.0;
       const hasUnits = owned.gt(0);
+
+      // Bay Capacity metadata
+      const bayCap = stats.bayCapacities?.[layer.id]?.[gen.id];
+      const hasFiniteBay = Number.isFinite(bayCap);
+      const freeUnits = Math.max(0, owned.toNumber() - bought.toNumber());
+      const effOwned = stats.bayEffectiveOwned?.[layer.id]?.[gen.id] || owned;
+      const isBayOverflow = hasFiniteBay && freeUnits > bayCap;
+      const bayEfficiencyPct = (hasFiniteBay && owned.toNumber() > 0)
+        ? Math.min(100, Math.max(1, Math.round((effOwned.toNumber() / owned.toNumber()) * 100)))
+        : 100;
+      const showBayBadge = hasFiniteBay && hasUnits;
+      const bayBadgeText = !showBayBadge
+        ? ''
+        : isBayOverflow
+        ? `Bay Overflow: ${formatInteger(freeUnits)}/${formatInteger(bayCap)} free (${bayEfficiencyPct}% eff -> Capacitor)`
+        : `Bay: ${formatInteger(freeUnits)}/${formatInteger(bayCap)} free`;
 
       let cycleState = 'standby';
       if (!hasUnits) {
@@ -105,7 +122,8 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
         phaseText = 'Standby (Buy to start)';
       } else if (isOverdrive) {
         const hz = (1000 / effPeriodMs).toFixed(2);
-        periodText = `OVERDRIVE · ${hz} Hz`;
+        const odTag = overdriveMult > 1 ? ` ${overdriveMult.toFixed(2).replace(/\.?0+$/, '')}x` : '';
+        periodText = `OVERDRIVE${odTag} · ${hz} Hz`;
         phaseText = 'FLOWING';
       } else {
         periodText = `${periodTicks} ${periodTicks === 1 ? 'Tick' : 'Ticks'} (${(effPeriodMs / 1000).toFixed(1)}s/cycle)`;
@@ -149,6 +167,14 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
         milestoneBadgeText,
         milestoneTier: tierId,
         milestoneAsset: msInfo?.assetPath || gen.image || '',
+        bayCap,
+        freeUnits,
+        effOwned,
+        isBayOverflow,
+        showBayBadge,
+        bayBadgeText,
+        bayEfficiencyPct,
+        overdriveMult,
         cycleState,
         periodMs: effPeriodMs,
         periodText,
@@ -176,6 +202,7 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
       const isMax = level >= upg.maxLevel;
       const cost = stats.upgradeCosts?.[layer.id]?.[upg.id];
       const canAfford = !isMax && cost && layerState ? layerState.currency.gte(cost) : false;
+      const upgStatus = stats.upgradeStatuses?.[layer.id]?.[upg.id];
 
       const upgMs = stats.upgradeMilestones?.[layer.id]?.[upg.id];
       const tierId = upgMs?.tierId || 'm0';
@@ -189,11 +216,26 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
         }
       }
 
-      const costText = isMax
-        ? 'Maxed'
-        : cost
-        ? `Buy (${cost.format()} ${layer.currency.symbol})`
-        : 'Unavailable';
+      let lockReasonText = '';
+      let costText = '';
+      if (isMax) {
+        costText = 'Maxed';
+      } else if (cost) {
+        costText = `Upgrade (${cost.format()} ${layer.currency.symbol})`;
+      } else if (upgStatus?.isExclusiveLocked) {
+        lockReasonText = `Locked (Chose ${upgStatus.lockedBy.join(', ')})`;
+        costText = 'Doctrine Locked';
+      } else if (upgStatus && !upgStatus.prereqsMet) {
+        const joinWord = upgStatus.requireMode === 'any' ? ' or ' : ' & ';
+        lockReasonText = `Requires ${upgStatus.missingPrereqs.join(joinWord)}`;
+        costText = 'Requires Prerequisite';
+      } else if (upgStatus?.isLockedThreshold) {
+        const th = BigNum.from(upgStatus.unlockThreshold);
+        lockReasonText = `Unlocks at ${th.format()} ${layer.currency.symbol} run total`;
+        costText = `Unlocks at ${th.format()} ${layer.currency.symbol}`;
+      } else {
+        costText = 'Unavailable';
+      }
 
       upgrades[layer.id][upg.id] = {
         id: upg.id,
@@ -201,6 +243,10 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
         level,
         maxLevel: upg.maxLevel,
         isMax,
+        isExclusiveLocked: Boolean(upgStatus?.isExclusiveLocked),
+        prereqsMet: upgStatus?.prereqsMet ?? true,
+        isLockedThreshold: Boolean(upgStatus?.isLockedThreshold),
+        lockReasonText,
         tierId,
         tierBadgeText,
         assetPath: upgMs?.assetPath || upg.image || '',
@@ -210,6 +256,72 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
         etaText
       };
     }
+  }
+
+  // Operations Command Deck View State (Capacitor, Pulse, Surge, Stances)
+  const operations = {};
+  for (const layer of config.layers) {
+    const layerState = state.layers[layer.id];
+    const capStats = stats.capacitorStats?.[layer.id] || null;
+    const activeStance = stats.activeStances?.[layer.id] || null;
+    const hasStances = Boolean(layer.stances && layer.stances.length > 0);
+    const hasOwnedGen = Object.values(layerState?.generators || {}).some(g => g.owned.gt(0) || g.bought.gt(0));
+
+    let capacitorVm = null;
+    if (capStats) {
+      const pct = Math.round(capStats.charge * 100);
+      const minPct = Math.round(capStats.minDischargeCharge * 100);
+      const multStr = capStats.surgeMultiplier.toFixed(2).replace(/\.?0+$/, '');
+      const tickStr = capStats.surgeTickMult > 1 ? `, ${capStats.surgeTickMult}x ticks` : '';
+      const freqStr = capStats.surgeCycleFreqMult > 1 ? `, +${Math.round((capStats.surgeCycleFreqMult - 1) * 100)}% speed` : '';
+      const overflowStr = capStats.overflowBonus > 0.05 ? ` (+${Math.round(capStats.overflowBonus * 100)}% Bay overflow)` : '';
+
+      capacitorVm = {
+        name: capStats.name,
+        charge: capStats.charge,
+        chargePercent: pct,
+        minDischargePercent: minPct,
+        canDischarge: capStats.canDischarge,
+        isSurgeActive: capStats.isSurgeActive,
+        surgeName: capStats.surgeName,
+        surgeTicksRemaining: capStats.surgeTicksRemaining,
+        maxSurgeTicks: capStats.maxSurgeTicks,
+        pulseLabel: capStats.pulseLabel,
+        canPulse: capStats.canPulse,
+        pulseCooldownSec: Math.ceil(capStats.pulseCooldownMs / 1000),
+        pulseText: capStats.canPulse
+          ? `${capStats.pulseLabel} (+${capStats.estimatedPulseCurrency.format()} ${layer.currency.symbol})`
+          : `${capStats.pulseLabel} (${Math.ceil(capStats.pulseCooldownMs / 1000)}s)`,
+        dischargeText: capStats.isSurgeActive
+          ? `${capStats.surgeName}: ${capStats.surgeTicksRemaining}t left`
+          : capStats.canDischarge
+          ? `${capStats.dischargeLabel} (${pct}%)`
+          : `${capStats.dischargeLabel} (Need ${minPct}%)`,
+        statusText: capStats.isSurgeActive
+          ? `${capStats.surgeName} active: ${multStr}x output${freqStr}${tickStr} · ${capStats.surgeTicksRemaining} ticks left`
+          : `${capStats.name}: ${pct}% charged${overflowStr}`
+      };
+    }
+
+    const stancesVm = (layer.stances || []).map(s => ({
+      id: s.id,
+      name: s.name,
+      description: s.description || '',
+      isActive: activeStance?.id === s.id,
+      currencyMult: s.currencyMult ?? 1,
+      metaMult: s.metaMult ?? 1,
+      chargeMult: s.chargeMult ?? 1,
+      cycleFreqMult: s.cycleFreqMult ?? 1
+    }));
+
+    operations[layer.id] = {
+      hasOperations: Boolean(capStats || hasStances),
+      capacitor: capacitorVm,
+      hasStances,
+      stanceRevealed: hasStances && hasOwnedGen,
+      activeStanceId: activeStance?.id || 'balanced',
+      stances: stancesVm
+    };
   }
 
   // Prestige View State
@@ -226,6 +338,7 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
 
   return {
     header,
+    operations,
     generators,
     upgrades,
     prestige

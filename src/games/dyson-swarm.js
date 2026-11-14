@@ -1,7 +1,7 @@
 // src/games/dyson-swarm.js
 // Engineering / Megastructure World GameConfig with presentation metadata, lore, and SVG assets
 
-import { compileGameConfig } from './blueprint.js';
+import { compileGameConfig, GEN2_MILESTONE_TIERS, GEN3_MILESTONE_TIERS } from './blueprint.js';
 
 export const dysonSwarmGame = compileGameConfig({
   id: 'dyson-swarm',
@@ -95,7 +95,59 @@ export const dysonSwarmGame = compileGameConfig({
     {
       id: 'layer0',
       name: 'Photovoltaic Array',
-      boughtSynergyMultiplier: 1.00,
+      boughtSynergyMultiplier: 1.012,
+      overdriveMultiplier: 1.22,
+      bayCapacity: {
+        gen1: { base: 4, perBought: 0.77 },
+        gen2: { base: 4, perBought: 0.8 },
+        gen3: { base: 3, perBought: 0.8 }
+      },
+      capacitor: {
+        name: 'Solar Capacitor Bank',
+        pulseLabel: 'Beam Pulse',
+        dischargeLabel: 'Ignite Coronal Surge',
+        surgeName: 'Coronal Surge',
+        pulseCooldownMs: 18000,
+        pulseBaseCurrency: 4,
+        pulseRateSec: 1.2,
+        pulseCharge: 0.045,
+        passiveChargePerTick: 0.004,
+        minDischargeCharge: 0.40,
+        surgeMultiplier: 1.60,
+        surgeCycleFreqMult: 1.15,
+        surgeTickMult: 1,
+        maxSurgeTicks: 16
+      },
+      defaultStanceId: 'balanced',
+      stances: [
+        {
+          id: 'balanced',
+          name: 'Balanced Array',
+          description: 'Nominal 1.0x MW output, fabricator cascade rate, and capacitor charge.',
+          currencyMult: 1.0,
+          metaMult: 1.0,
+          chargeMult: 1.0,
+          cycleFreqMult: 1.0
+        },
+        {
+          id: 'extraction',
+          name: 'Beam Extraction',
+          description: '+25% MW output, -40% cascade spawn rate, -15% charge speed.',
+          currencyMult: 1.25,
+          metaMult: 0.60,
+          chargeMult: 0.85,
+          cycleFreqMult: 1.0
+        },
+        {
+          id: 'cascade',
+          name: 'Swarm Replication',
+          description: '+60% cascade spawn rate, +40% capacitor charge, -28% direct MW.',
+          currencyMult: 0.72,
+          metaMult: 1.60,
+          chargeMult: 1.40,
+          cycleFreqMult: 1.0
+        }
+      ],
       image: './assets/icon-dyson-l0.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="5" />
@@ -125,9 +177,9 @@ export const dysonSwarmGame = compileGameConfig({
             <polygon points="12 2 19 21 12 17 5 21 12 2" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.405,
+          costGrowth: 1.442,
           cyclePeriodTicks: 1,
-          baseOutputPerTick: 6,
+          baseOutputPerTick: 6.0,
           produces: 'currency'
         },
         {
@@ -143,16 +195,17 @@ export const dysonSwarmGame = compileGameConfig({
             <path d="M3 9h18" />
             <path d="M3 15h18" />
           </svg>`,
-          baseCost: 1850,
+          baseCost: 1500,
           costGrowth: 1.44,
           cyclePeriodTicks: 4,
-          baseOutputPerTick: 0.016,
+          baseOutputPerTick: 0.0044,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 650
+          unlockThreshold: 600,
+          milestones: GEN2_MILESTONE_TIERS
         },
         {
           id: 'gen3',
@@ -165,76 +218,78 @@ export const dysonSwarmGame = compileGameConfig({
             <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
             <path d="M2 12h20" />
           </svg>`,
-          baseCost: 20000,
-          costGrowth: 1.48,
+          baseCost: 14500,
+          costGrowth: 1.47,
           cyclePeriodTicks: 8,
-          baseOutputPerTick: 0.009,
+          baseOutputPerTick: 0.0034,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 8500
+          unlockThreshold: 6000,
+          milestones: GEN3_MILESTONE_TIERS
         }
       ],
       upgrades: [
         {
           id: 'upg_cycle_accel',
           name: 'Telemetry Overclock',
-          description: 'Increases telemetry Cycle frequency by 4%',
+          description: 'Increases telemetry Cycle frequency by 5.5%',
           lore: 'Upgrades inter-satellite communications to sub-picosecond microwave relays.',
-          backstory: 'By synchronizing orbital microwave transmitters through optical atomic clocks, telemetry latency across 1.4 million kilometers of space is eliminated. Autonomous swarm clusters react to solar coronal mass ejections instantaneously, accelerating processing cycles by 4%.',
+          backstory: 'By synchronizing orbital microwave transmitters through optical atomic clocks, telemetry latency across 1.4 million kilometers of space is eliminated. Autonomous swarm clusters react to solar coronal mass ejections instantaneously, accelerating processing cycles by 5.5%.',
           image: './assets/upg-telemetry.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>`,
-          baseCost: 250,
-          costGrowth: 2.6,
-          maxLevel: 10,
+          baseCost: 235,
+          costGrowth: 2.65,
+          maxLevel: 6,
           effect: {
             target: 'cycleFrequency',
             operation: 'multiply',
-            value: 1.04
+            value: 1.055
           }
         },
         {
           id: 'upg_gen1_overdrive',
           name: 'Reflective Coating',
-          description: 'Increases Solar Drone output by 1.07x per level',
+          description: 'Increases Solar Drone output by 1.10x per level',
           lore: 'Applies metamaterial dielectric mirrors to drone capture surfaces.',
-          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 7% per upgrade rank.',
+          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 10% per upgrade rank.',
           image: './assets/upg-coating.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <path d="M12 3v18" />
             <path d="M12 8l4 4-4 4" />
           </svg>`,
-          baseCost: 550,
-          costGrowth: 2.75,
-          maxLevel: 10,
+          baseCost: 480,
+          costGrowth: 2.68,
+          maxLevel: 6,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.07
+            value: 1.10
           }
         },
         {
           id: 'upg_period_compress',
           name: 'Harmonic Thruster Cadence',
-          description: 'Halves Generator Tick Periods across the orbital array',
+          description: 'Halves Generator Tick Periods across the orbital array (+22% Overdrive at <=1s)',
           lore: 'Synchronizes assembly bays with orbital perihelion harmonics.',
-          backstory: 'By firing ion thrusters at orbital resonance nodes, Orbital Fabricators and Stellar Harvesters complete their production cycles in half the required Ticks, pushing heavy assembly lines toward continuous Overdrive.',
+          backstory: 'By firing ion thrusters at orbital resonance nodes, Orbital Fabricators and Stellar Harvesters complete their production cycles in half the required Ticks, pushing heavy assembly lines toward continuous 1.22x Overdrive.',
           image: './assets/upg-superconductivity.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 4400,
-          costGrowth: 5.4,
+          baseCost: 2900,
+          costGrowth: 4.3,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 2200,
+          unlockThreshold: 1400,
+          prerequisites: [{ id: 'upg_cycle_accel', minLevel: 1 }],
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
@@ -243,28 +298,76 @@ export const dysonSwarmGame = compileGameConfig({
           }
         },
         {
-          id: 'upg_tick_amp',
-          name: 'Multi-Phase Transceiver',
-          description: 'Doubles Ticks emitted per Cycle',
-          lore: 'Processes parallel energy ingestion channels on dual orbital planes.',
-          backstory: 'Engineered using high-temperature superconductive metamaterials, this transceiver operates on dual orthogonal orbital planes simultaneously. By processing polar and equatorial solar flux concurrently, it doubles the operational ticks emitted during each computational cycle.',
-          image: './assets/upg-transceiver.jpg',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 12h5l3-9 4 18 3-9h5" />
+          id: 'upg_doctrine_surge',
+          name: 'Doctrine: Coronal Flare',
+          description: 'Branch Choice: +20% all Layer 0 output and +20% Coronal Surge multiplier (locks Von Neumann Doctrine)',
+          lore: 'Dedicates orbital relays to high-intensity capacitive flare discharges.',
+          backstory: 'Refits capacitor banks with superconducting pulse busbars so every solar surge hits with crushing instantaneous voltage across the microwave array.',
+          image: './assets/upg-superconductivity.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
           </svg>`,
-          baseCost: 92000,
-          costGrowth: 8.0,
-          maxLevel: 5,
+          baseCost: 9000,
+          costGrowth: 1,
+          maxLevel: 1,
+          milestoneRank: 2,
+          unlockThreshold: 4200,
+          prerequisites: [{ id: 'upg_period_compress', minLevel: 1 }],
+          exclusiveWith: ['upg_doctrine_cascade'],
           effect: {
-            target: 'tickYield',
+            target: 'layerGenerators',
+            targetId: 'layer0',
             operation: 'multiply',
-            value: 2.0
-          }
+            value: 1.20
+          },
+          effects: [
+            {
+              target: 'surgeMultiplier',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.20
+            }
+          ]
+        },
+        {
+          id: 'upg_doctrine_cascade',
+          name: 'Doctrine: Von Neumann Array',
+          description: 'Branch Choice: +36% Fabricator/Harvester spawn rate and +75% Bay Capacity (locks Coronal Flare Doctrine)',
+          lore: 'Allocates extra orbital docking rings for self-replicating fabrication fleets.',
+          backstory: 'Expands orbital berthing trusses so newly printed Solar Drones and Fabricators operate in full formation without saturating local magnetic corridors.',
+          image: './assets/upg-nanites.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>`,
+          baseCost: 9000,
+          costGrowth: 1,
+          maxLevel: 1,
+          milestoneRank: 2,
+          unlockThreshold: 4200,
+          prerequisites: [{ id: 'upg_period_compress', minLevel: 1 }],
+          exclusiveWith: ['upg_doctrine_surge'],
+          effect: {
+            target: 'cascadeMeta',
+            targetId: 'layer0',
+            operation: 'multiply',
+            value: 1.36
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.75
+            }
+          ]
         },
         {
           id: 'upg_cross_synergy',
           name: 'Swarm Mesh Interlink',
-          description: 'Boosts all Layer 0 output by +0.25% per total Generator bought',
+          description: 'Boosts all Layer 0 output by +0.28% per total Generator bought',
           lore: 'Every commissioned unit acts as a relay amplifier for the entire array.',
           backstory: 'Links every Solar Drone, Fabricator, and Harvester into a unified phased-array antenna. Each newly purchased construct sharpens beam collimation across the entire orbital fleet.',
           image: './assets/upg-nanites.jpg',
@@ -276,44 +379,79 @@ export const dysonSwarmGame = compileGameConfig({
             <line x1="7.5" y1="8.5" x2="10.5" y2="15.5" />
             <line x1="16.5" y1="8.5" x2="13.5" y2="15.5" />
           </svg>`,
-          baseCost: 17000,
-          costGrowth: 3.9,
-          maxLevel: 4,
+          baseCost: 11500,
+          costGrowth: 3.7,
+          maxLevel: 3,
           milestoneRank: 3,
-          unlockThreshold: 8500,
+          unlockThreshold: 5700,
+          requireMode: 'any',
+          prerequisites: [
+            { id: 'upg_doctrine_surge', minLevel: 1 },
+            { id: 'upg_doctrine_cascade', minLevel: 1 }
+          ],
           effect: {
             target: 'crossGeneratorSynergy',
             targetId: 'layer0',
             operation: 'add',
-            value: 0.0025
+            value: 0.0028
           }
         },
         {
           id: 'upg_milestone_resonance',
           name: 'Ascendant Chassis Matrix',
-          description: 'Multiplies all Uncommon (m1+) Milestone Tier bonuses by 1.15x',
-          lore: 'Unlocks overcharged coronal shielding once a swarm wing reaches 25 units.',
-          backstory: 'Reconfigures standard 25-unit drone squadrons into high-density diamond formations, amplifying the multiplicative power surge granted at every Milestone Tier.',
+          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.25x per level',
+          lore: 'Unlocks overcharged coronal shielding and wider orbital formation bays.',
+          backstory: 'Reconfigures standard squadron formations into diamond hulls while widening relay spacing so larger drone wings run unthrottled.',
           image: './assets/upg-coating.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
           </svg>`,
-          baseCost: 40000,
-          costGrowth: 4.6,
+          baseCost: 24000,
+          costGrowth: 4.3,
           maxLevel: 2,
           milestoneRank: 3,
-          unlockThreshold: 20000,
+          unlockThreshold: 12000,
+          prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
           effect: {
             target: 'milestoneMultiplier',
             targetId: 'layer0',
             operation: 'multiply',
-            value: 1.15
+            value: 1.18
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.25
+            }
+          ]
+        },
+        {
+          id: 'upg_tick_amp',
+          name: 'Multi-Phase Transceiver',
+          description: 'Multiplies Ticks emitted per Cycle by 1.5x per level',
+          lore: 'Processes parallel energy ingestion channels on dual orbital planes.',
+          backstory: 'Engineered using high-temperature superconductive metamaterials, this transceiver operates on dual orthogonal orbital planes simultaneously. By processing polar and equatorial solar flux concurrently, it multiplies operational ticks emitted during each computational cycle.',
+          image: './assets/upg-transceiver.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 12h5l3-9 4 18 3-9h5" />
+          </svg>`,
+          baseCost: 48000,
+          costGrowth: 7.0,
+          maxLevel: 3,
+          unlockThreshold: 24000,
+          prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
+          effect: {
+            target: 'tickYield',
+            operation: 'multiply',
+            value: 1.5
           }
         },
         {
           id: 'upg_log_momentum',
           name: 'Coronal Flux Feedback',
-          description: 'Scales all Layer 0 output by log10(Run Megawatts)^0.08',
+          description: 'Scales all Layer 0 output by log10(Run Megawatts)^0.14',
           lore: 'Redirects excess grid energy to magnetically pinch solar plasma.',
           backstory: 'Channels accumulated megawatts back into solar magnetic containment fields, creating a self-reinforcing feedback loop that accelerates production as total run energy climbs toward the Quantum Compression threshold.',
           image: './assets/upg-quantum-link.jpg',
@@ -321,16 +459,17 @@ export const dysonSwarmGame = compileGameConfig({
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 130000,
+          baseCost: 55000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 70000,
+          unlockThreshold: 27500,
+          prerequisites: [{ id: 'upg_milestone_resonance', minLevel: 1 }],
           effect: {
             target: 'logMomentum',
             targetId: 'layer0',
             operation: 'add',
-            value: 0.08
+            value: 0.14
           }
         }
       ]

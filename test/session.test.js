@@ -148,4 +148,68 @@ describe('Session and Persistence Seam', () => {
     expect(report.cyclesFired.toNumber()).toBe(14400);
     expect(report.currencyDeltas.layer0.toNumber()).toBe(86400);
   });
+
+  it('persists v2 agency state (stance, capacitor, surge, pulseCooldown) across export and import', () => {
+    const clock = new ManualClock(1000000);
+    const session = new GameSession({ config: defaultGameConfig, clock, storage: new MemoryStorage() });
+
+    session.buyGenerator('layer0', 'gen1', 1);
+    session.setStance('layer0', 'cascade');
+    const pulseRes = session.triggerPulse('layer0');
+    expect(pulseRes).toBeTruthy();
+
+    session.state.layers.layer0.capacitorCharge = 0.55;
+    const surgeTicks = session.dischargeCapacitor('layer0');
+    expect(surgeTicks).toBeGreaterThan(0);
+
+    const serialized = session.serializeState();
+    expect(serialized.version).toBe(2);
+    expect(serialized.layers.layer0.stanceId).toBe('cascade');
+    expect(serialized.layers.layer0.surgeTicksRemaining).toBe(surgeTicks);
+    expect(serialized.layers.layer0.pulseCooldownMs).toBeGreaterThan(0);
+
+    const exported = session.exportSave();
+    const restored = new GameSession({ config: defaultGameConfig, clock, storage: new MemoryStorage() });
+    restored.importSave(exported);
+
+    const l0 = restored.getState().layers.layer0;
+    expect(l0.stanceId).toBe('cascade');
+    expect(l0.surgeTicksRemaining).toBe(surgeTicks);
+    expect(l0.pulseCooldownMs).toBe(serialized.layers.layer0.pulseCooldownMs);
+  });
+
+  it('loads legacy v1 saves with safe Layer 0 agency defaults and missing upgrade keys', () => {
+    const v1Save = {
+      version: 1,
+      savedAtMs: 1000000,
+      cycleRemainderMs: 1500,
+      totalCycles: { m: 5, e: 0 },
+      totalTicks: { m: 5, e: 0 },
+      layers: {
+        layer0: {
+          currency: { m: 2.5, e: 2 },
+          runTotalCurrency: { m: 3, e: 2 },
+          totalLifetimeCurrency: { m: 3, e: 2 },
+          ticksInLayer: { m: 5, e: 0 },
+          generators: {
+            gen1: { bought: { m: 2, e: 0 }, owned: { m: 2, e: 0 }, startTick: 0 }
+          },
+          upgrades: {
+            upg_cycle_accel: { level: 1 }
+          }
+        }
+      }
+    };
+
+    const clock = new ManualClock(1000000);
+    const session = new GameSession({ config: defaultGameConfig, clock, storage: new MemoryStorage() });
+    const loaded = session.deserializeState(v1Save);
+
+    expect(loaded.layers.layer0.stanceId).toBe('balanced');
+    expect(loaded.layers.layer0.capacitorCharge).toBe(0);
+    expect(loaded.layers.layer0.surgeTicksRemaining).toBe(0);
+    expect(loaded.layers.layer0.pulseCooldownMs).toBe(0);
+    expect(loaded.layers.layer0.upgrades.upg_doctrine_surge.level).toBe(0);
+    expect(loaded.layers.layer0.upgrades.upg_doctrine_cascade.level).toBe(0);
+  });
 });

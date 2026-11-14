@@ -1,7 +1,7 @@
 // src/games/sunken-observatory.js
 // Cosmic Horror / Eldritch Investigation GameConfig with presentation metadata, lore, and SVG assets
 
-import { compileGameConfig } from './blueprint.js';
+import { compileGameConfig, GEN2_MILESTONE_TIERS, GEN3_MILESTONE_TIERS } from './blueprint.js';
 
 export const sunkenObservatoryGame = compileGameConfig({
   id: 'sunken-observatory',
@@ -82,11 +82,67 @@ export const sunkenObservatoryGame = compileGameConfig({
     baseCycleDurationMs: 6000,
     baseTicksPerCycle: 1
   },
+  clock: {
+    baseCycleDurationMs: 7500,
+    baseTicksPerCycle: 1
+  },
   layers: [
     {
       id: 'layer0',
       name: 'The Abyssal Archive',
-      boughtSynergyMultiplier: 1.00,
+      boughtSynergyMultiplier: 1.013,
+      overdriveMultiplier: 1.20,
+      bayCapacity: {
+        gen1: { base: 8, perBought: 0.90 },
+        gen2: { base: 4, perBought: 0.8 },
+        gen3: { base: 3, perBought: 0.8 }
+      },
+      capacitor: {
+        name: 'Abyssal Bell Jar',
+        pulseLabel: 'Sound Sonar',
+        dischargeLabel: 'Rupture Rift Tide',
+        surgeName: 'Rift Tide',
+        pulseCooldownMs: 22000,
+        pulseBaseCurrency: 6,
+        pulseRateSec: 1.3,
+        pulseCharge: 0.05,
+        passiveChargePerTick: 0.005,
+        minDischargeCharge: 0.40,
+        surgeMultiplier: 1.40,
+        surgeCycleFreqMult: 1.08,
+        surgeTickMult: 2,
+        maxSurgeTicks: 12
+      },
+      defaultStanceId: 'balanced',
+      stances: [
+        {
+          id: 'balanced',
+          name: 'Steady Bathysphere',
+          description: 'Measured 1.0x transcription, recruitment, and sonar pressure.',
+          currencyMult: 1.0,
+          metaMult: 1.0,
+          chargeMult: 1.0,
+          cycleFreqMult: 1.0
+        },
+        {
+          id: 'extraction',
+          name: 'Lucid Exegesis',
+          description: '+38% direct insight transcription, -55% recruitment cascade, -30% jar charge.',
+          currencyMult: 1.38,
+          metaMult: 0.45,
+          chargeMult: 0.70,
+          cycleFreqMult: 1.0
+        },
+        {
+          id: 'cascade',
+          name: 'Drowned Calling',
+          description: '+80% monolith/rift summoning, +55% bell jar charge, -38% direct insight.',
+          currencyMult: 0.62,
+          metaMult: 1.80,
+          chargeMult: 1.55,
+          cycleFreqMult: 1.0
+        }
+      ],
       image: './assets/icon-horror-l0.jpg',
       svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
@@ -110,9 +166,9 @@ export const sunkenObservatoryGame = compileGameConfig({
             <circle cx="12" cy="7" r="4" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.405,
+          costGrowth: 1.408,
           cyclePeriodTicks: 1,
-          baseOutputPerTick: 6.0,
+          baseOutputPerTick: 6.7,
           produces: 'currency'
         },
         {
@@ -124,16 +180,17 @@ export const sunkenObservatoryGame = compileGameConfig({
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-monolith">
             <path d="M8 21h8l-2-18h-4z" />
           </svg>`,
-          baseCost: 1850,
-          costGrowth: 1.44,
-          cyclePeriodTicks: 4,
-          baseOutputPerTick: 0.016,
+          baseCost: 1320,
+          costGrowth: 1.43,
+          cyclePeriodTicks: 3,
+          baseOutputPerTick: 0.0058,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 650
+          unlockThreshold: 530,
+          milestones: GEN2_MILESTONE_TIERS
         },
         {
           id: 'gen3',
@@ -146,43 +203,44 @@ export const sunkenObservatoryGame = compileGameConfig({
             <line x1="12" y1="3" x2="12" y2="21" />
             <line x1="3" y1="12" x2="21" y2="12" />
           </svg>`,
-          baseCost: 20000,
-          costGrowth: 1.48,
-          cyclePeriodTicks: 8,
-          baseOutputPerTick: 0.009,
+          baseCost: 13500,
+          costGrowth: 1.46,
+          cyclePeriodTicks: 6,
+          baseOutputPerTick: 0.0033,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 8500
+          unlockThreshold: 5600,
+          milestones: GEN3_MILESTONE_TIERS
         }
       ],
       upgrades: [
         {
           id: 'upg_cycle_accel',
           name: 'Fever Dreams',
-          description: 'Speeds research Cycle frequency by 4%',
+          description: 'Speeds research Cycle frequency by 6%',
           lore: 'Hallucinogenic deep-sea flora eliminate the necessity for mundane slumber.',
-          backstory: 'Distilled from phosphorescent kelp harvested along hydrothermal vents. Consuming the bitter brew liberates the scholar intellect from the constraint of physical sleep, allowing relentless analysis of submerged star-matrices and accelerating research frequency by 4%.',
+          backstory: 'Distilled from phosphorescent kelp harvested along hydrothermal vents. Consuming the bitter brew liberates the scholar intellect from the constraint of physical sleep, allowing relentless analysis of submerged star-matrices and accelerating research frequency by 6%.',
           image: './assets/upg-astrolabe.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
             <line x1="12" y1="2" x2="12" y2="12" />
           </svg>`,
-          baseCost: 250,
-          costGrowth: 2.6,
-          maxLevel: 10,
+          baseCost: 215,
+          costGrowth: 2.60,
+          maxLevel: 6,
           effect: {
             target: 'cycleFrequency',
             operation: 'multiply',
-            value: 1.04
+            value: 1.06
           }
         },
         {
           id: 'upg_gen1_overdrive',
           name: 'Black Ink Inscription',
-          description: 'Increases Cult Acolyte output by 1.07x per level',
+          description: 'Increases Cult Acolyte output by 1.10x per level',
           lore: 'Binding glyphs penned in cephalopod bioluminescent ichor.',
           backstory: 'Drawn from abyssal giant cephalopods that feed upon thermal plumes. This viscous black ink remains warm to the touch and glows faintly in absolute darkness. Texts copied with this ink crawl across the page, compelling acolytes to furious transcriptive output.',
           image: './assets/upg-black-ink.jpg',
@@ -190,32 +248,33 @@ export const sunkenObservatoryGame = compileGameConfig({
             <path d="M12 19l7-7 3 3-7 7-3-3z" />
             <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
           </svg>`,
-          baseCost: 550,
-          costGrowth: 2.75,
-          maxLevel: 10,
+          baseCost: 420,
+          costGrowth: 2.65,
+          maxLevel: 6,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.07
+            value: 1.10
           }
         },
         {
           id: 'upg_period_compress',
           name: 'Infrasonic Tidal Pulse',
-          description: 'Halves Generator Tick Periods across the Abyssal Archive',
+          description: 'Halves Generator Tick Periods across the Abyssal Archive (+20% Overdrive at <=1s)',
           lore: 'Synchronizes obelisk vibrations with deep-trench seismic currents.',
-          backstory: 'By tuning the basalt monoliths to the resonant frequency of the Mariana Trench, psychic transmissions and rift excavations complete in half the required Ticks, driving the archive toward abyssal Overdrive.',
+          backstory: 'By tuning the basalt monoliths to the resonant frequency of the Mariana Trench, psychic transmissions and rift excavations complete in half the required Ticks, driving the archive toward 1.20x Overdrive.',
           image: './assets/upg-hysteria.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 4400,
-          costGrowth: 5.4,
+          baseCost: 2700,
+          costGrowth: 4.3,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 2200,
+          unlockThreshold: 1300,
+          prerequisites: [{ id: 'upg_cycle_accel', minLevel: 1 }],
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
@@ -224,29 +283,76 @@ export const sunkenObservatoryGame = compileGameConfig({
           }
         },
         {
-          id: 'upg_tick_amp',
-          name: 'Lucid Trance Channel',
-          description: 'Doubles Ticks emitted per Cycle',
-          lore: 'Allows the conscious intellect to perceive past and present simultaneously.',
-          backstory: 'Through curved obsidian mirrors polished with sea-salt, researchers divide their waking consciousness across multiple temporal planes. Observing archaic stellar alignments and present ocean currents simultaneously doubles the discrete insight pulses generated per cycle.',
-          image: './assets/upg-lenses.jpg',
-          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" />
+          id: 'upg_doctrine_surge',
+          name: 'Doctrine: Trench Rupture',
+          description: 'Branch Choice: +20% all Layer 0 insight and +20% Rift Tide Surge (locks Pelagic Brood)',
+          lore: 'Unseals pressurised resonance valves across the Abyssal Bell Jar.',
+          backstory: 'Cracks the deep-trench acoustic domes whenever pressure peaks, letting dual-tick Rift Tides rip unfiltered astronomical revelations into the scriptorium.',
+          image: './assets/upg-void-gaze.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
           </svg>`,
-          baseCost: 92000,
-          costGrowth: 8.0,
-          maxLevel: 5,
+          baseCost: 8600,
+          costGrowth: 1,
+          maxLevel: 1,
+          milestoneRank: 2,
+          unlockThreshold: 4100,
+          prerequisites: [{ id: 'upg_period_compress', minLevel: 1 }],
+          exclusiveWith: ['upg_doctrine_cascade'],
           effect: {
-            target: 'tickYield',
+            target: 'layerGenerators',
+            targetId: 'layer0',
             operation: 'multiply',
-            value: 2.0
-          }
+            value: 1.20
+          },
+          effects: [
+            {
+              target: 'surgeMultiplier',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.20
+            }
+          ]
+        },
+        {
+          id: 'upg_doctrine_cascade',
+          name: 'Doctrine: Pelagic Brood',
+          description: 'Branch Choice: +35% Monolith/Rift summoning and +75% Bay Capacity (locks Trench Rupture)',
+          lore: 'Carves submerged cloisters for growing orders of deep-sea scribes.',
+          backstory: 'Hollows adjacent basalt vaults beneath the archive dome so newly summoned acolytes and monoliths commune without sonic interference.',
+          image: './assets/upg-geometries.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>`,
+          baseCost: 8600,
+          costGrowth: 1,
+          maxLevel: 1,
+          milestoneRank: 2,
+          unlockThreshold: 4100,
+          prerequisites: [{ id: 'upg_period_compress', minLevel: 1 }],
+          exclusiveWith: ['upg_doctrine_surge'],
+          effect: {
+            target: 'cascadeMeta',
+            targetId: 'layer0',
+            operation: 'multiply',
+            value: 1.35
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.75
+            }
+          ]
         },
         {
           id: 'upg_cross_synergy',
           name: 'Gestalt Chorus',
-          description: 'Boosts all Layer 0 output by +0.25% per total Generator bought',
+          description: 'Boosts all Layer 0 output by +0.28% per total Generator bought',
           lore: 'Every acolyte and obelisk joins the submerged telepathic choir.',
           backstory: 'Intertwines the minds of all acolytes with the acoustic hum of every monolith and rift dredge, magnifying total insight yield with every new unit commissioned.',
           image: './assets/upg-geometries.jpg',
@@ -254,44 +360,80 @@ export const sunkenObservatoryGame = compileGameConfig({
             <circle cx="12" cy="12" r="9" />
             <circle cx="12" cy="12" r="4" />
           </svg>`,
-          baseCost: 17000,
-          costGrowth: 3.9,
-          maxLevel: 4,
+          baseCost: 14200,
+          costGrowth: 3.7,
+          maxLevel: 3,
           milestoneRank: 3,
-          unlockThreshold: 8500,
+          unlockThreshold: 7100,
+          requireMode: 'any',
+          prerequisites: [
+            { id: 'upg_doctrine_surge', minLevel: 1 },
+            { id: 'upg_doctrine_cascade', minLevel: 1 }
+          ],
           effect: {
             target: 'crossGeneratorSynergy',
             targetId: 'layer0',
             operation: 'add',
-            value: 0.0025
+            value: 0.0028
           }
         },
         {
           id: 'upg_milestone_resonance',
           name: 'Eldritch Ordination',
-          description: 'Multiplies all Uncommon (m1+) Milestone Tier bonuses by 1.15x',
-          lore: 'Bestows deep-sea eyes upon orders of 25 or more initiates.',
-          backstory: 'Once an order of scribes or monoliths reaches 25 units, they undergo the Rite of the Drowned Star, amplifying the multiplicative surge granted at every Milestone Tier.',
+          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.25x per level',
+          lore: 'Bestows deep-sea eyes and expanded cloisters upon initiated orders.',
+          backstory: 'Once an order of scribes or monoliths reaches its milestone threshold, they undergo the Rite of the Drowned Star, amplifying Milestone Tiers and expanding archive quarters.',
           image: './assets/upg-black-ink.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
           </svg>`,
-          baseCost: 40000,
-          costGrowth: 4.6,
+          baseCost: 30000,
+          costGrowth: 4.3,
           maxLevel: 2,
           milestoneRank: 3,
-          unlockThreshold: 20000,
+          unlockThreshold: 15000,
+          prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
           effect: {
             target: 'milestoneMultiplier',
             targetId: 'layer0',
             operation: 'multiply',
-            value: 1.15
+            value: 1.18
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.25
+            }
+          ]
+        },
+        {
+          id: 'upg_tick_amp',
+          name: 'Lucid Trance Channel',
+          description: 'Multiplies Ticks emitted per Cycle by 1.5x per level',
+          lore: 'Allows the conscious intellect to perceive past and present simultaneously.',
+          backstory: 'Through curved obsidian mirrors polished with sea-salt, researchers divide their waking consciousness across multiple temporal planes, harvesting additional insight pulses generated per cycle.',
+          image: './assets/upg-lenses.jpg',
+          svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" />
+          </svg>`,
+          baseCost: 58000,
+          costGrowth: 7.0,
+          maxLevel: 3,
+          unlockThreshold: 29000,
+          prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
+          effect: {
+            target: 'tickYield',
+            operation: 'multiply',
+            value: 1.5
           }
         },
         {
           id: 'upg_log_momentum',
           name: 'Trench Gravity Collapse',
-          description: 'Scales all Layer 0 output by log10(Run Insight)^0.08',
+          description: 'Scales all Layer 0 output by log10(Run Insight)^0.14',
           lore: 'Accumulated forbidden knowledge bends the local spacetime metric.',
           backstory: 'As the archive fills with translated star-charts, the sheer weight of forbidden insight warps reality inside the dome, accelerating transcription rates logarithmically.',
           image: './assets/upg-void-gaze.jpg',
@@ -299,16 +441,17 @@ export const sunkenObservatoryGame = compileGameConfig({
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 130000,
+          baseCost: 72000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 70000,
+          unlockThreshold: 36000,
+          prerequisites: [{ id: 'upg_milestone_resonance', minLevel: 1 }],
           effect: {
             target: 'logMomentum',
             targetId: 'layer0',
             operation: 'add',
-            value: 0.08
+            value: 0.14
           }
         }
       ]

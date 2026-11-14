@@ -402,7 +402,7 @@ function initGame(gameId) {
 
   // Check for offline progress
   const offlineReport = session.load();
-  if (offlineReport && offlineReport.elapsedMs > 5000) {
+  if (offlineReport && offlineReport.elapsedMs >= 30000) {
     showOfflineModal(offlineReport);
   }
 
@@ -502,6 +502,26 @@ function mountUI() {
   if (l0SubLabel) l0SubLabel.textContent = `Run ${l0Config.currency.name}:`;
   if (l0CurrSymbol) l0CurrSymbol.textContent = l0Config.currency.symbol;
 
+  // Mount Layer 0 Command Deck Stance Buttons
+  const stanceGroup = document.getElementById('layer0-stance-group');
+  if (stanceGroup) {
+    stanceGroup.innerHTML = '';
+    for (const stance of l0Config.stances || []) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-stance';
+      btn.dataset.stanceId = stance.id;
+      btn.textContent = stance.name;
+      btn.title = stance.description || '';
+      btn.addEventListener('click', () => {
+        session.setStance('layer0', stance.id);
+        session.save();
+        render();
+      });
+      stanceGroup.appendChild(btn);
+    }
+  }
+
   // Mount Layer 0 Generators
   const genContainer = document.getElementById('layer0-generators');
   genContainer.innerHTML = '';
@@ -544,6 +564,7 @@ function mountUI() {
         </div>
         <div class="milestone-row">
           <span class="milestone-badge tier-m0">Common (m0) · 0/25 to Uncommon (2x)</span>
+          <span class="bay-badge" style="display: none;"></span>
           <span class="eta-hint"></span>
         </div>
         <div class="gen-progress-track">
@@ -566,6 +587,7 @@ function mountUI() {
     const ownedBadge = card.querySelector('.owned-badge');
     const boughtBadge = card.querySelector('.bought-badge');
     const milestoneBadge = card.querySelector('.milestone-badge');
+    const bayBadge = card.querySelector('.bay-badge');
     const etaHint = card.querySelector('.eta-hint');
     const progressTrack = card.querySelector('.gen-progress-track');
     const progressFill = card.querySelector('.gen-progress-fill');
@@ -615,6 +637,7 @@ function mountUI() {
       ownedBadge,
       boughtBadge,
       milestoneBadge,
+      bayBadge,
       etaHint,
       progressTrack,
       progressFill,
@@ -674,6 +697,7 @@ function mountUI() {
           <span class="eta-hint upg-eta-hint"></span>
         </div>
         <p class="desc">${upg.description}</p>
+        <p class="upg-lock-hint" style="display: none;"></p>
         <div class="actions">
           <button class="btn primary btn-upgrade">Upgrade</button>
         </div>
@@ -685,6 +709,7 @@ function mountUI() {
     const lvlBadge = card.querySelector('.lvl-badge');
     const tierBadge = card.querySelector('.upg-tier-badge');
     const etaHint = card.querySelector('.upg-eta-hint');
+    const lockHint = card.querySelector('.upg-lock-hint');
     const btn = card.querySelector('.btn-upgrade');
 
     btn.addEventListener('click', () => {
@@ -719,6 +744,7 @@ function mountUI() {
       lvlBadge,
       tierBadge,
       etaHint,
+      lockHint,
       btn
     };
   }
@@ -786,6 +812,7 @@ function mountUI() {
           <span class="badge lvl-badge">Lvl 0/${upg.maxLevel || '∞'}</span>
         </div>
         <p class="desc">${upg.description}</p>
+        <p class="upg-lock-hint" style="display: none;"></p>
         <div class="actions">
           <button class="btn primary btn-upgrade">Upgrade</button>
         </div>
@@ -834,12 +861,18 @@ function showOfflineModal(report) {
   const elapsedSec = (report.elapsedMs / 1000).toFixed(1);
   const layer0Delta = report.currencyDeltas.layer0 ? report.currencyDeltas.layer0.format() : '0';
   const sym = activeConfig.layers[0].currency.symbol;
+  const capDelta = report.capacitorChargeDeltas?.layer0 || 0;
+  const capName = activeConfig.layers[0].capacitor?.name || 'Capacitor';
+  const capHtml = capDelta > 0.005
+    ? `<p id="offline-capacitor-gain">${capName} charged: <strong>+${Math.round(capDelta * 100)}%</strong></p>`
+    : '';
 
   document.getElementById('offline-summary').innerHTML = `
     <p>You were offline for <strong>${elapsedSec}s</strong>.</p>
     <p>Cycles fired: <strong>${report.cyclesFired.format()}</strong></p>
     <p>Ticks generated: <strong>${report.ticksEmitted.format()}</strong></p>
     <p>${activeConfig.layers[0].currency.name} gained: <strong>+${layer0Delta} ${sym}</strong></p>
+    ${capHtml}
   `;
   modal.style.display = 'flex';
 }
@@ -897,6 +930,70 @@ function render() {
   document.getElementById('layer0-run-total').textContent = vm.header.runTotalFormatted;
   document.getElementById('layer0-output-sec').textContent = `${vm.header.rateFormatted} ${vm.header.rateUnit}`;
 
+  // Layer 0 Command Deck (Capacitor, Pulse, Surge, Stances)
+  const opsVm = vm.operations?.layer0;
+  const commandDeckEl = document.getElementById('layer0-command-deck');
+  if (commandDeckEl) {
+    if (opsVm?.hasOperations) {
+      commandDeckEl.style.display = 'block';
+      const cap = opsVm.capacitor;
+      commandDeckEl.classList.toggle('surge-active', Boolean(cap?.isSurgeActive));
+      if (cap) {
+        const capStatusEl = document.getElementById('capacitor-status-text');
+        const capHintEl = document.getElementById('capacitor-surge-hint');
+        const capFillEl = document.getElementById('capacitor-fill');
+        const capTickEl = document.getElementById('capacitor-threshold-tick');
+        const pulseBtn = document.getElementById('btn-trigger-pulse');
+        const dischargeBtn = document.getElementById('btn-discharge-capacitor');
+
+        if (capStatusEl) capStatusEl.textContent = cap.statusText;
+        if (capHintEl) {
+          capHintEl.textContent = cap.isSurgeActive
+            ? `${cap.surgeTicksRemaining}/${cap.maxSurgeTicks} ticks`
+            : `Min Surge: ${cap.minDischargePercent}%`;
+        }
+        if (capFillEl) {
+          const fillPct = cap.isSurgeActive
+            ? Math.max(0, Math.min(100, Math.round((cap.surgeTicksRemaining / Math.max(1, cap.maxSurgeTicks)) * 100)))
+            : Math.max(0, Math.min(100, cap.chargePercent));
+          capFillEl.style.width = `${fillPct}%`;
+        }
+        if (capTickEl) {
+          capTickEl.style.display = cap.isSurgeActive ? 'none' : 'block';
+          capTickEl.style.left = `${cap.minDischargePercent}%`;
+        }
+        if (pulseBtn) {
+          pulseBtn.textContent = cap.pulseText;
+          pulseBtn.disabled = !cap.canPulse;
+          pulseBtn.className = `btn ${cap.canPulse ? 'primary' : 'disabled'}`;
+        }
+        if (dischargeBtn) {
+          dischargeBtn.textContent = cap.dischargeText;
+          dischargeBtn.disabled = !cap.canDischarge;
+          dischargeBtn.className = `btn ${cap.canDischarge ? 'primary' : 'disabled'}`;
+        }
+      }
+
+      const stanceSectionEl = document.getElementById('layer0-stance-section');
+      const stanceGroupEl = document.getElementById('layer0-stance-group');
+      const stanceDescEl = document.getElementById('layer0-stance-desc');
+      if (stanceSectionEl) {
+        stanceSectionEl.style.display = opsVm.stanceRevealed ? 'block' : 'none';
+        if (opsVm.stanceRevealed && stanceGroupEl) {
+          stanceGroupEl.querySelectorAll('.btn-stance').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.stanceId === opsVm.activeStanceId);
+          });
+          if (stanceDescEl) {
+            const activeStance = opsVm.stances.find(s => s.id === opsVm.activeStanceId);
+            stanceDescEl.textContent = activeStance?.description || '';
+          }
+        }
+      }
+    } else {
+      commandDeckEl.style.display = 'none';
+    }
+  }
+
   // Update Layer 0 Generators
   for (const gen of l0Config.generators) {
     const ui = generatorUI.layer0?.[gen.id];
@@ -935,6 +1032,14 @@ function render() {
     if (ui.milestoneBadge) {
       ui.milestoneBadge.className = `milestone-badge tier-${genVm.milestoneTier}`;
       ui.milestoneBadge.textContent = genVm.milestoneBadgeText;
+    }
+
+    if (ui.bayBadge) {
+      ui.bayBadge.style.display = genVm.showBayBadge ? 'inline-block' : 'none';
+      if (genVm.showBayBadge) {
+        ui.bayBadge.textContent = genVm.bayBadgeText;
+        ui.bayBadge.className = genVm.isBayOverflow ? 'bay-badge overflow' : 'bay-badge';
+      }
     }
 
     if (ui.etaHint) {
@@ -1003,7 +1108,7 @@ function render() {
     const upgVm = vm.upgrades.layer0?.[upg.id];
     if (!upgVm) continue;
 
-    ui.card.className = `card upg-card tier-${upgVm.tierId} ${upgVm.isMax ? 'maxed' : ''}`;
+    ui.card.className = `card upg-card tier-${upgVm.tierId} ${upgVm.isMax ? 'maxed' : ''} ${upgVm.isExclusiveLocked ? 'exclusive-locked' : ''}`;
     ui.card.dataset.milestoneTier = upgVm.tierId;
     if (upgVm.assetPath) {
       ui.card.dataset.milestoneAsset = upgVm.assetPath;
@@ -1015,6 +1120,11 @@ function render() {
     if (ui.etaHint) {
       ui.etaHint.textContent = upgVm.etaText;
     }
+    if (ui.lockHint) {
+      const showHint = Boolean(upgVm.lockReasonText) && !upgVm.isMax;
+      ui.lockHint.style.display = showHint ? 'block' : 'none';
+      if (showHint) ui.lockHint.textContent = upgVm.lockReasonText;
+    }
 
     ui.lvlBadge.textContent = upgVm.levelText;
 
@@ -1023,8 +1133,7 @@ function render() {
       ui.btn.disabled = true;
       ui.btn.className = 'btn btn-upgrade disabled';
     } else {
-      const cost = stats.upgradeCosts.layer0[upg.id];
-      ui.btn.textContent = `Upgrade (${cost.format()} ${l0Config.currency.symbol})`;
+      ui.btn.textContent = upgVm.costText;
       ui.btn.disabled = !upgVm.canAfford;
       ui.btn.className = `btn btn-upgrade ${upgVm.canAfford ? 'primary' : 'disabled'}`;
     }
@@ -1120,6 +1229,31 @@ function render() {
 }
 
 function setupStaticEventListeners() {
+  const deckEl = document.getElementById('layer0-command-deck');
+  const pulseBtn = document.getElementById('btn-trigger-pulse');
+  if (pulseBtn) {
+    pulseBtn.addEventListener('click', () => {
+      const res = session.triggerPulse('layer0');
+      if (res) {
+        session.save();
+        triggerUpgradeAnimation(pulseBtn, deckEl, '+PULSE');
+        render();
+      }
+    });
+  }
+
+  const dischargeBtn = document.getElementById('btn-discharge-capacitor');
+  if (dischargeBtn) {
+    dischargeBtn.addEventListener('click', () => {
+      const ticks = session.dischargeCapacitor('layer0');
+      if (ticks > 0) {
+        session.save();
+        triggerUpgradeAnimation(dischargeBtn, deckEl, 'SURGE!');
+        render();
+      }
+    });
+  }
+
   document.getElementById('btn-prestige').addEventListener('click', () => {
     session.resetLayer('layer1');
     render();
