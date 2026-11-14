@@ -15,6 +15,7 @@ import {
   triggerPulse,
   dischargeCapacitor
 } from '../src/engine/core.js';
+import { createViewModel, formatSpawnCadence } from '../src/engine/view-model.js';
 import { BigNum } from '../src/engine/bignum.js';
 
 describe('Engine Core Seam', () => {
@@ -585,5 +586,29 @@ describe('Engine Core Seam', () => {
     expect(overflowStats.bayOverflowRatios.layer0.gen1).toBeGreaterThan(1);
     expect(overflowStats.capacitorStats.layer0.effectiveChargePerTick)
       .toBeGreaterThan(cleanStats.capacitorStats.layer0.effectiveChargePerTick);
+  });
+
+  it('formats metagenerator ViewModel output with Bay-effective fleet cadence below 1/s and per-second rate above 1/s', () => {
+    expect(formatSpawnCadence(173.9)).toBe('1 every 2m 54s');
+    expect(formatSpawnCadence(42)).toBe('1 every 42s');
+
+    let state = createInitialState(defaultGameConfig);
+    const stats0 = getDerivedStats(state, defaultGameConfig);
+    const vm0 = createViewModel(state, defaultGameConfig, stats0);
+    expect(vm0.generators.layer0.gen2.outputHtml.includes('1 every ')).toBe(true);
+
+    // Buy 1 gen2 -> shows active 1-unit cadence (~3m 14s on Dyson Swarm)
+    state.layers.layer0.generators.gen2.bought = new BigNum(1);
+    state.layers.layer0.generators.gen2.owned = new BigNum(1);
+    const stats1 = getDerivedStats(state, defaultGameConfig);
+    const vm1 = createViewModel(state, defaultGameConfig, stats1);
+    expect(vm1.generators.layer0.gen2.outputHtml.includes('1 every 3m 14s')).toBe(true);
+
+    // With higher owned fleet and compressed ticks, output switches cleanly to /s
+    state.layers.layer0.generators.gen2.bought = new BigNum(200);
+    state.layers.layer0.generators.gen2.owned = new BigNum(200);
+    const statsFast = getDerivedStats(state, defaultGameConfig);
+    const vmFast = createViewModel(state, defaultGameConfig, statsFast);
+    expect(vmFast.generators.layer0.gen2.outputHtml.includes('/s')).toBe(true);
   });
 });

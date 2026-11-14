@@ -82,6 +82,12 @@ describe('BigNum Seam', () => {
     expect(new BigNum('1.5e15').format()).toBe('1.50Qa');
     expect(new BigNum('1.234e45').format()).toBe('1.23e45');
 
+    // Readable sub-1 decimals vs deep scientific notation
+    expect(new BigNum(0.7875).format()).toBe('0.79');
+    expect(new BigNum(0.023).format()).toBe('0.023');
+    expect(new BigNum(0.04).format()).toBe('0.04');
+    expect(new BigNum(0.0004).format()).toBe('4.00e-4');
+
     // Engineering notation (exponent multiple of 3)
     expect(new BigNum(12345).format({ notation: 'engineering' })).toBe('12.34e3');
     expect(new BigNum(123456).format({ notation: 'engineering' })).toBe('123.46e3');

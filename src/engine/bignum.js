@@ -269,6 +269,14 @@ export class BigNum {
       return Number.isInteger(val) ? val.toString() : val.toFixed(options.precision ?? 2);
     }
 
+    if (this.e < 0 && this.e >= -3) {
+      const val = this.toNumber();
+      if (this.e === -1) {
+        return val.toFixed(options.precision ?? 2);
+      }
+      return val.toFixed(3).replace(/0$/, '');
+    }
+
     // Standard suffix up to Decillion (or custom)
     const suffixGroup = Math.floor(this.e / 3);
     if (suffixGroup < SUFFIXES.length && this.e >= 3 && suffixGroup > 0) {

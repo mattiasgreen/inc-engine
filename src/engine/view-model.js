@@ -24,6 +24,20 @@ export function formatDuration(sec) {
   return `ETA: ~${hrs}h ${remMins}m`;
 }
 
+export function formatSpawnCadence(secPerUnit) {
+  if (!Number.isFinite(secPerUnit) || secPerUnit <= 0) return '';
+  const totalSec = Math.max(1, Math.round(secPerUnit));
+  if (totalSec < 60) return `1 every ${totalSec}s`;
+  const totalMins = Math.floor(totalSec / 60);
+  const remSec = totalSec % 60;
+  if (totalMins < 60) {
+    return remSec > 0 ? `1 every ${totalMins}m ${remSec}s` : `1 every ${totalMins}m`;
+  }
+  const hrs = Math.floor(totalMins / 60);
+  const remMins = totalMins % 60;
+  return remMins > 0 ? `1 every ${hrs}h ${remMins}m` : `1 every ${hrs}h`;
+}
+
 export function createViewModel(state, config, stats, fidelitySettings = {}) {
   const layer0 = state.layers.layer0;
   const l0Config = config.layers[0];
@@ -138,16 +152,23 @@ export function createViewModel(state, config, stats, fidelitySettings = {}) {
         }
       }
 
-      // Output text
-      const rate = stats.generatorOutputs?.[layer.id]?.[gen.id] || new BigNum(0);
-      const ratePerSec = rate.mul(effTicksPerSec);
+      // Output text (shows Bay-effective fleet output when owned, or 1-unit preview on standby)
+      const unitRate = stats.generatorOutputs?.[layer.id]?.[gen.id] || new BigNum(0);
+      const displayRate = hasUnits ? effOwned.mul(unitRate) : unitRate;
+      const displayRatePerSec = displayRate.mul(effTicksPerSec);
       let outputHtml = '';
       if (gen.produces && typeof gen.produces === 'object' && gen.produces.type === 'generator') {
         const targetGen = layer.generators.find(g => g.id === gen.produces.targetId);
         const targetName = targetGen?.name || gen.produces.targetId;
-        outputHtml = `Produces: <strong>${targetName}</strong> (+<strong>${rate.format()}</strong>/tick | +<strong>${ratePerSec.format()}</strong>/s)`;
+        const ratePerSecNum = displayRatePerSec.toNumber();
+        if (ratePerSecNum > 0 && ratePerSecNum < 1) {
+          const cadence = formatSpawnCadence(1 / ratePerSecNum);
+          outputHtml = `Produces: <strong>${targetName}</strong> (+<strong>${displayRate.format()}</strong>/tick · <strong>${cadence}</strong>)`;
+        } else {
+          outputHtml = `Produces: <strong>${targetName}</strong> (+<strong>${displayRate.format()}</strong>/tick | +<strong>${displayRatePerSec.format()}</strong>/s)`;
+        }
       } else {
-        outputHtml = `Output: <strong>${rate.format()}</strong> ${layer.currency.symbol}/tick | <strong>${ratePerSec.format()}</strong> ${layer.currency.symbol}/s`;
+        outputHtml = `Output: <strong>${displayRate.format()}</strong> ${layer.currency.symbol}/tick | <strong>${displayRatePerSec.format()}</strong> ${layer.currency.symbol}/s`;
       }
 
       // ETA Hint

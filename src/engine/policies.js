@@ -143,8 +143,10 @@ export class OptimalRoiPolicy {
     const l0Config = config.layers[0];
     const ticksPerSec = stats.effectiveTicksPerSec;
 
-    const horizonTicks = 220;
+    const horizonSec = 480;
+    const horizonTicks = Math.max(16, horizonSec * ticksPerSec);
     const halfHorizonTicks = horizonTicks * 0.5;
+    const thirdHorizonTicks = horizonTicks / 3;
     const unitCurrencyPerTick = {};
 
     // Pass 1: direct currency generators
@@ -155,7 +157,7 @@ export class OptimalRoiPolicy {
       }
     }
 
-    // Pass 2 & 3: metagenerators with quadratic and cubic cascade integration
+    // Pass 2 & 3: metagenerator equivalent rate metadata for reference
     for (let pass = 0; pass < 3; pass++) {
       for (const gen of l0Config.generators || []) {
         if (gen.produces && gen.produces.type === 'generator') {
@@ -167,29 +169,36 @@ export class OptimalRoiPolicy {
       }
     }
 
-    // Estimate passive inflow per tick into each generator to model mid-horizon Bay saturation
-    const inflowPerTick = {};
-    for (const gen of l0Config.generators || []) {
+    // Top-down cascade projection through Bay Capacity without double-counting metagenerator value
+    const effMidByGen = {};
+    const inflowFromHigher = {};
+    const gensRev = [...(l0Config.generators || [])].reverse();
+    for (const gen of gensRev) {
+      const owned = layer0.generators[gen.id]?.owned?.toNumber() || 0;
+      const bought = layer0.generators[gen.id]?.bought?.toNumber() || 0;
+      const projectedOwned = owned + (inflowFromHigher[gen.id] || 0);
+      const bayCap = stats.bayCapacities?.layer0?.[gen.id] ?? Infinity;
+      const effMid = Number.isFinite(bayCap)
+        ? computeBayEffectiveOwned(new BigNum(bought), new BigNum(projectedOwned), bayCap).toNumber()
+        : Math.max(projectedOwned, bought);
+      effMidByGen[gen.id] = effMid;
+
       if (gen.produces && gen.produces.type === 'generator') {
-        const effNow = stats.bayEffectiveOwned?.layer0?.[gen.id]?.toNumber()
-          ?? layer0.generators[gen.id]?.owned?.toNumber()
-          ?? 0;
         const rate = stats.generatorOutputs.layer0[gen.id].toNumber();
         const tid = gen.produces.targetId;
-        inflowPerTick[tid] = (inflowPerTick[tid] || 0) + effNow * rate;
+        const targetGen = l0Config.generators.find(g => g.id === tid);
+        const targetIsMeta = targetGen?.produces && targetGen.produces.type === 'generator';
+        const spanTicks = targetIsMeta ? thirdHorizonTicks : halfHorizonTicks;
+        inflowFromHigher[tid] = (inflowFromHigher[tid] || 0) + effMid * rate * spanTicks;
       }
     }
 
     let totalPowerPerSec = 0;
     for (const gen of l0Config.generators || []) {
-      const owned = layer0.generators[gen.id]?.owned?.toNumber() || 0;
-      const bought = layer0.generators[gen.id]?.bought?.toNumber() || 0;
-      const projectedOwned = owned + (inflowPerTick[gen.id] || 0) * halfHorizonTicks;
-      const bayCap = stats.bayCapacities?.layer0?.[gen.id] ?? Infinity;
-      const effUnits = Number.isFinite(bayCap)
-        ? computeBayEffectiveOwned(new BigNum(bought), new BigNum(projectedOwned), bayCap).toNumber()
-        : Math.max(owned, bought);
-      totalPowerPerSec += effUnits * (unitCurrencyPerTick[gen.id] || 0) * ticksPerSec;
+      const producesCurrency = !gen.produces || gen.produces === 'currency' || gen.produces.type === 'currency';
+      if (producesCurrency) {
+        totalPowerPerSec += (effMidByGen[gen.id] || 0) * (unitCurrencyPerTick[gen.id] || 0) * ticksPerSec;
+      }
     }
 
     // Factor in amortized Surge duty-cycle value so surgeMultiplier upgrades score organically
@@ -242,7 +251,7 @@ export class OptimalRoiPolicy {
     const liveProdPerTick = liveStats.layerProductionPerTick.layer0 || new BigNum(0);
     const currentProdPerSec = Math.max(0.1, liveProdPerTick.mul(liveStats.effectiveTicksPerSec).toNumber());
     const currentCurrency = layer0.currency.toNumber();
-    const { totalPowerPerSec, unitCurrencyPerTick } = this._estimateTotalCurrencyPowerPerSec(refState, config, refStats);
+    const { totalPowerPerSec } = this._estimateTotalCurrencyPowerPerSec(refState, config, refStats);
 
     const evaluateCandidate = (action, costBig, deltaPowerPerSec) => {
       const costNum = costBig.toNumber();
@@ -296,26 +305,22 @@ export class OptimalRoiPolicy {
 
       const hypoStats = getDerivedStats(hypoGenState, config);
       const { totalPowerPerSec: nextPowerPerSec } = this._estimateTotalCurrencyPowerPerSec(hypoGenState, config, hypoStats);
-      let deltaPower = Math.max(
-        (unitCurrencyPerTick[gen.id] || 0) * refStats.effectiveTicksPerSec,
-        nextPowerPerSec - totalPowerPerSec
-      );
+      let deltaPower = Math.max(0.01, nextPowerPerSec - totalPowerPerSec);
 
       // Milestone proximity look-ahead
       const msInfo = refStats.generatorMilestones?.layer0?.[gen.id];
       if (msInfo && msInfo.nextThreshold) {
         const remainingToMilestone = msInfo.nextThreshold - boughtNum;
-        if (remainingToMilestone > 0 && remainingToMilestone <= 7) {
+        if (remainingToMilestone > 0 && remainingToMilestone <= 5) {
           const multRatio = Math.max(1, (msInfo.nextMultiplier || 2) / (msInfo.multiplier || 1));
-          const ownedNum = genState?.owned?.toNumber() || 0;
+          const ownedNum = refStats.bayEffectiveOwned?.layer0?.[gen.id]?.toNumber() || genState?.owned?.toNumber() || 0;
           const futureUnits = Math.max(ownedNum + remainingToMilestone, msInfo.nextThreshold);
-          const unitValPerSec = (unitCurrencyPerTick[gen.id] || 0) * refStats.effectiveTicksPerSec;
-          deltaPower += (futureUnits * unitValPerSec * (multRatio - 1)) / remainingToMilestone;
+          deltaPower += (futureUnits * deltaPower * (multRatio - 1)) / remainingToMilestone;
         }
       }
 
       if (boughtNum === 0) {
-        deltaPower *= 3.5;
+        deltaPower *= 1.25;
       }
 
       evaluateCandidate(

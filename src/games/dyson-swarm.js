@@ -98,9 +98,9 @@ export const dysonSwarmGame = compileGameConfig({
       boughtSynergyMultiplier: 1.012,
       overdriveMultiplier: 1.22,
       bayCapacity: {
-        gen1: { base: 4, perBought: 0.77 },
-        gen2: { base: 4, perBought: 0.8 },
-        gen3: { base: 3, perBought: 0.8 }
+        gen1: { base: 1.45, perBought: 0.145 },
+        gen2: { base: 2.0, perBought: 0.35 },
+        gen3: { base: 2.0, perBought: 0.45 }
       },
       capacitor: {
         name: 'Solar Capacitor Bank',
@@ -177,7 +177,7 @@ export const dysonSwarmGame = compileGameConfig({
             <polygon points="12 2 19 21 12 17 5 21 12 2" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.442,
+          costGrowth: 1.482,
           cyclePeriodTicks: 1,
           baseOutputPerTick: 6.0,
           produces: 'currency'
@@ -195,16 +195,16 @@ export const dysonSwarmGame = compileGameConfig({
             <path d="M3 9h18" />
             <path d="M3 15h18" />
           </svg>`,
-          baseCost: 1500,
-          costGrowth: 1.44,
+          baseCost: 960,
+          costGrowth: 1.47,
           cyclePeriodTicks: 4,
-          baseOutputPerTick: 0.0044,
+          baseOutputPerTick: 0.031,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 600,
+          unlockThreshold: 430,
           milestones: GEN2_MILESTONE_TIERS
         },
         {
@@ -218,16 +218,16 @@ export const dysonSwarmGame = compileGameConfig({
             <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
             <path d="M2 12h20" />
           </svg>`,
-          baseCost: 14500,
-          costGrowth: 1.47,
+          baseCost: 16500,
+          costGrowth: 1.50,
           cyclePeriodTicks: 8,
-          baseOutputPerTick: 0.0034,
+          baseOutputPerTick: 0.0125,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 6000,
+          unlockThreshold: 7000,
           milestones: GEN3_MILESTONE_TIERS
         }
       ],
@@ -242,8 +242,8 @@ export const dysonSwarmGame = compileGameConfig({
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>`,
-          baseCost: 235,
-          costGrowth: 2.65,
+          baseCost: 245,
+          costGrowth: 2.85,
           maxLevel: 6,
           effect: {
             target: 'cycleFrequency',
@@ -254,48 +254,56 @@ export const dysonSwarmGame = compileGameConfig({
         {
           id: 'upg_gen1_overdrive',
           name: 'Reflective Coating',
-          description: 'Increases Solar Drone output by 1.10x per level',
+          description: 'Increases Solar Drone output by 1.08x per level',
           lore: 'Applies metamaterial dielectric mirrors to drone capture surfaces.',
-          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 10% per upgrade rank.',
+          backstory: 'A vacuum-deposited multilayer titanium oxide film with nanoscale refractive gradients. The dielectric coating traps and recycles scattered photons within drone collection cavities, boosting individual drone power output by 8% per upgrade rank.',
           image: './assets/upg-coating.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <path d="M12 3v18" />
             <path d="M12 8l4 4-4 4" />
           </svg>`,
-          baseCost: 480,
-          costGrowth: 2.68,
+          baseCost: 680,
+          costGrowth: 3.00,
           maxLevel: 6,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.10
+            value: 1.08
           }
         },
         {
           id: 'upg_period_compress',
           name: 'Harmonic Thruster Cadence',
-          description: 'Halves Generator Tick Periods across the orbital array (+22% Overdrive at <=1s)',
+          description: 'Halves Generator Tick Periods (+22% Overdrive at <=1s) and boosts Bay Capacity by 1.50x',
           lore: 'Synchronizes assembly bays with orbital perihelion harmonics.',
-          backstory: 'By firing ion thrusters at orbital resonance nodes, Orbital Fabricators and Stellar Harvesters complete their production cycles in half the required Ticks, pushing heavy assembly lines toward continuous 1.22x Overdrive.',
+          backstory: 'By firing ion thrusters at orbital resonance nodes, Orbital Fabricators and Stellar Harvesters complete their production cycles in half the required Ticks, pushing heavy assembly lines toward continuous 1.22x Overdrive while expanding docking capacity.',
           image: './assets/upg-superconductivity.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 2900,
-          costGrowth: 4.3,
+          baseCost: 5600,
+          costGrowth: 4.8,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 1400,
+          unlockThreshold: 2600,
           prerequisites: [{ id: 'upg_cycle_accel', minLevel: 1 }],
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
             operation: 'divide',
             value: 2.0
-          }
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.50
+            }
+          ]
         },
         {
           id: 'upg_doctrine_surge',
@@ -367,9 +375,9 @@ export const dysonSwarmGame = compileGameConfig({
         {
           id: 'upg_cross_synergy',
           name: 'Swarm Mesh Interlink',
-          description: 'Boosts all Layer 0 output by +0.28% per total Generator bought',
+          description: 'Boosts all Layer 0 output by +0.28% per Generator bought and Bay Capacity by 1.42x',
           lore: 'Every commissioned unit acts as a relay amplifier for the entire array.',
-          backstory: 'Links every Solar Drone, Fabricator, and Harvester into a unified phased-array antenna. Each newly purchased construct sharpens beam collimation across the entire orbital fleet.',
+          backstory: 'Links every Solar Drone, Fabricator, and Harvester into a unified phased-array antenna. Each newly purchased construct sharpens beam collimation and docking relay capacity across the entire orbital fleet.',
           image: './assets/upg-nanites.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="6" cy="6" r="3" />
@@ -379,11 +387,11 @@ export const dysonSwarmGame = compileGameConfig({
             <line x1="7.5" y1="8.5" x2="10.5" y2="15.5" />
             <line x1="16.5" y1="8.5" x2="13.5" y2="15.5" />
           </svg>`,
-          baseCost: 11500,
+          baseCost: 14500,
           costGrowth: 3.7,
           maxLevel: 3,
           milestoneRank: 3,
-          unlockThreshold: 5700,
+          unlockThreshold: 7000,
           requireMode: 'any',
           prerequisites: [
             { id: 'upg_doctrine_surge', minLevel: 1 },
@@ -394,23 +402,31 @@ export const dysonSwarmGame = compileGameConfig({
             targetId: 'layer0',
             operation: 'add',
             value: 0.0028
-          }
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.42
+            }
+          ]
         },
         {
           id: 'upg_milestone_resonance',
           name: 'Ascendant Chassis Matrix',
-          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.25x per level',
+          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.32x per level',
           lore: 'Unlocks overcharged coronal shielding and wider orbital formation bays.',
           backstory: 'Reconfigures standard squadron formations into diamond hulls while widening relay spacing so larger drone wings run unthrottled.',
           image: './assets/upg-coating.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 15 9 22 9 16 14 18 21 12 17 6 21 8 14 2 9 9 9 12 2" />
           </svg>`,
-          baseCost: 24000,
+          baseCost: 28000,
           costGrowth: 4.3,
           maxLevel: 2,
           milestoneRank: 3,
-          unlockThreshold: 12000,
+          unlockThreshold: 14000,
           prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
           effect: {
             target: 'milestoneMultiplier',
@@ -423,7 +439,7 @@ export const dysonSwarmGame = compileGameConfig({
               target: 'bayCapacity',
               targetId: 'layer0',
               operation: 'multiply',
-              value: 1.25
+              value: 1.32
             }
           ]
         },
@@ -437,10 +453,10 @@ export const dysonSwarmGame = compileGameConfig({
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 12h5l3-9 4 18 3-9h5" />
           </svg>`,
-          baseCost: 48000,
-          costGrowth: 7.0,
+          baseCost: 40000,
+          costGrowth: 5.5,
           maxLevel: 3,
-          unlockThreshold: 24000,
+          unlockThreshold: 20000,
           prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
           effect: {
             target: 'tickYield',
@@ -459,11 +475,11 @@ export const dysonSwarmGame = compileGameConfig({
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 55000,
+          baseCost: 58000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 27500,
+          unlockThreshold: 29000,
           prerequisites: [{ id: 'upg_milestone_resonance', minLevel: 1 }],
           effect: {
             target: 'logMomentum',

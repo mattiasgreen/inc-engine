@@ -28,9 +28,9 @@ export const CANONICAL_PROGRESSION = {
     boughtSynergyMultiplier: 1.012,
     overdriveMultiplier: 1.22,
     bayCapacity: {
-      gen1: { base: 24, perBought: 2.0 },
-      gen2: { base: 7, perBought: 1.2 },
-      gen3: { base: 4, perBought: 1.0 }
+      gen1: { base: 1.45, perBought: 0.145 },
+      gen2: { base: 2.0, perBought: 0.35 },
+      gen3: { base: 2.0, perBought: 0.45 }
     },
     capacitor: {
       name: 'Layer Capacitor',
@@ -82,45 +82,45 @@ export const CANONICAL_PROGRESSION = {
       {
         id: 'gen1',
         baseCost: 10,
-        costGrowth: 1.392,
+        costGrowth: 1.482,
         cyclePeriodTicks: 1,
         baseOutputPerTick: 6.0,
         produces: 'currency'
       },
       {
         id: 'gen2',
-        baseCost: 1200,
-        costGrowth: 1.46,
+        baseCost: 960,
+        costGrowth: 1.47,
         cyclePeriodTicks: 4,
-        baseOutputPerTick: 0.0040,
+        baseOutputPerTick: 0.031,
         produces: {
           type: 'generator',
           layerId: 'layer0',
           targetId: 'gen1'
         },
-        unlockThreshold: 480,
+        unlockThreshold: 430,
         milestones: GEN2_MILESTONE_TIERS
       },
       {
         id: 'gen3',
-        baseCost: 15500,
+        baseCost: 16500,
         costGrowth: 1.50,
         cyclePeriodTicks: 8,
-        baseOutputPerTick: 0.0022,
+        baseOutputPerTick: 0.0125,
         produces: {
           type: 'generator',
           layerId: 'layer0',
           targetId: 'gen2'
         },
-        unlockThreshold: 6500,
+        unlockThreshold: 7000,
         milestones: GEN3_MILESTONE_TIERS
       }
     ],
     upgrades: [
       {
         id: 'upg_cycle_accel',
-        baseCost: 190,
-        costGrowth: 2.68,
+        baseCost: 245,
+        costGrowth: 2.85,
         maxLevel: 6,
         effect: {
           target: 'cycleFrequency',
@@ -130,30 +130,38 @@ export const CANONICAL_PROGRESSION = {
       },
       {
         id: 'upg_gen1_overdrive',
-        baseCost: 400,
-        costGrowth: 2.78,
+        baseCost: 680,
+        costGrowth: 3.00,
         maxLevel: 6,
         effect: {
           target: 'generator',
           targetId: 'gen1',
           operation: 'multiply',
-          value: 1.10
+          value: 1.08
         }
       },
       {
         id: 'upg_period_compress',
-        baseCost: 3400,
-        costGrowth: 5.6,
+        baseCost: 5600,
+        costGrowth: 4.8,
         maxLevel: 2,
         milestoneRank: 2,
-        unlockThreshold: 1600,
+        unlockThreshold: 2600,
         prerequisites: [{ id: 'upg_cycle_accel', minLevel: 1 }],
         effect: {
           target: 'generatorPeriod',
           targetId: 'all',
           operation: 'divide',
           value: 2.0
-        }
+        },
+        effects: [
+          {
+            target: 'bayCapacity',
+            targetId: 'layer0',
+            operation: 'multiply',
+            value: 1.50
+          }
+        ]
       },
       {
         id: 'upg_doctrine_surge',
@@ -205,11 +213,11 @@ export const CANONICAL_PROGRESSION = {
       },
       {
         id: 'upg_cross_synergy',
-        baseCost: 18500,
-        costGrowth: 3.8,
+        baseCost: 14500,
+        costGrowth: 3.7,
         maxLevel: 3,
         milestoneRank: 3,
-        unlockThreshold: 9000,
+        unlockThreshold: 7000,
         requireMode: 'any',
         prerequisites: [
           { id: 'upg_doctrine_surge', minLevel: 1 },
@@ -220,15 +228,23 @@ export const CANONICAL_PROGRESSION = {
           targetId: 'layer0',
           operation: 'add',
           value: 0.0028
-        }
+        },
+        effects: [
+          {
+            target: 'bayCapacity',
+            targetId: 'layer0',
+            operation: 'multiply',
+            value: 1.42
+          }
+        ]
       },
       {
         id: 'upg_milestone_resonance',
-        baseCost: 38000,
-        costGrowth: 4.5,
+        baseCost: 28000,
+        costGrowth: 4.3,
         maxLevel: 2,
         milestoneRank: 3,
-        unlockThreshold: 19000,
+        unlockThreshold: 14000,
         prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
         effect: {
           target: 'milestoneMultiplier',
@@ -241,16 +257,16 @@ export const CANONICAL_PROGRESSION = {
             target: 'bayCapacity',
             targetId: 'layer0',
             operation: 'multiply',
-            value: 1.25
+            value: 1.32
           }
         ]
       },
       {
         id: 'upg_tick_amp',
-        baseCost: 78000,
-        costGrowth: 7.5,
+        baseCost: 40000,
+        costGrowth: 5.5,
         maxLevel: 3,
-        unlockThreshold: 38000,
+        unlockThreshold: 20000,
         prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
         effect: {
           target: 'tickYield',
@@ -260,11 +276,11 @@ export const CANONICAL_PROGRESSION = {
       },
       {
         id: 'upg_log_momentum',
-        baseCost: 92000,
+        baseCost: 58000,
         costGrowth: 1,
         maxLevel: 1,
         milestoneRank: 4,
-        unlockThreshold: 46000,
+        unlockThreshold: 29000,
         prerequisites: [{ id: 'upg_milestone_resonance', minLevel: 1 }],
         effect: {
           target: 'logMomentum',
@@ -337,7 +353,7 @@ export function validateGameConfig(config) {
   const cycleSec = (clock.baseCycleDurationMs || 6000) / 1000;
 
   for (const layer of config.layers || []) {
-    const genMap = new Set((layer.generators || []).map(g => g.id));
+    const genById = new Map((layer.generators || []).map(g => [g.id, g]));
 
     for (const gen of layer.generators || []) {
       if (!gen.baseCost || gen.baseCost <= 0) {
@@ -350,15 +366,18 @@ export function validateGameConfig(config) {
         throw new Error(`Generator ${gen.id} unlockThreshold (${gen.unlockThreshold}) cannot exceed baseCost (${gen.baseCost})`);
       }
 
-      // Metagenerator micro-utility check (Layer 0 cascades scale via Period Compression & Stances)
+      // Metagenerator micro-utility check: base Tier-2 <= 240s per unit, deeper tiers <= 600s per unit
       if (gen.produces && typeof gen.produces === 'object' && gen.produces.type === 'generator') {
         const targetId = gen.produces.targetId;
-        if (!genMap.has(targetId)) {
+        const targetGen = genById.get(targetId);
+        if (!targetGen) {
           throw new Error(`Metagenerator ${gen.id} targets non-existent generator ${targetId}`);
         }
+        const targetProducesCurrency = !targetGen.produces || targetGen.produces === 'currency' || targetGen.produces.type === 'currency';
+        const maxSpawnSec = targetProducesCurrency ? 240 : 600;
         const spawnSec = cycleSec / gen.baseOutputPerTick;
-        if (spawnSec > 4000) {
-          throw new Error(`Metagenerator ${gen.id} spawn rate too slow (${spawnSec.toFixed(1)}s per unit > 4000s).`);
+        if (spawnSec > maxSpawnSec) {
+          throw new Error(`Metagenerator ${gen.id} spawn rate too slow (${spawnSec.toFixed(1)}s per unit > ${maxSpawnSec}s).`);
         }
       }
     }

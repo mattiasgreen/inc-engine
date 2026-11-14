@@ -1,6 +1,7 @@
 // test/games.test.js
 import { describe, it, expect } from './runner.js';
 import { gamesList, getGameConfig } from '../src/games/index.js';
+import { validateGameConfig } from '../src/games/blueprint.js';
 import { createInitialState, getDerivedStats } from '../src/engine/core.js';
 import { Simulator } from '../src/engine/simulator.js';
 import { OptimalRoiPolicy } from '../src/engine/policies.js';
@@ -132,5 +133,36 @@ describe('Multi-Game Definitions and Presentation Seam', () => {
     expect(BUILD_INFO.commit.length).toBeGreaterThanOrEqual(7);
     expect(typeof BUILD_INFO.date).toBe('string');
     expect(BUILD_INFO.date.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it('rejects overly slow Tier-2 (>240s) and Tier-3 (>600s) metagenerators in validateGameConfig', () => {
+    const slowTier2 = {
+      clock: { baseCycleDurationMs: 4000 },
+      layers: [
+        {
+          id: 'layer0',
+          generators: [
+            { id: 'gen1', baseCost: 10, costGrowth: 1.4, baseOutputPerTick: 2.5, produces: 'currency' },
+            { id: 'gen2', baseCost: 700, costGrowth: 1.45, baseOutputPerTick: 0.0038, produces: { type: 'generator', layerId: 'layer0', targetId: 'gen1' } }
+          ]
+        }
+      ]
+    };
+    expect(() => validateGameConfig(slowTier2)).toThrow('spawn rate too slow');
+
+    const slowTier3 = {
+      clock: { baseCycleDurationMs: 6000 },
+      layers: [
+        {
+          id: 'layer0',
+          generators: [
+            { id: 'gen1', baseCost: 10, costGrowth: 1.4, baseOutputPerTick: 6.0, produces: 'currency' },
+            { id: 'gen2', baseCost: 900, costGrowth: 1.45, baseOutputPerTick: 0.032, produces: { type: 'generator', layerId: 'layer0', targetId: 'gen1' } },
+            { id: 'gen3', baseCost: 15000, costGrowth: 1.5, baseOutputPerTick: 0.005, produces: { type: 'generator', layerId: 'layer0', targetId: 'gen2' } }
+          ]
+        }
+      ]
+    };
+    expect(() => validateGameConfig(slowTier3)).toThrow('spawn rate too slow');
   });
 });

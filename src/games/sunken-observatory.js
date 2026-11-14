@@ -79,10 +79,6 @@ export const sunkenObservatoryGame = compileGameConfig({
     }
   },
   clock: {
-    baseCycleDurationMs: 6000,
-    baseTicksPerCycle: 1
-  },
-  clock: {
     baseCycleDurationMs: 7500,
     baseTicksPerCycle: 1
   },
@@ -93,9 +89,9 @@ export const sunkenObservatoryGame = compileGameConfig({
       boughtSynergyMultiplier: 1.013,
       overdriveMultiplier: 1.20,
       bayCapacity: {
-        gen1: { base: 8, perBought: 0.90 },
-        gen2: { base: 4, perBought: 0.8 },
-        gen3: { base: 3, perBought: 0.8 }
+        gen1: { base: 2.2, perBought: 0.22 },
+        gen2: { base: 2.0, perBought: 0.35 },
+        gen3: { base: 2.0, perBought: 0.45 }
       },
       capacitor: {
         name: 'Abyssal Bell Jar',
@@ -166,9 +162,9 @@ export const sunkenObservatoryGame = compileGameConfig({
             <circle cx="12" cy="7" r="4" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.408,
+          costGrowth: 1.455,
           cyclePeriodTicks: 1,
-          baseOutputPerTick: 6.7,
+          baseOutputPerTick: 5.8,
           produces: 'currency'
         },
         {
@@ -180,16 +176,16 @@ export const sunkenObservatoryGame = compileGameConfig({
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-monolith">
             <path d="M8 21h8l-2-18h-4z" />
           </svg>`,
-          baseCost: 1320,
-          costGrowth: 1.43,
+          baseCost: 760,
+          costGrowth: 1.47,
           cyclePeriodTicks: 3,
-          baseOutputPerTick: 0.0058,
+          baseOutputPerTick: 0.043,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 530,
+          unlockThreshold: 340,
           milestones: GEN2_MILESTONE_TIERS
         },
         {
@@ -203,16 +199,16 @@ export const sunkenObservatoryGame = compileGameConfig({
             <line x1="12" y1="3" x2="12" y2="21" />
             <line x1="3" y1="12" x2="21" y2="12" />
           </svg>`,
-          baseCost: 13500,
-          costGrowth: 1.46,
+          baseCost: 15800,
+          costGrowth: 1.50,
           cyclePeriodTicks: 6,
-          baseOutputPerTick: 0.0033,
+          baseOutputPerTick: 0.0155,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 5600,
+          unlockThreshold: 6800,
           milestones: GEN3_MILESTONE_TIERS
         }
       ],
@@ -240,7 +236,7 @@ export const sunkenObservatoryGame = compileGameConfig({
         {
           id: 'upg_gen1_overdrive',
           name: 'Black Ink Inscription',
-          description: 'Increases Cult Acolyte output by 1.10x per level',
+          description: 'Increases Cult Acolyte output by 1.09x per level',
           lore: 'Binding glyphs penned in cephalopod bioluminescent ichor.',
           backstory: 'Drawn from abyssal giant cephalopods that feed upon thermal plumes. This viscous black ink remains warm to the touch and glows faintly in absolute darkness. Texts copied with this ink crawl across the page, compelling acolytes to furious transcriptive output.',
           image: './assets/upg-black-ink.jpg',
@@ -248,39 +244,47 @@ export const sunkenObservatoryGame = compileGameConfig({
             <path d="M12 19l7-7 3 3-7 7-3-3z" />
             <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
           </svg>`,
-          baseCost: 420,
-          costGrowth: 2.65,
+          baseCost: 540,
+          costGrowth: 2.85,
           maxLevel: 6,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.10
+            value: 1.09
           }
         },
         {
           id: 'upg_period_compress',
           name: 'Infrasonic Tidal Pulse',
-          description: 'Halves Generator Tick Periods across the Abyssal Archive (+20% Overdrive at <=1s)',
+          description: 'Halves Generator Tick Periods (+20% Overdrive at <=1s) and boosts Bay Capacity by 1.38x',
           lore: 'Synchronizes obelisk vibrations with deep-trench seismic currents.',
-          backstory: 'By tuning the basalt monoliths to the resonant frequency of the Mariana Trench, psychic transmissions and rift excavations complete in half the required Ticks, driving the archive toward 1.20x Overdrive.',
+          backstory: 'By tuning the basalt monoliths to the resonant frequency of the Mariana Trench, psychic transmissions and rift excavations complete in half the required Ticks, driving the archive toward 1.20x Overdrive while expanding submerged cloisters.',
           image: './assets/upg-hysteria.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 2700,
-          costGrowth: 4.3,
+          baseCost: 4800,
+          costGrowth: 4.8,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 1300,
+          unlockThreshold: 2200,
           prerequisites: [{ id: 'upg_cycle_accel', minLevel: 1 }],
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
             operation: 'divide',
             value: 2.0
-          }
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.38
+            }
+          ]
         },
         {
           id: 'upg_doctrine_surge',
@@ -352,19 +356,19 @@ export const sunkenObservatoryGame = compileGameConfig({
         {
           id: 'upg_cross_synergy',
           name: 'Gestalt Chorus',
-          description: 'Boosts all Layer 0 output by +0.28% per total Generator bought',
+          description: 'Boosts all Layer 0 output by +0.28% per Generator bought and Bay Capacity by 1.34x',
           lore: 'Every acolyte and obelisk joins the submerged telepathic choir.',
-          backstory: 'Intertwines the minds of all acolytes with the acoustic hum of every monolith and rift dredge, magnifying total insight yield with every new unit commissioned.',
+          backstory: 'Intertwines the minds of all acolytes with the acoustic hum of every monolith and rift dredge, magnifying total insight yield and vault space with every new unit commissioned.',
           image: './assets/upg-geometries.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <circle cx="12" cy="12" r="4" />
           </svg>`,
-          baseCost: 14200,
+          baseCost: 15000,
           costGrowth: 3.7,
           maxLevel: 3,
           milestoneRank: 3,
-          unlockThreshold: 7100,
+          unlockThreshold: 7200,
           requireMode: 'any',
           prerequisites: [
             { id: 'upg_doctrine_surge', minLevel: 1 },
@@ -375,12 +379,20 @@ export const sunkenObservatoryGame = compileGameConfig({
             targetId: 'layer0',
             operation: 'add',
             value: 0.0028
-          }
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.34
+            }
+          ]
         },
         {
           id: 'upg_milestone_resonance',
           name: 'Eldritch Ordination',
-          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.25x per level',
+          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.28x per level',
           lore: 'Bestows deep-sea eyes and expanded cloisters upon initiated orders.',
           backstory: 'Once an order of scribes or monoliths reaches its milestone threshold, they undergo the Rite of the Drowned Star, amplifying Milestone Tiers and expanding archive quarters.',
           image: './assets/upg-black-ink.jpg',
@@ -404,7 +416,7 @@ export const sunkenObservatoryGame = compileGameConfig({
               target: 'bayCapacity',
               targetId: 'layer0',
               operation: 'multiply',
-              value: 1.25
+              value: 1.28
             }
           ]
         },
@@ -419,10 +431,10 @@ export const sunkenObservatoryGame = compileGameConfig({
             <circle cx="12" cy="12" r="10" />
             <path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z" />
           </svg>`,
-          baseCost: 58000,
-          costGrowth: 7.0,
+          baseCost: 44000,
+          costGrowth: 6.4,
           maxLevel: 3,
-          unlockThreshold: 29000,
+          unlockThreshold: 22000,
           prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
           effect: {
             target: 'tickYield',
@@ -441,11 +453,11 @@ export const sunkenObservatoryGame = compileGameConfig({
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 72000,
+          baseCost: 62000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 36000,
+          unlockThreshold: 31000,
           prerequisites: [{ id: 'upg_milestone_resonance', minLevel: 1 }],
           effect: {
             target: 'logMomentum',

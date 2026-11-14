@@ -96,9 +96,9 @@ export const aetherforgeGame = compileGameConfig({
       boughtSynergyMultiplier: 1.016,
       overdriveMultiplier: 1.16,
       bayCapacity: {
-        gen1: { base: 6, perBought: 0.80 },
-        gen2: { base: 4, perBought: 0.8 },
-        gen3: { base: 3, perBought: 0.8 }
+        gen1: { base: 2.5, perBought: 0.24 },
+        gen2: { base: 2.0, perBought: 0.35 },
+        gen3: { base: 2.0, perBought: 0.45 }
       },
       capacitor: {
         name: 'Astral Crucible',
@@ -169,9 +169,9 @@ export const aetherforgeGame = compileGameConfig({
             <circle cx="15" cy="11" r="1" fill="#c084fc" />
           </svg>`,
           baseCost: 10,
-          costGrowth: 1.388,
+          costGrowth: 1.455,
           cyclePeriodTicks: 1,
-          baseOutputPerTick: 3.15,
+          baseOutputPerTick: 2.55,
           produces: 'currency',
           milestones: [
             { id: 'm0', rank: 0, name: 'Common', minBought: 0, multiplier: 1 },
@@ -192,16 +192,16 @@ export const aetherforgeGame = compileGameConfig({
             <circle cx="12" cy="7" r="3" />
             <circle cx="12" cy="17" r="3" />
           </svg>`,
-          baseCost: 1280,
-          costGrowth: 1.43,
+          baseCost: 680,
+          costGrowth: 1.47,
           cyclePeriodTicks: 3,
-          baseOutputPerTick: 0.0038,
+          baseOutputPerTick: 0.023,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen1'
           },
-          unlockThreshold: 520,
+          unlockThreshold: 300,
           milestones: GEN2_MILESTONE_TIERS
         },
         {
@@ -213,16 +213,16 @@ export const aetherforgeGame = compileGameConfig({
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" xmlns="http://www.w3.org/2000/svg" class="icon-citadel">
             <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
           </svg>`,
-          baseCost: 13000,
-          costGrowth: 1.46,
+          baseCost: 15500,
+          costGrowth: 1.50,
           cyclePeriodTicks: 6,
-          baseOutputPerTick: 0.0031,
+          baseOutputPerTick: 0.0085,
           produces: {
             type: 'generator',
             layerId: 'layer0',
             targetId: 'gen2'
           },
-          unlockThreshold: 5500,
+          unlockThreshold: 6600,
           milestones: GEN3_MILESTONE_TIERS
         }
       ],
@@ -250,46 +250,54 @@ export const aetherforgeGame = compileGameConfig({
         {
           id: 'upg_gen1_overdrive',
           name: 'Ethereal Bond',
-          description: 'Boosts Runic Familiar mana harvest by 1.10x per level',
+          description: 'Boosts Runic Familiar mana harvest by 1.09x per level',
           lore: 'Tethers spirits directly to the caster spiritual reservoir.',
-          backstory: 'A sacred blood-and-mana pact inscribed onto the familiar spirits astral essence. By opening an unbroken psychic channel to the archmage, the spirits draw upon bottomless reservoirs of will, boosting each familiar mana yield by 10% per rank.',
+          backstory: 'A sacred blood-and-mana pact inscribed onto the familiar spirits astral essence. By opening an unbroken psychic channel to the archmage, the spirits draw upon bottomless reservoirs of will, boosting each familiar mana yield by 9% per rank.',
           image: './assets/upg-bond.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>`,
-          baseCost: 410,
-          costGrowth: 2.65,
+          baseCost: 520,
+          costGrowth: 2.85,
           maxLevel: 6,
           effect: {
             target: 'generator',
             targetId: 'gen1',
             operation: 'multiply',
-            value: 1.10
+            value: 1.09
           }
         },
         {
           id: 'upg_period_compress',
           name: 'Quickened Invocation',
-          description: 'Halves Generator Tick Periods across the Aetherial Weave (+16% Overdrive at <=1s)',
+          description: 'Halves Generator Tick Periods (+16% Overdrive at <=1s) and boosts Bay Capacity by 1.38x',
           lore: 'Inscribes haste glyphs directly into obsidian leyline pillars.',
-          backstory: 'By weaving temporal haste runes into the foundation of every Leyline Conduit and Astral Citadel, ritual conjurations complete in half the required Ticks, driving arcane constructs toward 1.16x Overdrive.',
+          backstory: 'By weaving temporal haste runes into the foundation of every Leyline Conduit and Astral Citadel, ritual conjurations complete in half the required Ticks, driving arcane constructs toward 1.16x Overdrive while widening sanctuary halls.',
           image: './assets/upg-spirits.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <polyline points="12 7 12 12 15 15" />
           </svg>`,
-          baseCost: 2700,
-          costGrowth: 4.3,
+          baseCost: 4600,
+          costGrowth: 4.8,
           maxLevel: 2,
           milestoneRank: 2,
-          unlockThreshold: 1300,
+          unlockThreshold: 2100,
           prerequisites: [{ id: 'upg_cycle_accel', minLevel: 1 }],
           effect: {
             target: 'generatorPeriod',
             targetId: 'all',
             operation: 'divide',
             value: 2.0
-          }
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.38
+            }
+          ]
         },
         {
           id: 'upg_doctrine_surge',
@@ -361,19 +369,19 @@ export const aetherforgeGame = compileGameConfig({
         {
           id: 'upg_cross_synergy',
           name: 'Covenant of the Circle',
-          description: 'Boosts all Layer 0 output by +0.30% per total Generator bought',
+          description: 'Boosts all Layer 0 output by +0.30% per Generator bought and Bay Capacity by 1.34x',
           lore: 'Every summoned familiar and spire harmonizes with the grand chantry.',
-          backstory: 'Links every Runic Familiar, Conduit, and Citadel into a sympathetic arcane chorus where each newly bound construct amplifies the potency of the entire weave.',
+          backstory: 'Links every Runic Familiar, Conduit, and Citadel into a sympathetic arcane chorus where each newly bound construct amplifies the potency and sanctuary space of the entire weave.',
           image: './assets/upg-planetary-siphon.jpg',
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="9" />
             <polygon points="12 4 19 18 5 18 12 4" />
           </svg>`,
-          baseCost: 14000,
+          baseCost: 15000,
           costGrowth: 3.7,
           maxLevel: 3,
           milestoneRank: 3,
-          unlockThreshold: 7000,
+          unlockThreshold: 7200,
           requireMode: 'any',
           prerequisites: [
             { id: 'upg_doctrine_surge', minLevel: 1 },
@@ -384,12 +392,20 @@ export const aetherforgeGame = compileGameConfig({
             targetId: 'layer0',
             operation: 'add',
             value: 0.0030
-          }
+          },
+          effects: [
+            {
+              target: 'bayCapacity',
+              targetId: 'layer0',
+              operation: 'multiply',
+              value: 1.34
+            }
+          ]
         },
         {
           id: 'upg_milestone_resonance',
           name: 'Runic Sanctification',
-          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.25x per level',
+          description: 'Multiplies Milestone Tier bonuses by 1.18x and Bay Capacity by 1.28x per level',
           lore: 'Consecrates familiar covens once a circle reaches 22 bound spirits.',
           backstory: 'When 22 constructs of a single order are gathered, high artificers anoint them in liquid starlight, magnifying every Milestone Tier and expanding sanctuary space.',
           image: './assets/upg-bond.jpg',
@@ -413,7 +429,7 @@ export const aetherforgeGame = compileGameConfig({
               target: 'bayCapacity',
               targetId: 'layer0',
               operation: 'multiply',
-              value: 1.25
+              value: 1.28
             }
           ]
         },
@@ -427,10 +443,10 @@ export const aetherforgeGame = compileGameConfig({
           svg: `<svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
             <polygon points="12 2 2 22 22 22 12 2" />
           </svg>`,
-          baseCost: 58000,
-          costGrowth: 7.0,
+          baseCost: 52000,
+          costGrowth: 6.5,
           maxLevel: 3,
-          unlockThreshold: 29000,
+          unlockThreshold: 26000,
           prerequisites: [{ id: 'upg_cross_synergy', minLevel: 1 }],
           effect: {
             target: 'tickYield',
@@ -449,11 +465,11 @@ export const aetherforgeGame = compileGameConfig({
             <path d="M12 2v20M2 12h20" />
             <circle cx="12" cy="12" r="7" />
           </svg>`,
-          baseCost: 72000,
+          baseCost: 66000,
           costGrowth: 1,
           maxLevel: 1,
           milestoneRank: 4,
-          unlockThreshold: 36000,
+          unlockThreshold: 33000,
           prerequisites: [{ id: 'upg_milestone_resonance', minLevel: 1 }],
           effect: {
             target: 'logMomentum',
